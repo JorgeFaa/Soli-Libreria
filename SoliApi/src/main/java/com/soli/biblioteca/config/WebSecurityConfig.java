@@ -21,11 +21,18 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // reemplaza csrf().disable()
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // reemplaza sessionManagement()
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated() // reemplaza authorizeHttpRequests().anyRequest().authenticated()
+                        // Endpoints libres
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        // Endpoints protegidos
+                        .anyRequest().authenticated()
                 );
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
