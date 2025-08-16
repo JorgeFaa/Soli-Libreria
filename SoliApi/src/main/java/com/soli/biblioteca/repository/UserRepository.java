@@ -1,4 +1,9 @@
 package com.soli.biblioteca.repository;
 
-public class UserRepository {
+import com.soli.biblioteca.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 }
