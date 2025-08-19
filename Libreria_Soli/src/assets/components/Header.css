@@ -1,0 +1,236 @@
+/* Variables CSS para la paleta de colores de Soli */
+:root {
+  --amarillo-solar: #FFD24C;
+  --naranja-atardecer: #FF8C42;
+  --rojo-terracota: #D94F30;
+  --arena-suave: #F8F4E3;
+  --gris-carbon: #2E2E2E;
+}
+
+/* Navbar principal */
+.header-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: linear-gradient(135deg, var(--amarillo-solar) 0%, var(--naranja-atardecer) 100%);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 140, 66, 0.2);
+}
+
+/* Contenedor principal del header */
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+}
+
+/* Logo y branding */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+}
+
+.header-logo-icon {
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.3s ease;
+}
+
+.header-logo:hover .header-logo-icon {
+  transform: rotate(20deg);
+}
+
+.header-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-logo-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--gris-carbon);
+  line-height: 1;
+}
+
+.header-logo-subtitle {
+  font-size: 0.75rem;
+  color: var(--gris-carbon);
+  opacity: 0.8;
+  line-height: 1;
+}
+
+/* Navegación de escritorio */
+.header-nav-links {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-nav-link {
+  color: var(--gris-carbon);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.header-nav-link:hover {
+  color: var(--rojo-terracota);
+}
+
+.header-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--rojo-terracota);
+  transition: width 0.3s ease;
+}
+
+.header-nav-link:hover::after {
+  width: 100%;
+}
+
+/* Botones de acción */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-cta-button {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--rojo-terracota);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(217, 79, 48, 0.2);
+}
+
+.header-cta-button:hover {
+  background: #c44428;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(217, 79, 48, 0.3);
+}
+
+.header-cta-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Botón del menú móvil */
+.header-mobile-menu-button {
+  display: block;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+}
+
+.header-mobile-menu-button:hover {
+  background: rgba(46, 46, 46, 0.1);
+}
+
+.header-mobile-menu-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Menú móvil */
+.header-mobile-menu {
+  background: var(--arena-suave);
+  border-top: 1px solid rgba(255, 140, 66, 0.2);
+}
+
+.header-mobile-menu-links {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header-mobile-menu-link {
+  color: var(--gris-carbon);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.header-mobile-menu-link:hover {
+  background: rgba(255, 140, 66, 0.1);
+  color: var(--rojo-terracota);
+}
+
+.header-mobile-cta {
+  background: var(--rojo-terracota);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.header-mobile-cta:hover {
+  background: #c44428;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .header-container {
+    height: 5rem;
+    padding: 0 2rem;
+  }
+  
+  .header-nav-links {
+    display: flex;
+  }
+  
+  .header-cta-button {
+    display: flex;
+  }
+  
+  .header-mobile-menu-button {
+    display: none;
+  }
+}
