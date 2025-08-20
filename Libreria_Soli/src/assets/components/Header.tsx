@@ -117,7 +117,10 @@ export default function Header() {
       {/* Menú lateral de usuario */}
       {userMenuOpen && (
         <div className={`user-side-menu ${isClosing ? 'closing' : ''}`}> {/* Leemos el estado de isClosing declarado antes, si es true, le agregamos la clase closing para que entren los estilos, si no, no movemos ninguna clase */}
-          <div className="user-side-menu-content">
+          <div 
+            className="user-side-menu-content"
+            onClick={(e) => e.stopPropagation()} // Prevenir que el clic se propague al overlay
+          >
             <div className="user-side-menu-header">
               <h3>
                 <span className="desktop-title">Mi Cuenta</span>
@@ -195,11 +198,6 @@ export default function Header() {
               &copy; 2025 El Edwin fan de dmc
             </div>
           </div>
-          <div 
-            className="user-side-menu-overlay"
-            onClick={handleCloseMenu} 
-            //El overlay sirve para ayudar a cerrar al hacer clic fuera del menú, que es toda el área fuera del menú, que lo cubre
-          ></div>
         </div>
       )}
     </nav>
