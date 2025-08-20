@@ -1,362 +1,363 @@
 /* Variables de la paleta de colores Soli */
 :root {
-  --amarillo-solar: #FFD24C;
-  --naranja-atardecer: #FF8C42;
-  --rojo-terracota: #D94F30;
-  --arena-suave: #F8F4E3;
-  --gris-carbon: #2E2E2E;
+  --amarillo-solar: #FFD24C;    /* Color principal amarillo para elementos destacados */
+  --naranja-atardecer: #FF8C42; /* Color secundario naranja para acentos y hover */
+  --rojo-terracota: #D94F30;    /* Color de acción para elementos importantes */
+  --arena-suave: #F8F4E3;       /* Color de fondo cálido y suave */
+  --gris-carbon: #2E2E2E;       /* Color principal para texto y elementos oscuros */
 }
 
 /* Sección Hero principal */
 .hero-section {
-  background: linear-gradient(135deg, var(--arena-suave) 0%, #FFF8E7 100%);
-  padding: 6rem 0 4rem 0;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, var(--arena-suave) 0%, #FFF8E7 100%); /* Gradiente diagonal cálido */
+  padding: 6rem 0 4rem 0;        /* Espaciado vertical generoso */
+  position: relative;            /* Permite posicionar decoraciones absolutas */
+  overflow: hidden;              /* Oculta decoraciones que se salen */
 }
 
 .hero-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  max-width: 1200px;             /* Ancho máximo para mantener legibilidad */
+  margin: 0 auto;                /* Centra horizontalmente */
+  padding: 0 1rem;               /* Espaciado lateral para móviles */
 }
 
 .hero-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
-  align-items: center;
+  display: grid;                 /* Layout de cuadrícula */
+  grid-template-columns: 1fr;    /* Una columna en móvil */
+  gap: 3rem;                     /* Espacio entre contenido y visual */
+  align-items: center;           /* Centra verticalmente */
 }
 
 /* Contenido de texto */
 .hero-content {
-  text-align: center;
+  text-align: center;            /* Centrado en móvil */
 }
 
 .hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 210, 76, 0.2);
-  border: 1px solid var(--amarillo-solar);
-  color: var(--gris-carbon);
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
+  display: inline-flex;          /* Layout flexbox en línea */
+  align-items: center;           /* Centra ícono y texto verticalmente */
+  gap: 0.5rem;                   /* Espacio entre ícono y texto */
+  background: rgba(255, 210, 76, 0.2); /* Fondo amarillo transparente */
+  border: 1px solid var(--amarillo-solar); /* Borde amarillo visible */
+  color: var(--gris-carbon);     /* Texto oscuro para contraste */
+  padding: 0.5rem 1rem;          /* Espaciado interno cómodo */
+  border-radius: 2rem;           /* Forma de píldora */
+  font-size: 0.875rem;           /* Texto pequeño para badge */
+  font-weight: 500;              /* Peso medio para legibilidad */
+  margin-bottom: 1.5rem;         /* Espacio debajo del badge */
 }
 
 .hero-badge-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 1rem;                   /* Ancho fijo del ícono */
+  height: 1rem;                  /* Alto fijo del ícono */
 }
 
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--gris-carbon);
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
+  font-size: 2.5rem;             /* Tamaño grande para impacto visual */
+  font-weight: bold;             /* Peso bold para jerarquía */
+  color: var(--gris-carbon);     /* Color oscuro para legibilidad */
+  line-height: 1.2;              /* Interlineado ajustado para títulos grandes */
+  margin-bottom: 1.5rem;         /* Espacio debajo del título */
 }
 
 .hero-title-accent {
-  color: var(--naranja-atardecer);
-  display: block;
+  color: var(--naranja-atardecer); /* Color naranja para palabras destacadas */
+  display: block;                /* Fuerza salto de línea */
 }
 
 .hero-description {
-  font-size: 1.125rem;
-  color: rgba(46, 46, 46, 0.8);
-  line-height: 1.7;
-  margin-bottom: 2rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  font-size: 1.125rem;           /* Texto ligeramente más grande que normal */
+  color: rgba(46, 46, 46, 0.8);  /* Gris oscuro con transparencia */
+  line-height: 1.7;              /* Interlineado generoso para lectura */
+  margin-bottom: 2rem;           /* Espacio antes de los botones */
+  max-width: 500px;              /* Ancho máximo para líneas legibles */
+  margin-left: auto;             /* Centra horizontalmente */
+  margin-right: auto;            /* Centra horizontalmente */
 }
 
-/* Botones */
+/* Botones de acción */
 .hero-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 3rem;
+  display: flex;                 /* Layout flexbox */
+  flex-direction: column;        /* Apilado vertical en móvil */
+  gap: 1rem;                     /* Espacio entre botones */
+  align-items: center;           /* Centra los botones */
+  margin-bottom: 3rem;           /* Espacio debajo de los botones */
 }
 
 .hero-button-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: var(--amarillo-solar);
-  color: var(--gris-carbon);
-  padding: 0.875rem 2rem;
-  border-radius: 0.75rem;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 210, 76, 0.3);
-  width: 90%;
+  display: inline-flex;          /* Layout flexbox en línea */
+  align-items: center;           /* Centra ícono y texto verticalmente */
+  justify-content: center;       /* Centra contenido horizontalmente */
+  gap: 0.5rem;                   /* Espacio entre ícono y texto */
+  background: var(--amarillo-solar); /* Fondo amarillo llamativo */
+  color: var(--gris-carbon);     /* Texto oscuro para contraste */
+  padding: 0.875rem 2rem;        /* Espaciado interno generoso */
+  border-radius: 0.75rem;        /* Bordes redondeados modernos */
+  text-decoration: none;         /* Sin subrayado */
+  font-weight: 600;              /* Peso semibold para destacar */
+  font-size: 1rem;               /* Tamaño estándar legible */
+  transition: all 0.3s ease;     /* Transición suave para hover */
+  box-shadow: 0 4px 12px rgba(255, 210, 76, 0.3); /* Sombra amarilla suave */
+  width: 90%;                    /* Ancho casi completo en móvil */
 }
 
 .hero-button-primary:hover {
-  background: #ffc93d;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 210, 76, 0.4);
+  background: #ffc93d;           /* Amarillo más intenso en hover */
+  transform: translateY(-2px);   /* Eleva el botón */
+  box-shadow: 0 6px 20px rgba(255, 210, 76, 0.4); /* Sombra más intensa */
 }
 
 .hero-button-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.25rem;                /* Ancho del ícono del botón */
+  height: 1.25rem;               /* Alto del ícono del botón */
 }
 
-/* Estadísticas */
+/* Estadísticas de la librería */
 .hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  max-width: 400px;
-  margin: 0 auto 0 0;
+  display: grid;                 /* Layout de cuadrícula */
+  grid-template-columns: repeat(3, 1fr); /* Tres columnas iguales */
+  gap: 2rem;                     /* Espacio entre estadísticas */
+  max-width: 400px;              /* Ancho máximo del contenedor */
+  margin: 0 auto 0 0;            /* Alineado a la izquierda en escritorio */
 }
 
 .hero-stat {
-  text-align: center;
+  text-align: center;            /* Centra cada estadística */
 }
 
 .hero-stat-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--naranja-atardecer);
-  line-height: 1;
+  font-size: 1.5rem;             /* Número grande para impacto */
+  font-weight: bold;             /* Peso bold para destacar */
+  color: var(--naranja-atardecer); /* Color naranja llamativo */
+  line-height: 1;                /* Interlineado compacto */
 }
 
 .hero-stat-label {
-  font-size: 0.875rem;
-  color: rgba(46, 46, 46, 0.7);
-  margin-top: 0.25rem;
+  font-size: 0.875rem;           /* Texto pequeño para etiqueta */
+  color: rgba(46, 46, 46, 0.7);  /* Gris suave para información secundaria */
+  margin-top: 0.25rem;           /* Espacio pequeño arriba */
 }
 
-/* Ilustración de librería */
+/* Ilustración visual de librería */
 .hero-visual {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: relative;            /* Permite posicionar elementos decorativos */
+  display: flex;                 /* Layout flexbox */
+  justify-content: center;       /* Centra horizontalmente */
+  align-items: center;           /* Centra verticalmente */
 }
 
 .hero-visual-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 2px solid rgba(255, 210, 76, 0.3);
-  max-width: 400px;
-  width: 100%;
+  background: white;             /* Fondo blanco limpio */
+  border-radius: 1rem;           /* Bordes redondeados */
+  padding: 2rem;                 /* Espaciado interno generoso */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  border: 2px solid rgba(255, 210, 76, 0.3); /* Borde amarillo sutil */
+  max-width: 400px;              /* Ancho máximo */
+  width: 100%;                   /* Ancho completo dentro del límite */
 }
 
 .hero-visual-inner {
-  position: relative;
+  position: relative;            /* Contexto para elementos internos */
 }
 
-/* Estantería de librería */
+/* Estantería ilustrativa de librería */
 .hero-bookshelf {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  display: flex;                 /* Layout flexbox */
+  flex-direction: column;        /* Apila estantes verticalmente */
+  gap: 1.5rem;                   /* Espacio entre estantes */
+  margin-bottom: 2rem;           /* Espacio debajo de la estantería */
 }
 
 .hero-shelf {
-  position: relative;
+  position: relative;            /* Contexto para posicionar libros */
 }
 
 .hero-shelf-board {
-  height: 8px;
-  background: linear-gradient(to right, #8B4513, #A0522D);
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 8px;                   /* Alto de la tabla del estante */
+  background: linear-gradient(to right, #8B4513, #A0522D); /* Gradiente marrón madera */
+  border-radius: 4px;            /* Bordes redondeados */
+  margin-bottom: 0.5rem;         /* Espacio antes de los libros */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
 }
 
 .hero-books-row {
-  display: flex;
-  gap: 2px;
-  padding: 0 0.5rem;
+  display: flex;                 /* Layout flexbox horizontal */
+  gap: 2px;                      /* Espacio pequeño entre libros */
+  padding: 0 0.5rem;             /* Espaciado lateral */
 }
 
+/* Libros individuales con diferentes tamaños */
 .hero-book {
-  border-radius: 2px 2px 0 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  position: relative;
+  border-radius: 2px 2px 0 0;    /* Bordes redondeados solo arriba */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+  position: relative;            /* Para el pseudo-elemento de brillo */
 }
 
 .hero-book-tall {
-  width: 12px;
-  height: 40px;
-  background: var(--rojo-terracota);
+  width: 12px;                   /* Ancho del libro alto */
+  height: 40px;                  /* Alto del libro alto */
+  background: var(--rojo-terracota); /* Color rojo terracota */
 }
 
 .hero-book-medium {
-  width: 14px;
-  height: 32px;
-  background: var(--naranja-atardecer);
+  width: 14px;                   /* Ancho del libro mediano */
+  height: 32px;                  /* Alto del libro mediano */
+  background: var(--naranja-atardecer); /* Color naranja */
 }
 
 .hero-book-short {
-  width: 10px;
-  height: 24px;
-  background: var(--amarillo-solar);
+  width: 10px;                   /* Ancho del libro bajo */
+  height: 24px;                  /* Alto del libro bajo */
+  background: var(--amarillo-solar); /* Color amarillo */
 }
 
 .hero-book::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px 2px 0 0;
+  content: '';                   /* Pseudo-elemento para efecto de brillo */
+  position: absolute;            /* Posicionado sobre el libro */
+  top: 0;                        /* En la parte superior */
+  left: 0;                       /* Desde la izquierda */
+  right: 0;                      /* Hasta la derecha */
+  height: 2px;                   /* Línea delgada de brillo */
+  background: rgba(255, 255, 255, 0.3); /* Blanco transparente */
+  border-radius: 2px 2px 0 0;    /* Coincide con el borde del libro */
 }
 
-/* Rincón de lectura */
+/* Rincón de lectura decorativo */
 .hero-reading-corner {
-  position: absolute;
-  bottom: 0;
-  right: 1rem;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
+  position: absolute;            /* Posicionado dentro de la tarjeta visual */
+  bottom: 0;                     /* En la parte inferior */
+  right: 1rem;                   /* Hacia la derecha */
+  display: flex;                 /* Layout flexbox horizontal */
+  align-items: flex-end;         /* Alinea elementos al fondo */
+  gap: 0.5rem;                   /* Espacio entre silla y mesa */
 }
 
 .hero-chair {
-  width: 20px;
-  height: 24px;
-  background: var(--gris-carbon);
-  border-radius: 2px;
-  position: relative;
+  width: 20px;                   /* Ancho de la silla */
+  height: 24px;                  /* Alto del asiento */
+  background: var(--gris-carbon); /* Color gris oscuro */
+  border-radius: 2px;            /* Bordes ligeramente redondeados */
+  position: relative;            /* Para el respaldo */
 }
 
 .hero-chair::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 0;
-  right: 0;
-  height: 12px;
-  background: var(--gris-carbon);
-  border-radius: 2px 2px 0 0;
+  content: '';                   /* Pseudo-elemento para respaldo */
+  position: absolute;            /* Posicionado sobre el asiento */
+  top: -8px;                     /* 8px arriba del asiento */
+  left: 0;                       /* Alineado a la izquierda */
+  right: 0;                      /* Alineado a la derecha */
+  height: 12px;                  /* Alto del respaldo */
+  background: var(--gris-carbon); /* Mismo color que asiento */
+  border-radius: 2px 2px 0 0;    /* Redondeado solo arriba */
 }
 
 .hero-coffee-table {
-  width: 16px;
-  height: 8px;
-  background: #8B4513;
-  border-radius: 2px;
-  position: relative;
+  width: 16px;                   /* Ancho de la mesa */
+  height: 8px;                   /* Alto de la mesa */
+  background: #8B4513;           /* Color marrón madera */
+  border-radius: 2px;            /* Bordes redondeados */
+  position: relative;            /* Para la taza de café */
 }
 
 .hero-coffee-cup {
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  background: var(--naranja-atardecer);
-  border-radius: 50%;
+  position: absolute;            /* Posicionada sobre la mesa */
+  top: -4px;                     /* 4px arriba de la mesa */
+  left: 50%;                     /* Centrada horizontalmente */
+  transform: translateX(-50%);   /* Centrado perfecto */
+  width: 6px;                    /* Ancho de la taza */
+  height: 6px;                   /* Alto de la taza */
+  background: var(--naranja-atardecer); /* Color naranja */
+  border-radius: 50%;            /* Forma circular */
 }
 
-/* Texto decorativo */
+/* Texto decorativo de la ilustración */
 .hero-visual-text {
-  text-align: center;
-  margin-top: 1rem;
+  text-align: center;            /* Centra el texto */
+  margin-top: 1rem;              /* Espacio arriba del texto */
 }
 
 .hero-visual-icon {
-  width: 2rem;
-  height: 2rem;
-  margin-bottom: 0.5rem;
+  width: 2rem;                   /* Ancho del ícono decorativo */
+  height: 2rem;                  /* Alto del ícono decorativo */
+  margin-bottom: 0.5rem;         /* Espacio debajo del ícono */
 }
 
 .hero-visual-caption {
-  font-size: 0.875rem;
-  color: rgba(46, 46, 46, 0.7);
-  font-style: italic;
+  font-size: 0.875rem;           /* Texto pequeño para caption */
+  color: rgba(46, 46, 46, 0.7);  /* Gris suave */
+  font-style: italic;            /* Estilo cursiva para darle carácter */
 }
 
-/* Decoraciones flotantes */
+/* Decoraciones flotantes animadas */
 .hero-decoration {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.6;
+  position: absolute;            /* Posicionadas sobre la sección */
+  border-radius: 50%;            /* Forma circular */
+  opacity: 0.6;                  /* Semi-transparentes */
 }
 
 .hero-decoration-1 {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 210, 76, 0.3);
-  top: 10%;
-  left: 5%;
-  animation: float 6s ease-in-out infinite;
+  width: 60px;                   /* Círculo grande */
+  height: 60px;                  /* Círculo grande */
+  background: rgba(255, 210, 76, 0.3); /* Amarillo transparente */
+  top: 10%;                      /* 10% desde arriba */
+  left: 5%;                      /* 5% desde la izquierda */
+  animation: float 6s ease-in-out infinite; /* Animación flotante lenta */
 }
 
 .hero-decoration-2 {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 140, 66, 0.3);
-  bottom: 20%;
-  right: 10%;
-  animation: float 4s ease-in-out infinite reverse;
+  width: 40px;                   /* Círculo mediano */
+  height: 40px;                  /* Círculo mediano */
+  background: rgba(255, 140, 66, 0.3); /* Naranja transparente */
+  bottom: 20%;                   /* 20% desde abajo */
+  right: 10%;                    /* 10% desde la derecha */
+  animation: float 4s ease-in-out infinite reverse; /* Animación más rápida e invertida */
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0px); }    /* Posición inicial y final */
+  50% { transform: translateY(-10px); }       /* Punto medio elevado 10px */
 }
 
-/* Responsive */
-@media (min-width: 768px) {
+/* Responsive - Adaptaciones para diferentes pantallas */
+@media (min-width: 768px) {     /* Tablets y escritorio */
   .hero-section {
-    padding: 8rem 0 6rem 0;
+    padding: 8rem 0 6rem 0;      /* Más espaciado vertical en pantallas grandes */
   }
   
   .hero-container {
-    padding: 0 2rem;
+    padding: 0 2rem;             /* Más espaciado lateral */
   }
   
   .hero-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    grid-template-columns: 1fr 1fr; /* Dos columnas: contenido y visual */
+    gap: 4rem;                   /* Más espacio entre columnas */
   }
   
   .hero-content {
-    text-align: left;
+    text-align: left;            /* Alineación izquierda en escritorio */
   }
   
   .hero-title {
-    font-size: 3.5rem;
+    font-size: 3.5rem;           /* Título más grande para escritorio */
   }
   
   .hero-buttons {
-    flex-direction: row;
-    justify-content: flex-start;
+    flex-direction: row;         /* Botones en fila horizontal */
+    justify-content: flex-start; /* Alineados a la izquierda */
   }
   
   .hero-description {
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: 0;              /* Sin centrado automático */
+    margin-right: 0;             /* Sin centrado automático */
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) {    /* Escritorio grande */
   .hero-title {
-    font-size: 4rem;
+    font-size: 4rem;             /* Título aún más grande */
   }
   
   .hero-visual-card {
-    max-width: 500px;
+    max-width: 500px;            /* Ilustración más grande */
   }
 }

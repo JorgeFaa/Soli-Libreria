@@ -17,19 +17,19 @@ export default function Hero() {
           {/* COLUMNA 1: Contenido de texto */}
           <div className="hero-content">
             
-            {/* Badge de confianza con el nuevo branding */}
+            {/* Badge para generar confianza */}
             <div className="hero-badge">
               <img src={StarIcon} alt="Estrella" className="hero-badge-icon" />
               Tu librería de confianza desde 2025
             </div>
             
-            {/* Título principal actualizado para Soli */}
+            {/* Título principal */}
             <h1 className="hero-title">
               Donde cada libro 
               <span className="hero-title-accent">ilumina tu día</span>
             </h1>
             
-            {/* Descripción más específica de una librería física */}
+            {/* Descripción */}
             <p className="hero-description">
               En Soli encontrarás desde los últimos bestsellers hasta joyas literarias descatalogadas. 
               Disfruta de un momento para tí mientras explores miles de títulos cuidadosamente seleccionados.
@@ -43,7 +43,7 @@ export default function Hero() {
               </Link>
             </div>
 
-            {/* Estadísticas actualizadas */}
+            {/* Estadísticas actualizadas (Puede que las borre)*/}
             <div className="hero-stats">
               <div className="hero-stat">
                 <div className="hero-stat-number">12,000+</div>
