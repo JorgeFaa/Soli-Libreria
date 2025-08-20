@@ -1,184 +1,184 @@
-/* Variables de la paleta de colores Soli */
+/* Variables de la paleta de colores Soli, las repito en cada CSS*/
 :root {
-  --amarillo-solar: #FFD24C;
-  --naranja-atardecer: #FF8C42;
-  --rojo-terracota: #D94F30;
-  --arena-suave: #F8F4E3;
-  --gris-carbon: #2E2E2E;
+  --amarillo-solar: #FFD24C;    /* Color principal amarillo para acentos */
+  --naranja-atardecer: #FF8C42; /* Color secundario naranja para hover y destacados */
+  --rojo-terracota: #D94F30;    /* Color terciario rojo para elementos especiales */
+  --arena-suave: #F8F4E3;       /* Color de fondo suave beige para tarjetas */
+  --gris-carbon: #2E2E2E;       /* Color principal para texto oscuro */
 }
 
 /* Sección principal del catálogo */
 .catalogo-section {
-  background: white;
-  padding: 4rem 0;
-  position: relative;
+  background: white;             /* Fondo blanco limpio para la sección */
+  padding: 4rem 0;              /* Espaciado vertical generoso arriba y abajo */
+  position: relative;           /* Permite posicionar elementos absolutos dentro */
 }
 
 .catalogo-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  max-width: 1200px;            /* Ancho máximo para mantener legibilidad */
+  margin: 0 auto;               /* Centra el contenedor horizontalmente */
+  padding: 0 1rem;              /* Espaciado interno lateral para móviles */
 }
 
 /* Header del catálogo */
 .catalogo-header {
-  text-align: center;
-  margin-bottom: 4rem;
+  text-align: center;           /* Centra todo el contenido del header */
+  margin-bottom: 4rem;          /* Espacio generoso debajo del header */
 }
 
 .catalogo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 210, 76, 0.1);
-  border: 1px solid var(--amarillo-solar);
-  color: var(--gris-carbon);
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
+  display: inline-flex;         /* Permite alinear ícono y texto en línea */
+  align-items: center;          /* Centra verticalmente el contenido */
+  gap: 0.5rem;                  /* Espacio entre ícono y texto */
+  background: rgba(255, 210, 76, 0.1); /* Fondo amarillo muy transparente */
+  border: 1px solid var(--amarillo-solar); /* Borde amarillo delgado */
+  color: var(--gris-carbon);    /* Texto en gris oscuro */
+  padding: 0.5rem 1rem;         /* Espaciado interno cómodo */
+  border-radius: 2rem;          /* Bordes muy redondeados (píldora) */
+  font-size: 0.875rem;          /* Texto pequeño para badge */
+  font-weight: 500;             /* Peso medio para legibilidad */
+  margin-bottom: 1.5rem;        /* Espacio debajo del badge */
 }
 
 .catalogo-badge-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 1rem;                  /* Ancho fijo del ícono */
+  height: 1rem;                 /* Alto fijo del ícono */
 }
 
 .catalogo-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--gris-carbon);
-  line-height: 1.2;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;            /* Tamaño grande para título principal */
+  font-weight: bold;            /* Peso bold para jerarquía visual */
+  color: var(--gris-carbon);    /* Color oscuro para contraste */
+  line-height: 1.2;             /* Interlineado ajustado para títulos grandes */
+  margin-bottom: 1rem;          /* Espacio debajo del título */
 }
 
 .ir-catalogo{
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--gris-carbon);
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  text-align: center;
-  text-decoration: underline;
-  transition: all 0.3s ease;
+  font-size: 2.5rem;            /* Mismo tamaño que título principal */
+  font-weight: bold;            /* Peso bold para destacar */
+  color: var(--gris-carbon);    /* Color base oscuro */
+  line-height: 1.2;             /* Interlineado consistente */
+  margin-bottom: 1rem;          /* Espacio debajo del enlace */
+  text-align: center;           /* Centrado horizontal */
+  text-decoration: underline;   /* Subrayado para indicar que es enlace */
+  transition: all 0.3s ease;    /* Transición suave para hover */
 }
 
 .ir-catalogo:hover{
-  color: var(--naranja-atardecer);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  transition: all 0.3s ease;
+  color: var(--naranja-atardecer); /* Cambia a naranja en hover */
+  text-decoration: underline;   /* Mantiene el subrayado */
+  text-underline-offset: 4px;   /* Separa el subrayado del texto */
+  transition: all 0.3s ease;    /* Transición suave de vuelta */
 }
 
 .catalogo-title-accent {
-  color: var(--naranja-atardecer);
+  color: var(--naranja-atardecer); /* Color naranja para palabras destacadas */
 }
 
 .catalogo-description {
-  font-size: 1.125rem;
-  color: rgba(46, 46, 46, 0.7);
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
+  font-size: 1.125rem;          /* Tamaño ligeramente mayor que texto normal */
+  color: rgba(46, 46, 46, 0.7); /* Gris oscuro con transparencia para suavizar */
+  max-width: 600px;             /* Ancho máximo para líneas legibles */
+  margin: 0 auto;               /* Centra la descripción */
+  line-height: 1.6;             /* Interlineado generoso para lectura */
 }
 
 /* Sección de categorías */
 .catalogo-categorias {
-  margin-bottom: 4rem;
+  margin-bottom: 4rem;          /* Espacio generoso debajo de la sección */
 }
 
 .categorias-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gris-carbon);
-  margin-bottom: 2rem;
-  text-align: center;
+  font-size: 1.5rem;            /* Tamaño de subtítulo */
+  font-weight: 600;             /* Peso semibold para jerarquía */
+  color: var(--gris-carbon);    /* Color oscuro consistente */
+  margin-bottom: 2rem;          /* Espacio antes de las tarjetas */
+  text-align: center;           /* Centrado del título */
 }
 
 .categorias-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1.5rem;
+  display: grid;                /* Layout de cuadrícula */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Columnas responsivas mínimo 180px */
+  gap: 1.5rem;                  /* Espacio entre tarjetas */
 }
 
 .categoria-card {
-  background: var(--arena-suave);
-  border: 2px solid transparent;
-  border-radius: 1rem;
-  padding: 2rem 1rem;
-  text-align: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  background: var(--arena-suave); /* Fondo beige suave */
+  border: 2px solid transparent; /* Borde transparente inicial */
+  border-radius: 1rem;          /* Bordes redondeados moderados */
+  padding: 2rem 1rem;           /* Espaciado interno generoso */
+  text-align: center;           /* Centra todo el contenido */
+  transition: all 0.3s ease;    /* Transición suave para hover */
+  cursor: pointer;              /* Indica que es clickeable */
 }
 
 .categoria-card:hover {
-  border-color: var(--amarillo-solar);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(255, 210, 76, 0.2);
+  border-color: var(--amarillo-solar); /* Borde amarillo en hover */
+  transform: translateY(-4px);  /* Eleva la tarjeta 4px */
+  box-shadow: 0 8px 25px rgba(255, 210, 76, 0.2); /* Sombra amarilla suave */
 }
 
 .categoria-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;            /* Ícono grande para visual impactante */
+  margin-bottom: 1rem;          /* Espacio debajo del ícono */
 }
 
 .categoria-nombre {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--gris-carbon);
-  margin-bottom: 0.5rem;
+  font-size: 1.125rem;          /* Tamaño ligeramente mayor para nombres */
+  font-weight: 600;             /* Peso semibold para destacar */
+  color: var(--gris-carbon);    /* Color oscuro para contraste */
+  margin-bottom: 0.5rem;        /* Espacio pequeño antes del contador */
 }
 
 .categoria-count {
-  font-size: 0.875rem;
-  color: rgba(46, 46, 46, 0.6);
+  font-size: 0.875rem;          /* Texto pequeño para información secundaria */
+  color: rgba(46, 46, 46, 0.6); /* Color gris suave para reducir importancia */
 }
 
-/* Responsive */
-@media (min-width: 640px) {
+/* Responsive - Estilos adaptativos para diferentes tamaños de pantalla */
+@media (min-width: 640px) {     /* Tablets pequeñas y mayores */
   .status-card {
-    padding: 2.5rem;
+    padding: 2.5rem;           /* Más espaciado interno en pantallas grandes */
   }
   
   .destacados-header {
-    flex-direction: row;
-    text-align: left;
+    flex-direction: row;       /* Cambia a layout horizontal */
+    text-align: left;          /* Alineación izquierda en lugar de centrada */
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) {     /* Tablets y escritorio */
   .catalogo-container {
-    padding: 0 2rem;
+    padding: 0 2rem;           /* Más espaciado lateral en pantallas grandes */
   }
   
   .catalogo-title {
-    font-size: 3rem;
+    font-size: 3rem;           /* Título más grande para escritorio */
   }
   
   .categorias-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas más anchas (200px vs 180px) */
   }
   
   .libros-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Grid para libros más amplio */
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px) {     /* Móviles */
   .destacados-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+    flex-direction: column;    /* Layout vertical en móviles */
+    gap: 1rem;                 /* Espacio entre elementos apilados */
+    text-align: center;        /* Centrado en móviles */
   }
   
   .status-card {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: column;    /* Apila elementos verticalmente */
+    text-align: center;        /* Centra contenido en móviles */
   }
   
   .status-progress {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: column;    /* Barras de progreso verticales */
+    gap: 0.5rem;               /* Espacio reducido entre elementos */
   }
 }
