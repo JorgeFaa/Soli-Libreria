@@ -22,7 +22,7 @@
   height: 4rem;                 /* Altura fija del header */
 }
 
-/* Menú de usuario (lado izquierdo) */
+/* Icono de menu hamburguesa (lado izquierdo) */
 .MenuUsuario {
   display: flex;                /* Layout flexbox para centrar ícono */
   align-items: center;          /* Centra verticalmente */
@@ -181,26 +181,6 @@
   height: 1rem;                 /* Alto fijo del ícono */
 }
 
-/* Botón del menú móvil */
-.header-mobile-menu-button {
-  display: none;                /* Oculto por defecto */
-  background: none;             /* Sin fondo */
-  border: none;                 /* Sin borde */
-  cursor: pointer;              /* Indica que es clickeable */
-  padding: 0.5rem;              /* Espaciado interno */
-  border-radius: 0.375rem;      /* Bordes ligeramente redondeados */
-  transition: background-color 0.2s ease; /* Transición del fondo */
-}
-
-.header-mobile-menu-button:hover {
-  background: rgba(46, 46, 46, 0.1); /* Fondo gris transparente en hover */
-}
-
-.header-mobile-menu-icon {
-  width: 1.5rem;                /* Ancho del ícono hamburguesa */
-  height: 1.5rem;               /* Alto del ícono hamburguesa */
-}
-
 /* Menú lateral de usuario */
 .user-side-menu {
   position: fixed;              /* Fijo en pantalla completa */
@@ -210,17 +190,6 @@
   height: 100%;                 /* Alto completo para overlay */
   z-index: 60;                  /* Por encima del header */
   pointer-events: none;         /* Permite clicks por debajo inicialmente */
-}
-
-/* El overlay aparece con un fadeIn*/
-.user-side-menu-overlay {
-  position: absolute;           /* Posicionado dentro del menú */
-  top: 0;                       /* Desde arriba */
-  left: 0;                      /* Desde la izquierda */
-  width: 100%;                  /* Cubre toda la pantalla */
-  height: 100%;                 /* Cubre toda la pantalla */
-  pointer-events: all;          /* Permite clicks para cerrar */
-  animation: fadeIn 0.3s ease;  /* Animación de aparición */
 }
 
 /* Cuando se abre el menú, se desliza desde la izquierda */
@@ -242,10 +211,6 @@
 /* Cuando se cierra, se agrega la clase closing, y se aplican estos estilos para hacer que se cierre*/
 .user-side-menu.closing .user-side-menu-content {
   animation: slideOutLeft 0.3s ease-in forwards; /* Animación de salida */
-}
-
-.user-side-menu.closing .user-side-menu-overlay {
-  animation: fadeOut 0.3s ease forwards; /* Fade out del overlay */
 }
 
 .user-side-menu-header {
@@ -351,16 +316,6 @@
 }
 
 /* Animaciones para el menú lateral */
-@keyframes fadeIn {
-  from { opacity: 0; }          /* Inicia completamente transparente */
-  to { opacity: 1; }            /* Termina completamente opaco */
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }          /* Inicia completamente opaco */
-  to { opacity: 0; }            /* Termina completamente transparente */
-}
-
 @keyframes slideInLeft {
   from { transform: translateX(-100%); } /* Inicia fuera de pantalla (izquierda) */
   to { transform: translateX(0); }       /* Termina en posición normal */
@@ -369,55 +324,6 @@
 @keyframes slideOutLeft {
   from { transform: translateX(0); }     /* Inicia en posición normal */
   to { transform: translateX(-100%); }   /* Termina fuera de pantalla (izquierda) */
-}
-
-/* Menú móvil (sección desplegable del header) */
-.header-mobile-menu {
-  background: var(--arena-suave); /* Fondo beige suave */
-  border-top: 1px solid rgba(255, 140, 66, 0.2); /* Borde superior naranja */
-}
-
-.header-mobile-menu-links {
-  max-width: 1200px;            /* Ancho máximo consistente */
-  margin: 0 auto;               /* Centrado horizontal */
-  padding: 1rem;                /* Espaciado interno */
-  display: flex;                /* Layout flexbox */
-  flex-direction: column;       /* Apila enlaces verticalmente */
-  gap: 0.75rem;                 /* Espacio entre enlaces */
-}
-
-.header-mobile-menu-link {
-  color: var(--gris-carbon);    /* Color de texto oscuro */
-  text-decoration: none;        /* Sin subrayado */
-  background: none;             /* Sin fondo */
-  border: none;                 /* Sin borde */
-  cursor: pointer;              /* Indica que es clickeable */
-  font-weight: 500;             /* Peso medio */
-  padding: 0.75rem 1rem;        /* Espaciado interno cómodo */
-  border-radius: 0.5rem;        /* Bordes redondeados */
-  transition: all 0.2s ease;    /* Transición suave */
-  width: 100%;                  /* Ancho completo */
-  text-align: left;             /* Alineación izquierda */
-}
-
-.header-mobile-menu-link:hover {
-  background: rgba(255, 140, 66, 0.1); /* Fondo naranja en hover */
-  color: var(--rojo-terracota); /* Texto rojo en hover */
-}
-
-.header-mobile-cta {
-  background: var(--rojo-terracota); /* Fondo rojo de acción */
-  color: white;                 /* Texto blanco */
-  text-decoration: none;        /* Sin subrayado */
-  font-weight: 600;             /* Peso semibold */
-  padding: 0.75rem 1rem;        /* Espaciado interno cómodo */
-  border-radius: 0.5rem;        /* Bordes redondeados */
-  text-align: center;           /* Centrado del texto */
-  transition: all 0.2s ease;    /* Transición suave */
-}
-
-.header-mobile-cta:hover {
-  background: #c44428;          /* Rojo más oscuro en hover */
 }
 
 /* Responsive para menú de usuario móvil */
@@ -484,9 +390,5 @@
   
   .header-cta-button {
     display: flex;              /* Muestra botón CTA */
-  }
-  
-  .header-mobile-menu-button {
-    display: none;              /* Oculta botón hamburguesa */
   }
 }
