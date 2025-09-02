@@ -1,0 +1,381 @@
+/* Variables de la paleta de colores Soli */
+:root {
+  --amarillo-solar: #FFD24C;    /* Color principal amarillo para elementos destacados */
+  --naranja-atardecer: #FF8C42; /* Color secundario naranja para acentos y hover */
+  --rojo-terracota: #D94F30;    /* Color de acción para elementos importantes */
+  --arena-suave: #F8F4E3;       /* Color de fondo cálido y suave */
+  --gris-carbon: #2E2E2E;       /* Color principal para texto y elementos oscuros */
+}
+
+/* Bloqueo de scroll para la página de login */
+body:has(.login-section) {
+  overflow: hidden;              /* Bloquea el scroll en toda la página */
+  height: 100vh;                 /* Fija la altura del body */
+}
+
+/* Sección principal del login */
+.login-section {
+  background: linear-gradient(135deg, var(--arena-suave) 0%, #FFF8E7 100%); /* Gradiente diagonal cálido */
+  padding: 2rem 0;               /* Espaciado vertical reducido */
+  height: 100vh;                 /* Altura exacta de pantalla completa */
+  position: relative;            /* Permite posicionar decoraciones absolutas */
+  overflow: hidden;              /* Oculta decoraciones que se salen */
+  display: flex;                 /* Layout flexbox */
+  align-items: center;           /* Centra verticalmente */
+}
+
+.login-container {
+  max-width: 1200px;             /* Ancho máximo para mantener legibilidad */
+  margin: 0 auto;                /* Centra horizontalmente */
+  padding: 0 1rem;               /* Espaciado lateral para móviles */
+  width: 100%;                   /* Ocupa todo el ancho disponible */
+}
+
+.login-grid {
+  display: grid;                 /* Layout de cuadrícula */
+  grid-template-columns: 1fr;    /* Una columna en móvil */
+  gap: 2rem;                     /* Espacio reducido entre contenido y visual */
+  align-items: center;           /* Centra verticalmente */
+  height: calc(100vh - 4rem);    /* Altura exacta menos padding */
+  max-height: calc(100vh - 4rem); /* Altura máxima para evitar overflow */
+}
+
+/* COLUMNA 1: Contenido del formulario */
+.login-content {
+  text-align: center;            /* Centrado en móvil */
+  max-width: 450px;              /* Ancho máximo para el formulario */
+  margin: 0 auto;                /* Centrado automático */
+}
+
+/* Header del formulario */
+.login-header {
+  text-align: center;            /* Centra todo el contenido */
+  margin-bottom: 2rem;           /* Espacio debajo del header */
+}
+
+.login-logo {
+  margin-top: 2rem;
+  display: inline-flex;          /* Layout flexbox en línea */
+  align-items: center;           /* Centra verticalmente */
+  gap: 0.75rem;                  /* Espacio entre ícono y texto */
+  margin-bottom: 1.5rem;         /* Espacio debajo del logo */
+  background: rgba(255, 210, 76, 0.2); /* Fondo amarillo transparente */
+  border: 1px solid var(--amarillo-solar); /* Borde amarillo visible */
+  padding: 0.5rem 1rem;          /* Espaciado interno cómodo */
+  border-radius: 2rem;           /* Forma de píldora */
+  font-size: 0.875rem;           /* Texto pequeño para badge */
+  font-weight: 500;              /* Peso medio para legibilidad */
+}
+
+.login-logo-icon {
+  width: 1rem;                   /* Ancho del ícono */
+  height: 1rem;                  /* Alto del ícono */
+  transition: transform 0.3s ease; /* Transición suave para hover */
+}
+
+
+.login-logo-text {
+  color: var(--gris-carbon);     /* Color oscuro */
+  margin: 0;                     /* Sin márgenes por defecto */
+}
+
+.login-title {
+  font-size: 2.5rem;             /* Tamaño grande para impacto visual */
+  font-weight: bold;             /* Peso bold para jerarquía */
+  color: var(--gris-carbon);     /* Color oscuro para legibilidad */
+  line-height: 1.2;              /* Interlineado ajustado para títulos grandes */
+  margin-bottom: 1.5rem;         /* Espacio debajo del título */
+}
+
+.login-description {
+  font-size: 1.125rem;           /* Texto ligeramente más grande que normal */
+  color: rgba(46, 46, 46, 0.8);  /* Gris oscuro con transparencia */
+  line-height: 1.7;              /* Interlineado generoso para lectura */
+  margin-bottom: 2rem;           /* Espacio antes del formulario */
+  max-width: 500px;              /* Ancho máximo para líneas legibles */
+  margin-left: auto;             /* Centra horizontalmente */
+  margin-right: auto;            /* Centra horizontalmente */
+}
+
+/* Formulario */
+.login-form {
+  display: flex;                 /* Layout flexbox */
+  flex-direction: column;        /* Apila campos verticalmente */
+  gap: 1.5rem;                   /* Espacio entre campos */
+  margin-bottom: 2rem;           /* Espacio debajo del formulario */
+}
+
+/* Campos del formulario */
+.login-field {
+  display: flex;                 /* Layout flexbox */
+  flex-direction: column;        /* Apila label e input */
+  gap: 0.5rem;                   /* Espacio entre label e input */
+}
+
+.login-label {
+  font-size: 0.9rem;             /* Tamaño pequeño para labels */
+  font-weight: 500;              /* Peso medio */
+  color: var(--gris-carbon);     /* Color oscuro */
+  margin: 0;                     /* Sin márgenes */
+}
+
+.login-input {
+  padding: 0.875rem 1rem;        /* Espaciado interno cómodo */
+  border: 2px solid rgba(46, 46, 46, 0.1); /* Borde gris suave */
+  border-radius: 0.75rem;        /* Bordes redondeados */
+  font-size: 1rem;               /* Tamaño estándar */
+  font-family: inherit;          /* Hereda la fuente */
+  color: var(--gris-carbon);     /* Color del texto */
+  background: white;             /* Fondo blanco */
+  transition: all 0.3s ease;     /* Transición suave */
+  outline: none;                 /* Sin outline por defecto */
+}
+
+.login-input::placeholder {
+  color: rgba(46, 46, 46, 0.5);  /* Placeholder gris suave */
+}
+
+.login-input:focus {
+  border-color: var(--amarillo-solar); /* Borde amarillo en focus */
+  box-shadow: 0 0 0 3px rgba(255, 210, 76, 0.2); /* Sombra amarilla */
+}
+
+.login-input:disabled {
+  background: rgba(46, 46, 46, 0.05); /* Fondo gris cuando está deshabilitado */
+  cursor: not-allowed;           /* Cursor de no permitido */
+}
+
+/* Mensaje de error */
+.login-error {
+  background: rgba(217, 79, 48, 0.1); /* Fondo rojo suave */
+  border: 1px solid rgba(217, 79, 48, 0.3); /* Borde rojo */
+  color: var(--rojo-terracota);  /* Texto rojo */
+  padding: 0.75rem 1rem;         /* Espaciado interno */
+  border-radius: 0.5rem;         /* Bordes redondeados */
+  font-size: 0.875rem;           /* Texto pequeño */
+  text-align: center;            /* Centrado */
+}
+
+/* Botón principal */
+.login-button {
+  background: var(--amarillo-solar); /* Fondo amarillo */
+  color: var(--gris-carbon);     /* Texto oscuro */
+  border: none;                  /* Sin borde */
+  padding: 1rem 2rem;            /* Espaciado interno generoso */
+  border-radius: 0.75rem;        /* Bordes redondeados */
+  font-size: 1rem;               /* Tamaño estándar */
+  font-weight: 600;              /* Peso semibold */
+  font-family: inherit;          /* Hereda la fuente */
+  cursor: pointer;               /* Cursor pointer */
+  transition: all 0.3s ease;     /* Transición suave */
+  box-shadow: 0 4px 12px rgba(255, 210, 76, 0.3); /* Sombra amarilla */
+  margin-top: 0.5rem;            /* Margen superior */
+}
+
+.login-button:hover:not(:disabled) {
+  background: #ffc93d;           /* Amarillo más intenso en hover */
+  transform: translateY(-2px);   /* Eleva el botón */
+  box-shadow: 0 6px 20px rgba(255, 210, 76, 0.4); /* Sombra más intensa */
+}
+
+.login-button:disabled {
+  background: rgba(255, 210, 76, 0.6); /* Amarillo suave cuando deshabilitado */
+  cursor: not-allowed;           /* Cursor de no permitido */
+  transform: none;               /* Sin transformación */
+  box-shadow: 0 2px 8px rgba(255, 210, 76, 0.2); /* Sombra reducida */
+}
+
+/* Enlaces */
+.login-links {
+  text-align: center;            /* Centra los enlaces */
+  margin-top: 0.5rem;            /* Margen superior */
+}
+
+.login-link {
+  color: var(--naranja-atardecer); /* Color naranja */
+  text-decoration: none;         /* Sin subrayado */
+  font-size: 0.875rem;           /* Texto pequeño */
+  font-weight: 500;              /* Peso medio */
+  transition: color 0.3s ease;   /* Transición suave */
+}
+
+.login-link:hover {
+  color: var(--rojo-terracota);  /* Color rojo en hover */
+  text-decoration: underline;    /* Subrayado en hover */
+}
+
+/* Footer del formulario */
+.login-footer {
+  text-align: center;            /* Centra el contenido */
+  margin-bottom: 1rem;           /* Margen inferior */
+  padding-top: 1.5rem;           /* Espaciado interno superior */
+  border-top: 1px solid rgba(46, 46, 46, 0.1); /* Línea divisoria */
+  font-size: 0.9rem;             /* Texto ligeramente más pequeño */
+  color: rgba(46, 46, 46, 0.7);  /* Gris suave */
+}
+
+.login-link-primary {
+  color: var(--gris-carbon);  /* Color gris principal */
+  text-decoration: none;         /* Sin subrayado */
+  font-weight: 600;              /* Peso semibold */
+  transition: color 0.3s ease;   /* Transición suave */
+}
+
+.login-link-primary:hover {
+  color: var(--naranja-atardecer); /* Color naranja en hover */
+  text-decoration: underline;    /* Subrayado en hover */
+}
+
+/* Enlace para volver */
+.login-back {
+  text-align: center;            /* Centra el enlace */
+}
+
+.login-back-link {
+  color: rgba(46, 46, 46, 0.6);  /* Gris suave */
+  text-decoration: none;         /* Sin subrayado */
+  font-size: 0.875rem;           /* Texto pequeño */
+  font-weight: 500;              /* Peso medio */
+  transition: all 0.3s ease;     /* Transición suave */
+  display: inline-flex;          /* Layout flexbox en línea */
+  align-items: center;           /* Centra verticalmente */
+  gap: 0.25rem;                  /* Espacio entre flecha y texto */
+}
+
+.login-back-link:hover {
+  color: var(--naranja-atardecer); /* Color naranja en hover */
+  transform: translateX(-2px);   /* Mueve ligeramente hacia la izquierda */
+}
+
+/* COLUMNA 2: Visual */
+.login-visual {
+  position: relative;            /* Permite posicionar elementos decorativos */
+  display: flex;                 /* Layout flexbox */
+  justify-content: center;       /* Centra horizontalmente */
+  align-items: center;           /* Centra verticalmente */
+}
+
+.login-visual-content {
+  text-align: center;            /* Centra el contenido */
+  max-width: 500px;              /* Ancho máximo */
+}
+
+.login-visual-title {
+  font-size: 2.5rem;             /* Tamaño grande para impacto visual */
+  font-weight: bold;             /* Peso bold para jerarquía */
+  color: var(--gris-carbon);     /* Color oscuro para legibilidad */
+  line-height: 1.2;              /* Interlineado ajustado para títulos grandes */
+  margin-bottom: 1.5rem;         /* Espacio debajo del título */
+}
+
+.login-visual-accent {
+  color: var(--naranja-atardecer); /* Color naranja para palabras destacadas */
+  display: block;                /* Fuerza salto de línea */
+}
+
+.login-visual-description {
+  font-size: 1.125rem;           /* Texto ligeramente más grande que normal */
+  color: rgba(46, 46, 46, 0.8);  /* Gris oscuro con transparencia */
+  line-height: 1.7;              /* Interlineado generoso para lectura */
+  margin-bottom: 2rem;           /* Espacio antes de las estadísticas */
+}
+
+/* Información motivacional */
+.login-features {
+  display: flex;                 /* Layout flexbox */
+  flex-direction: column;        /* Apila características verticalmente */
+  gap: 1.5rem;                   /* Espacio entre características */
+  margin-bottom: 2rem;           /* Espacio debajo de las características */
+}
+
+.login-feature {
+  display: flex;                 /* Layout flexbox horizontal */
+  align-items: flex-start;       /* Alinea al inicio verticalmente */
+  gap: 1rem;                     /* Espacio entre ícono y contenido */
+  text-align: left;              /* Alineación izquierda */
+}
+
+.login-feature-icon {
+  font-size: 1.5rem;             /* Tamaño grande para el emoji */
+  line-height: 1;                /* Interlineado compacto */
+  flex-shrink: 0;                /* No se encoge */
+}
+
+.login-feature-content {
+  flex: 1;                       /* Ocupa el espacio restante */
+}
+
+.login-feature-title {
+  font-size: 1rem;               /* Tamaño estándar */
+  font-weight: 600;              /* Peso semibold */
+  color: var(--gris-carbon);     /* Color oscuro */
+  margin: 0 0 0.25rem 0;         /* Solo margen inferior pequeño */
+  line-height: 1.2;              /* Interlineado ajustado */
+}
+
+.login-feature-description {
+  font-size: 0.875rem;           /* Texto pequeño */
+  color: rgba(46, 46, 46, 0.7);  /* Gris suave */
+  margin: 0;                     /* Sin márgenes */
+  line-height: 1.4;              /* Interlineado cómodo */
+}
+
+/* Frase inspiradora */
+.login-quote {
+  text-align: center;            /* Centra la cita */
+  padding: 1.5rem;               /* Espaciado interno */
+  background: rgba(255, 210, 76, 0.1); /* Fondo amarillo muy suave */
+  border-radius: 1rem;           /* Bordes redondeados */
+  border-left: 4px solid var(--amarillo-solar); /* Línea izquierda amarilla */
+}
+
+.login-quote-text {
+  font-size: 1.125rem;           /* Texto ligeramente más grande */
+  font-style: italic;            /* Cursiva para citas */
+  color: var(--gris-carbon);     /* Color oscuro */
+  margin: 0 0 0.5rem 0;          /* Solo margen inferior */
+  line-height: 1.6;              /* Interlineado generoso */
+}
+
+.login-quote-author {
+  font-size: 0.875rem;           /* Texto pequeño para autor */
+  color: var(--naranja-atardecer); /* Color naranja */
+  font-weight: 500;              /* Peso medio */
+  margin: 0;                     /* Sin márgenes */
+}
+
+/* Responsive - Adaptaciones para diferentes pantallas */
+@media (min-width: 768px) {     /* Tablets y escritorio */
+  .login-grid {
+    grid-template-columns: 1fr 1fr; /* Dos columnas: contenido y visual */
+    gap: 4rem;                   /* Más espacio entre columnas */
+  }
+  
+  .login-content {
+    text-align: left;            /* Alineación izquierda en escritorio */
+    margin: 0;                   /* Sin margen automático */
+  }
+  
+  .login-title {
+    font-size: 3.5rem;           /* Título más grande para escritorio */
+  }
+  
+  .login-description {
+    margin-left: 0;              /* Sin centrado automático */
+    margin-right: 0;             /* Sin centrado automático */
+  }
+  
+  .login-visual-title {
+    font-size: 3rem;             /* Título visual más grande */
+  }
+}
+
+@media (min-width: 1024px) {    /* Escritorio grande */
+  .login-title {
+    font-size: 4rem;             /* Título aún más grande */
+  }
+  
+  .login-visual-title {
+    font-size: 3.5rem;           /* Título visual aún más grande */
+  }
+}
