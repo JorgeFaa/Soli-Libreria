@@ -1,0 +1,430 @@
+/* Perfil.css - Vista de perfil de usuario para Soli */
+
+/* Variables de colores heredadas del proyecto */
+:root {
+  --arena-suave: #f4f1e8;
+  --arena-calida: #e8dcc6;
+  --naranja-atardecer: #ff8c42;
+  --rojo-terracota: #d94f30;
+  --gris-carbon: #2c3e50;
+  --verde-sabio: #27ae60;
+}
+
+/* Contenedor principal */
+.perfil-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--arena-suave) 0%, var(--arena-calida) 100%);
+  padding: 2rem 1rem;
+}
+
+.perfil-container {
+  max-width: 1200px;
+  margin: 4rem auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Header del perfil */
+.perfil-header {
+  display: flex;
+  gap: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
+
+.perfil-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.perfil-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--naranja-atardecer), var(--rojo-terracota));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(255, 140, 66, 0.3);
+}
+
+.perfil-avatar-initials {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.perfil-avatar-change {
+  background: none;
+  border: 2px solid var(--naranja-atardecer);
+  color: var(--naranja-atardecer);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.perfil-avatar-change:hover {
+  background: var(--naranja-atardecer);
+  color: white;
+}
+
+.perfil-header-info {
+  flex: 1;
+}
+
+.perfil-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gris-carbon);
+  margin: 0 0 0.5rem 0;
+}
+
+.perfil-subtitle {
+  font-size: 1.125rem;
+  color: var(--rojo-terracota);
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+}
+
+.perfil-header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.perfil-edit-btn,
+.perfil-save-btn,
+.perfil-cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.perfil-edit-btn {
+  background: var(--naranja-atardecer);
+  color: white;
+}
+
+.perfil-edit-btn:hover {
+  background: var(--rojo-terracota);
+  transform: translateY(-2px);
+}
+
+.perfil-save-btn {
+  background: var(--verde-sabio);
+  color: white;
+}
+
+.perfil-save-btn:hover {
+  background: #229954;
+}
+
+.perfil-cancel-btn {
+  background: transparent;
+  color: var(--gris-carbon);
+  border: 2px solid var(--arena-calida);
+}
+
+.perfil-cancel-btn:hover {
+  background: var(--arena-calida);
+}
+
+.perfil-edit-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Estadísticas */
+.perfil-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.perfil-stat {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.perfil-stat:hover {
+  transform: translateY(-4px);
+}
+
+.perfil-stat-number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--naranja-atardecer);
+  margin-bottom: 0.5rem;
+}
+
+.perfil-stat-label {
+  font-size: 1rem;
+  color: var(--gris-carbon);
+  font-weight: 500;
+}
+
+/* Contenido principal */
+.perfil-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.perfil-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.perfil-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gris-carbon);
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--arena-calida);
+}
+
+/* Formulario */
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.perfil-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.perfil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.perfil-label {
+  font-weight: 600;
+  color: var(--gris-carbon);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.perfil-input,
+.perfil-textarea {
+  padding: 0.75rem;
+  border: 2px solid var(--arena-calida);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.perfil-input:focus,
+.perfil-textarea:focus {
+  outline: none;
+  border-color: var(--naranja-atardecer);
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+}
+
+.perfil-textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.perfil-value {
+  padding: 0.75rem 0;
+  color: var(--gris-carbon);
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Libros recientes */
+.perfil-books {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.perfil-book {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  background: var(--arena-suave);
+  border-radius: 0.5rem;
+  border-left: 4px solid var(--naranja-atardecer);
+}
+
+.perfil-book-info {
+  flex: 1;
+}
+
+.perfil-book-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gris-carbon);
+  margin: 0 0 0.25rem 0;
+}
+
+.perfil-book-author {
+  font-size: 0.875rem;
+  color: var(--rojo-terracota);
+  margin: 0 0 0.5rem 0;
+  font-style: italic;
+}
+
+.perfil-book-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.perfil-book-status.completado {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--verde-sabio);
+}
+
+.perfil-book-status.leyendo {
+  background: rgba(255, 140, 66, 0.1);
+  color: var(--naranja-atardecer);
+}
+
+.perfil-book-status.deseado {
+  background: rgba(217, 79, 48, 0.1);
+  color: var(--rojo-terracota);
+}
+
+.perfil-book-progress {
+  font-weight: 400;
+}
+
+.perfil-book-rating {
+  font-size: 1.25rem;
+  color: var(--naranja-atardecer);
+  line-height: 1;
+}
+
+/* Acciones */
+.perfil-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--arena-calida);
+}
+
+.perfil-action-link {
+  color: var(--naranja-atardecer);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.perfil-action-link:hover {
+  color: var(--rojo-terracota);
+}
+
+/* Navegación */
+.perfil-navigation {
+  padding: 1rem 0;
+}
+
+.perfil-back-link {
+  color: var(--rojo-terracota);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.perfil-back-link:hover {
+  color: var(--gris-carbon);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .perfil-section {
+    padding: 1rem 0.5rem;
+  }
+  
+  .perfil-container {
+    margin-top: 3rem;
+  }
+  
+  .perfil-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .perfil-title {
+    font-size: 2rem;
+  }
+  
+  .perfil-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .perfil-stats {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .perfil-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .perfil-edit-actions {
+    flex-direction: column;
+  }
+  
+  .perfil-book {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .perfil-avatar-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .perfil-avatar-initials {
+    font-size: 2rem;
+  }
+  
+  .perfil-stat-number {
+    font-size: 2rem;
+  }
+  
+  .perfil-card {
+    padding: 1.5rem;
+  }
+}

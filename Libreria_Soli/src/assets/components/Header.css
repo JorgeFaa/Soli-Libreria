@@ -88,7 +88,7 @@
 }
 
 .header-logo:hover .header-logo-icon {
-  transform: rotate(20deg);     /* Rota el ícono en hover */
+  transform: rotate(180deg);     /* Rota el ícono en hover */
 }
 
 .header-logo-text {
@@ -308,11 +308,15 @@
   display: inline;              /* Visible por defecto */
 }
 
-.Menufooter{
+.Menufooter {
   display: flex;                /* Layout flexbox */
   text-align: center;           /* Centrado del texto */
   padding: 1rem;                /* Espaciado interno */
   color: var(--gris-carbon);    /* Color de texto oscuro */
+  justify-content: center;      /* Centra horizontalmente */
+  align-items: center;          /* Centra verticalmente */
+  flex-shrink: 0;               /* No se encoge */
+  margin-top: auto;             /* Se empuja hacia abajo */
 }
 
 /* Animaciones para el menú lateral */
