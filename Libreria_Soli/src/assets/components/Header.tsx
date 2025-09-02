@@ -14,6 +14,12 @@ import XIcon from "../icons/x.svg";
 // Tiene dos propiedades: para navegación (href) y el texto del enlace (label)
 type NavLink = { href: string; label: string };
 
+// Tipo para las props del Header
+type HeaderProps = {
+  isUserLoggedIn: boolean;
+  onLogout: () => void;
+};
+
 // Array constante con los enlaces de navegación
 // Se define fuera del componente para evitar recrearlo en cada render
 // El tipo NavLink lo va a tomar como referencia para renderizarlo en la página, haciendo uso de las propiedades href y label
@@ -26,7 +32,8 @@ const LINKS: NavLink[] = [
 
 // Componente funcional Header con TypeScript
 // JSX.Element especifica que este componente retorna elementos JSX
-export default function Header() {
+// Pasamos los props que definimos en HeaderProps, como paramteros en JS
+export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
   // Hook useState para manejar el estado del menú de usuario
   // Controla si el menú lateral del usuario está abierto o cerrado
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
@@ -182,20 +189,60 @@ export default function Header() {
               
               <hr className="user-side-menu-divider mobile-only" />
               
-              {/* Opciones de cuenta */}
+              {/* Opciones de cuenta - Cambian según el estado de autenticación */}
               <div className="user-side-menu-section">
-                {/* Distintas opciones del menú*/}
-                <h4 className="user-side-menu-section-title">Mi Cuenta</h4>
-                <a href="#perfil" className="user-side-menu-item">Mi Perfil</a>
-                <a href="#mis-libros" className="user-side-menu-item">Mis Libros</a>
-                <a href="#favoritos" className="user-side-menu-item">Favoritos</a>
-                <a href="#configuracion" className="user-side-menu-item">Configuración</a>
-                <hr className="user-side-menu-divider" />
-                <a href="#cerrar-sesion" className="user-side-menu-item">Cerrar Sesión</a>
+                {isUserLoggedIn ? (
+                  // Usuario autenticado - Mostrar opciones de cuenta
+                  <>
+                    <h4 className="user-side-menu-section-title">Mi Cuenta</h4>
+                    <Link 
+                      to="/perfil" 
+                      className="user-side-menu-item"
+                      onClick={handleCloseMenu}
+                    >
+                      Mi Perfil
+                    </Link>
+                    <a href="#mis-libros" className="user-side-menu-item">Mis Libros</a>
+                    <a href="#favoritos" className="user-side-menu-item">Favoritos</a>
+                    <a href="#configuracion" className="user-side-menu-item">Configuración</a>
+                    <hr className="user-side-menu-divider" />
+                    <button 
+                      onClick={() => {
+                        onLogout();
+                        handleCloseMenu();
+                      }}
+                      className="user-side-menu-item"
+                      style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </>
+                ) : (
+                  // Usuario no autenticado - Mostrar opciones de login/registro
+                  <>
+                    <h4 className="user-side-menu-section-title">Cuenta</h4>
+                    <Link 
+                      to="/login" 
+                      className="user-side-menu-item"
+                      onClick={handleCloseMenu}
+                    >
+                      Iniciar Sesión
+                    </Link>
+                    <Link 
+                      to="/registro" 
+                      className="user-side-menu-item"
+                      onClick={handleCloseMenu}
+                    >
+                      Crear Cuenta
+                    </Link>
+                    <hr className="user-side-menu-divider" />
+                    <a href="#ayuda" className="user-side-menu-item">Ayuda</a>
+                  </>
+                )}
               </div>
             </div>
             <div className="Menufooter">
-              &copy; 2025 El Edwin fan de dmc
+              &copy; 2025 BriXelDev
             </div>
           </div>
         </div>
