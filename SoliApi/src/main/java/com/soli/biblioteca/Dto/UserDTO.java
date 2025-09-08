@@ -1,40 +1,16 @@
-package com.soli.biblioteca.model;
+package com.soli.biblioteca.Dto;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "users", schema = "public")
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userid")
+public class UserDTO {
     private Long id;
-
-    @Column(name = "cognitosub", unique = true, nullable = false)
-    private String cognitoSub; // UUID de Cognito
-
-    @Column(name = "firstname", nullable = false)
     private String firstName;
-
-    @Column(name = "lastname", nullable = false)
     private String lastName;
-
-    @Column(name = "activemember", nullable = false)
     private boolean activeMember;
-
-    @Column(name = "genrepreference")
     private String genrePreference;
-
-    @ManyToOne
-    @JoinColumn(name = "roleid")
-    private Role role;
+    private String roleName;
 
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public String getCognitoSub() { return cognitoSub; }
-    public void setCognitoSub(String cognitoSub) { this.cognitoSub = cognitoSub; }
 
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -48,6 +24,6 @@ public class User {
     public String getGenrePreference() { return genrePreference; }
     public void setGenrePreference(String genrePreference) { this.genrePreference = genrePreference; }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public String getRoleName() { return roleName; }
+    public void setRoleName(String roleName) { this.roleName = roleName; }
 }
