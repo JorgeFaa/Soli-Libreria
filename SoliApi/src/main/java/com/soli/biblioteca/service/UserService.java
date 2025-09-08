@@ -1,30 +1,109 @@
 package com.soli.biblioteca.service;
 
+import com.soli.biblioteca.Dto.RegisterDTO;
+import com.soli.biblioteca.Dto.UserCreateDTO;
+import com.soli.biblioteca.Dto.UserDTO;
+import com.soli.biblioteca.mapper.UserMapper;
+import com.soli.biblioteca.model.Role;
 import com.soli.biblioteca.model.User;
+import com.soli.biblioteca.repository.RoleRepository;
 import com.soli.biblioteca.repository.UserRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
+    // =============================
+    // Métodos de sincronización
+    // =============================
+
+
+    // Crea usuario si no existe (desde login Cognito)
+    public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
+        User user = new User();
+        user.setCognitoSub(cognitoSub);
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setGenrePreference(dto.getGenrePreference());
+        user.setActiveMember(false);
+
+        Role defaultRole = roleRepository.findByRole("READER")
+                .orElseThrow(() -> new RuntimeException("Role READER no encontrado"));
+        user.setRole(defaultRole);
+
+        User saved = userRepository.save(user);
+        return UserMapper.toDTO(saved);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public UserDTO findByCognitoSubDTO(String sub) {
+        return userRepository.findByCognitoSub(sub)
+                .map(UserMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public UserDTO findUserByJwt(Jwt jwt) {
+        String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
+
+        return userRepository.findByCognitoSub(cognitoSub)
+                .map(UserMapper::toDTO)
+                .orElse(null); // o lanzar excepción si prefieres
+    }
+
+    // =============================
+    // Actualizaciones específicas
+    // =============================
+
+    public UserDTO updateGenreById(Long id, String newGenre) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+        user.setGenrePreference(newGenre);
+        return UserMapper.toDTO(userRepository.save(user));
+    }
+
+    public UserDTO updateGenreBySub(String sub, String newGenre) {
+        User user = userRepository.findByCognitoSub(sub)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
+        user.setGenrePreference(newGenre);
+        return UserMapper.toDTO(userRepository.save(user));
+    }
+
+    public UserDTO updateRole(Long id, String newRole) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+        Role role = roleRepository.findByRole(newRole)
+                .orElseThrow(() -> new RuntimeException("Role no encontrado: " + newRole));
+        user.setRole(role);
+        return UserMapper.toDTO(userRepository.save(user));
+    }
+
+    public UserDTO activateMembership(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+        user.setActiveMember(true);
+        return UserMapper.toDTO(userRepository.save(user));
+    }
+
+    // =============================
+    // Helpers
+    // =============================
+
+    public void checkAdmin(String cognitoSub) {
+        User user = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (user.getRole() == null || !"ADMIN".equalsIgnoreCase(user.getRole().getRole())) {
+            throw new RuntimeException("Acceso denegado: requiere rol ADMIN");
+        }
     }
 }

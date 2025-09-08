@@ -1,66 +1,96 @@
 package com.soli.biblioteca.model;
 
 import jakarta.persistence.*;
-import java.util.List;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "libros")
+@Table(name = "texts", schema = "public") // Postgres lo guarda en minúsculas
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "textid") // minúscula
     private Long id;
 
-    private String titulo;
-    private String autor;
+    @Column(name = "texttitle", nullable = false, length = 250) // minúscula
+    private String title;
 
-    @Column(length = 1000)
-    private String descripcion;
+    @Column(name = "publisheddate") // minúscula
+    private LocalDate publishedDate;
 
-    private Integer paginas;
+    // --------- Relaciones ---------
 
-    private String categoria; // Ej: Fantástica, Clásica, Biología, Física
+    @ManyToOne
+    @JoinColumn(name = "authorid") // minúscula
+    private Author author;
 
-    @ElementCollection
-    private List<String> etiquetas; // Etiquetas adicionales opcionales
+    @ManyToOne
+    @JoinColumn(name = "editorialid") // minúscula
+    private Editorial editorial;
 
-    private String urlArchivo; // URL de S3, opcional
+    @ManyToOne
+    @JoinColumn(name = "genreid") // minúscula
+    private Genre genre;
 
-    public Book() {}
+    @ManyToOne
+    @JoinColumn(name = "typeid") // minúscula
+    private TextType type;
 
-    public Book(String titulo, String autor, String descripcion, Integer paginas,
-                String categoria, List<String> etiquetas, String urlArchivo) {
-        this.titulo = titulo;
-        this.autor = autor;
-        this.descripcion = descripcion;
-        this.paginas = paginas;
-        this.categoria = categoria;
-        this.etiquetas = etiquetas;
-        this.urlArchivo = urlArchivo;
+    // --------- Getters y Setters ---------
+
+    public Long getId() {
+        return id;
     }
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getAutor() { return autor; }
-    public void setAutor(String autor) { this.autor = autor; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public LocalDate getPublishedDate() {
+        return publishedDate;
+    }
 
-    public Integer getPaginas() { return paginas; }
-    public void setPaginas(Integer paginas) { this.paginas = paginas; }
+    public void setPublishedDate(LocalDate publishedDate) {
+        this.publishedDate = publishedDate;
+    }
 
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
+    public Author getAuthor() {
+        return author;
+    }
 
-    public List<String> getEtiquetas() { return etiquetas; }
-    public void setEtiquetas(List<String> etiquetas) { this.etiquetas = etiquetas; }
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
 
-    public String getUrlArchivo() { return urlArchivo; }
-    public void setUrlArchivo(String urlArchivo) { this.urlArchivo = urlArchivo; }
+    public Editorial getEditorial() {
+        return editorial;
+    }
+
+    public void setEditorial(Editorial editorial) {
+        this.editorial = editorial;
+    }
+
+    public Genre getGenre() {
+        return genre;
+    }
+
+    public void setGenre(Genre genre) {
+        this.genre = genre;
+    }
+
+    public TextType getType() {
+        return type;
+    }
+
+    public void setType(TextType type) {
+        this.type = type;
+    }
 }
