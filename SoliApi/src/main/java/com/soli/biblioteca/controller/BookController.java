@@ -1,6 +1,7 @@
 package com.soli.biblioteca.controller;
 
-import com.soli.biblioteca.model.Book;
+import com.soli.biblioteca.Dto.BookCreateDTO;
+import com.soli.biblioteca.Dto.BookResponseDTO;
 import com.soli.biblioteca.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,12 +33,12 @@ public class BookController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Libro creado correctamente",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Book.class))),
+                            schema = @Schema(implementation = BookResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book newBook = bookService.createBook(book);
+    public ResponseEntity<BookResponseDTO> createBook(@RequestBody BookCreateDTO bookDTO) {
+        BookResponseDTO newBook = bookService.createBook(bookDTO);
         return ResponseEntity.ok(newBook);
     }
 
@@ -50,11 +50,11 @@ public class BookController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de libros obtenida correctamente",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Book.class)))
+                            schema = @Schema(implementation = BookResponseDTO.class)))
     })
     @GetMapping
-    public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = bookService.getAllBooks();
+    public ResponseEntity<List<BookResponseDTO>> getAllBooks() {
+        List<BookResponseDTO> books = bookService.getAllBooks();
         return ResponseEntity.ok(books);
     }
 
@@ -66,11 +66,11 @@ public class BookController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Libro encontrado",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Book.class))),
+                            schema = @Schema(implementation = BookResponseDTO.class))),
             @ApiResponse(responseCode = "404", description = "Libro no encontrado", content = @Content)
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+    public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
         return bookService.getBookById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
