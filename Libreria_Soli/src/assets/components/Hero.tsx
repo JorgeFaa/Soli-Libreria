@@ -1,7 +1,7 @@
 // src/components/Hero.tsx
-import React from "react";
 import { Link } from "react-router-dom";
 import "./Hero.css";
+import LibreriaImage from "../icons/libros-en-los-estantes-patrón-sin-inconvenientes-librerías-con-para-niños-interior-de-biblioteca-o-librería-blancos-391341420.png"
 
 // Importación de iconos SVG
 import StarIcon from "../icons/star.svg";
@@ -42,27 +42,18 @@ export default function Hero() {
                 Ver catálogo
               </Link>
             </div>
-
-            {/* Estadísticas actualizadas (Puede que las borre)*/}
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <div className="hero-stat-number">12,000+</div>
-                <div className="hero-stat-label">¿Siquiera</div>
-              </div>
-              <div className="hero-stat">
-                <div className="hero-stat-number">28</div>
-                <div className="hero-stat-label">deberia</div>
-              </div>
-              <div className="hero-stat">
-                <div className="hero-stat-number">3,500+</div>
-                <div className="hero-stat-label">poner estadísticas?</div>
-              </div>
-            </div>
           </div>
 
           {/* COLUMNA 2: Elementos visuales */}
-          <div>
-            <h3>Necesito hacer algo para rellenar aquí</h3>
+          <div className="hero-visual">
+            <div className="hero-image-container">
+              <img 
+                src={LibreriaImage} 
+                alt="Libros en un estante" 
+                className="hero-image"
+              />
+              <div className="hero-image-overlay"></div>
+            </div>
           </div>
         </div>
       </div>

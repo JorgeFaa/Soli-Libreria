@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Registro.css";
 
+// Importar el servicio de autenticación
+import { registerUser } from "../../services/authService";
+import type { RegisterRequest } from "../../services/authService";
+
 // Tipo para las props del Registro
 //Se puede pasar como argumento en los componentes, la idea es que simule el registro y luego inicie sesión automáticamente
 type RegistroProps = {
@@ -88,21 +92,33 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
       return;
     }
 
-    // Simulación de registro (aquí iría la llamada a la API)
+    // Llamada a la API real
     try {
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Preparar datos para la API
+      const userData: RegisterRequest = {
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        email: formData.email,
+        password: formData.password
+      };
       
-      console.log("Registro exitoso:", formData);
+      const response = await registerUser(userData);
       
-      // Actualizar el estado global de autenticación
-      onRegistroSuccess();
-      
-      // Navegar de vuelta al inicio
-      navigate("/");
+      if (response.success) {
+        console.log("Registro exitoso:", response.user);
+        
+        // Actualizar el estado global de autenticación
+        onRegistroSuccess();
+        
+        // Navegar de vuelta al inicio
+        navigate("/");
+      } else {
+        setError(response.message || "Error al crear la cuenta");
+      }
       
     } catch (err) {
-      setError("Error al crear la cuenta. Inténtalo de nuevo.");
+      console.error("Error en registro:", err);
+      setError(err instanceof Error ? err.message : "Error de conexión. Verifica tu internet.");
     } finally {
       setIsLoading(false);
     }
@@ -126,43 +142,6 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
 
             {/* Formulario de registro */}
             <form className="registro-form" onSubmit={handleSubmit}>
-              
-              {/* Nombre y Apellido en fila */}
-              <div className="registro-row">
-                <div className="registro-field">
-                  <label htmlFor="nombre" className="registro-label">
-                    Nombre
-                  </label>
-                  <input
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    className="registro-input"
-                    placeholder="Tu nombre"
-                    value={formData.nombre}
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                    autoComplete="given-name"
-                  />
-                </div>
-
-                <div className="registro-field">
-                  <label htmlFor="apellido" className="registro-label">
-                    Apellido
-                  </label>
-                  <input
-                    type="text"
-                    id="apellido"
-                    name="apellido"
-                    className="registro-input"
-                    placeholder="Tu apellido"
-                    value={formData.apellido}
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                    autoComplete="family-name"
-                  />
-                </div>
-              </div>
 
               {/* Campo de email */}
               <div className="registro-field">
