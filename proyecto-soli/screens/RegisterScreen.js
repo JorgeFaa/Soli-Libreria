@@ -29,8 +29,6 @@ export default function RegisterScreen({ navigation }) {
         <Text style={styles.subtitle}>Librería Digital</Text>
       </View>
 
-      <Text style={styles.registerTitle}>Registro</Text>
-
       <View style={styles.formBox}>
         <Text style={styles.formTitle}>Crea una cuenta</Text>
 
@@ -117,7 +115,6 @@ const styles = StyleSheet.create({
   header: { alignItems: "center", marginBottom: 20 },
   title: { fontSize: 30, fontWeight: "bold", color: "#3C2A1E" },
   subtitle: { fontSize: 15, color: "#3C2A1E" },
-  registerTitle: { fontSize: 20, fontWeight: "600", marginBottom: 15 },
   formBox: {
     width: "100%",
     backgroundColor: "#FFEFA1",
@@ -147,7 +144,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   registerButtonText: { fontSize: 14, fontWeight: "bold", color: "#000" },
-  divider: { marginVertical: 2, fontSize: 20, fontWeight: "600" },
+  divider: { marginVertical: 10, fontSize: 16, fontWeight: "600" },
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -157,7 +154,7 @@ const styles = StyleSheet.create({
     padding: 12,
     width: "100%",
     justifyContent: "center",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   appleButton: {
     flexDirection: "row",
