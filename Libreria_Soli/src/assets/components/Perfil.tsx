@@ -96,7 +96,7 @@ export default function Perfil() {
           </div>
         </div>
 
-        {/* Estadísticas del usuario */}
+        {/* Estadísticas del usuario (placeholder)*/}
         <div className="perfil-stats">
           <div className="perfil-stat">
             <span className="perfil-stat-number">{estadisticas.librosLeidos}</span>

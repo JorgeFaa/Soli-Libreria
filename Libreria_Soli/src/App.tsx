@@ -1,23 +1,30 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './assets/components/Header'
 import Hero from './assets/components/Hero'
 import Catalogo from './assets/components/Catalogo'
 import Nosotros from './assets/components/Nosotros'
+import AppPromo from './assets/components/AppPromo'
+import Contacto from './assets/components/Contacto'
 import Libreria from './assets/components/Libreria'
 import Login from './assets/components/Login'
 import Registro from './assets/components/Registro'
 import Perfil from './assets/components/Perfil'
 
+// Importar servicios de autenticación
+import { isAuthenticated, logoutUser, verifyToken } from './services/authService'
+
 import './App.css'
 
-// Página principal con Hero, Catálogo y Nosotros
+// Página principal con Hero, Catálogo, Nosotros, AppPromo y Contacto
 function HomePage() {
   return (
     <>
       <Hero />
       <Catalogo />
       <Nosotros />
+      <AppPromo />
+      <Contacto />
     </>
   );
 }
@@ -25,6 +32,36 @@ function HomePage() {
 function App() {
   // Estado global de autenticación
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Verificar sesión al cargar la app
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        // Verificar si hay token guardado
+        if (isAuthenticated()) {
+          // Verificar que el token sea válido con el servidor
+          const isValidToken = await verifyToken();
+          
+          if (isValidToken) {
+            setIsUserLoggedIn(true);
+          } else {
+            // Token inválido, limpiar storage
+            logoutUser();
+            setIsUserLoggedIn(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error verificando autenticación:", error);
+        logoutUser();
+        setIsUserLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   // Función para manejar el login exitoso
   const handleLoginSuccess = () => {
@@ -33,8 +70,26 @@ function App() {
 
   // Función para manejar el logout
   const handleLogout = () => {
+    logoutUser(); // Limpiar localStorage
     setIsUserLoggedIn(false);
   };
+
+  // Mostrar loading mientras verifica autenticación
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '1.2rem',
+        color: '#2c3e50',
+        background: 'linear-gradient(135deg, #f4f1e8 0%, #e8dcc6 100%)'
+      }}>
+        Cargando...
+      </div>
+    );
+  }
 
   return (
     <Router>

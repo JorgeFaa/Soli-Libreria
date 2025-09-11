@@ -15,17 +15,42 @@
   overflow: hidden;              /* Oculta decoraciones que se salen */
 }
 
+/* Contenedor principal */
 .hero-container {
   max-width: 1200px;             /* Ancho máximo para mantener legibilidad */
   margin: 0 auto;                /* Centra horizontalmente */
   padding: 0 1rem;               /* Espaciado lateral para móviles */
 }
 
+/* Layout de cuadrícula principal */
 .hero-grid {
   display: grid;                 /* Layout de cuadrícula */
   grid-template-columns: 1fr;    /* Una columna en móvil */
   gap: 3rem;                     /* Espacio entre contenido y visual */
   align-items: center;           /* Centra verticalmente */
+}
+
+/* Elementos visuales - ocultos en móvil */
+.hero-visual {
+  display: none;                 /* Ocultar en móvil por defecto */
+}
+
+/* Contenedor de la imagen */
+.hero-image-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Imagen principal */
+.hero-image {
+  width: 100%;
+  height: auto;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 /* Contenido de texto */
@@ -118,7 +143,7 @@
   grid-template-columns: repeat(3, 1fr); /* Tres columnas iguales */
   gap: 2rem;                     /* Espacio entre estadísticas */
   max-width: 400px;              /* Ancho máximo del contenedor */
-  margin: 0 auto 0 0;            /* Alineado a la izquierda en escritorio */
+  margin: 0 auto;                /* Centrado en móvil */
 }
 
 .hero-stat {
@@ -138,8 +163,12 @@
   margin-top: 0.25rem;           /* Espacio pequeño arriba */
 }
 
-/* Responsive - Adaptaciones para diferentes pantallas */
-@media (min-width: 768px) {     /* Tablets y escritorio */
+/* ===========================================
+   RESPONSIVE DESIGN
+=========================================== */
+
+/* Tablets y escritorio */
+@media (min-width: 768px) {
   .hero-section {
     padding: 8rem 0 6rem 0;      /* Más espaciado vertical en pantallas grandes */
   }
@@ -170,14 +199,30 @@
     margin-left: 0;              /* Sin centrado automático */
     margin-right: 0;             /* Sin centrado automático */
   }
+  
+  .hero-stats {
+    margin: 0 auto 0 0;          /* Alineado a la izquierda en escritorio */
+  }
+
+  /* Mostrar imagen en tablets y escritorio */
+  .hero-visual {
+    display: flex;               /* Mostrar imagen */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hero-image-container {
+    max-width: 450px;
+  }
 }
 
-@media (min-width: 1024px) {    /* Escritorio grande */
+/* Escritorio grande */
+@media (min-width: 1024px) {
   .hero-title {
     font-size: 4rem;             /* Título aún más grande */
   }
   
-  .hero-visual-card {
-    max-width: 500px;            /* Ilustración más grande */
+  .hero-image-container {
+    max-width: 500px;            /* Imagen más grande */
   }
 }
