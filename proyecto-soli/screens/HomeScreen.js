@@ -6,19 +6,18 @@ import {
   StyleSheet,
   StatusBar,
   FlatList,
-  Image,
   TextInput,
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const slideAnim = useRef(new Animated.Value(-240)).current; // Drawer inicia oculto
+  const [searchActive, setSearchActive] = useState(false);
+  const slideAnim = useRef(new Animated.Value(-240)).current;
 
-  // Lista de libros (ejemplo)
   const [books] = useState([
     { id: "1", name: "Platinum End" },
     { id: "2", name: "Death Note" },
@@ -28,27 +27,36 @@ export default function HomeScreen() {
     { id: "6", name: "Chainsaw Man" },
   ]);
 
-  // Filtrar libros por búsqueda
   const filteredBooks = books.filter((book) =>
     book.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Efecto de animación cuando cambia menuOpen
   useEffect(() => {
     Animated.timing(slideAnim, {
-      toValue: menuOpen ? 0 : -240, // se mueve dentro/fuera
+      toValue: menuOpen ? 0 : -240,
       duration: 300,
       useNativeDriver: false,
     }).start();
   }, [menuOpen]);
 
-  // Render de cada libro
   const renderBook = ({ item }) => (
     <View style={styles.bookItem}>
       <View style={styles.bookCover} />
       <Text style={styles.bookTitle}>{item.name}</Text>
     </View>
   );
+
+  const handleLogout = () => {
+    // 🔥 Animar cierre del menú
+    Animated.timing(slideAnim, {
+      toValue: -240,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setMenuOpen(false); // asegurar que se cierre
+      navigation.replace("Login"); // 👈 redirigir al LoginScreen
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -66,21 +74,33 @@ export default function HomeScreen() {
             <AntDesign name="menu-fold" size={28} color="#000" />
           </TouchableOpacity>
           <Text style={styles.logoText}>Soli Libreria</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              if (searchActive) {
+                setSearchActive(false);
+                setSearch(""); // limpia al cerrar
+              } else {
+                setSearchActive(true);
+              }
+            }}
+          >
             <AntDesign name="search1" size={28} color="#000" />
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
-      {/* Input de búsqueda */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Buscar libro..."
-          value={search}
-          onChangeText={setSearch}
-          style={styles.searchInput}
-        />
-      </View>
+      {/* 🔎 Barra de búsqueda */}
+      {searchActive && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Buscar libro..."
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+            autoFocus
+          />
+        </View>
+      )}
 
       {/* Lista de libros */}
       <FlatList
@@ -91,7 +111,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.listContainer}
       />
 
-      {/* Drawer con animación */}
+      {/* Drawer Overlay */}
       {menuOpen && (
         <TouchableOpacity
           style={styles.drawerOverlay}
@@ -102,9 +122,9 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
+      {/* Drawer con animación */}
       <Animated.View style={[styles.drawer, { left: slideAnim }]}>
         <Text style={styles.drawerTitle}>Mi cuenta</Text>
-
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuText}>Mi Perfil</Text>
         </TouchableOpacity>
@@ -135,7 +155,7 @@ export default function HomeScreen() {
 
         <View style={styles.separator} />
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
           <Text style={styles.menuText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -157,6 +177,7 @@ const styles = StyleSheet.create({
   },
   menuBtn: { padding: 4 },
   logoText: { fontSize: 20, fontWeight: "bold", color: "#000" },
+
   searchContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -170,27 +191,17 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: "#fff",
   },
-  listContainer: {
-    paddingHorizontal: 8,
-    paddingBottom: 20,
-  },
-  bookItem: {
-    flex: 1,
-    margin: 8,
-    alignItems: "center",
-  },
+
+  listContainer: { paddingHorizontal: 8, paddingBottom: 20 },
+  bookItem: { flex: 1, margin: 8, alignItems: "center" },
   bookCover: {
     width: 80,
     height: 120,
     backgroundColor: "#ddd",
     borderRadius: 8,
   },
-  bookTitle: {
-    marginTop: 6,
-    fontSize: 12,
-    fontWeight: "500",
-    textAlign: "center",
-  },
+  bookTitle: { marginTop: 6, fontSize: 12, fontWeight: "500", textAlign: "center" },
+
   drawerOverlay: {
     position: "absolute",
     top: 0,
@@ -210,16 +221,8 @@ const styles = StyleSheet.create({
     elevation: 10,
     shadowColor: "#000",
   },
-  drawerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
+  drawerTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
   menuItem: { paddingVertical: 12 },
   menuText: { fontSize: 16, color: "#333" },
-  separator: {
-    height: 1,
-    backgroundColor: "#ccc",
-    marginVertical: 8,
-  },
+  separator: { height: 1, backgroundColor: "#ccc", marginVertical: 8 },
 });
