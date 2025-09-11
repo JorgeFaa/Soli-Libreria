@@ -5,6 +5,10 @@ import "./Login.css";
 // Importación de iconos SVG
 import SunIcon from "../icons/sun.svg";
 
+// Importar el servicio de autenticación
+import { loginUser } from "../../services/authService";
+import type { LoginRequest } from "../../services/authService";
+
 // Tipo para las props del Login
 type LoginProps = {
   onLoginSuccess: () => void;
@@ -33,22 +37,34 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       return;
     }
 
-    // Simulación de login (aquí iría la llamada a la API)
+    // Validación de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Por favor, ingresa un email válido");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Llamada a la API real
+      const credentials: LoginRequest = { email, password };
+      const response = await loginUser(credentials);
       
-      // Por ahora, cualquier email/password será válido
-      console.log("Login exitoso:", { email, password });
-      
-      // Actualizar el estado global de autenticación
-      onLoginSuccess();
-      
-      // Navegar de vuelta al inicio
-      navigate("/");
+      if (response.success) {
+        console.log("Login exitoso:", response.user);
+        
+        // Actualizar el estado global de autenticación
+        onLoginSuccess();
+        
+        // Navegar de vuelta al inicio
+        navigate("/");
+      } else {
+        setError(response.message || "Error al iniciar sesión");
+      }
       
     } catch (err) {
-      setError("Error al iniciar sesión. Inténtalo de nuevo.");
+      console.error("Error en login:", err);
+      setError(err instanceof Error ? err.message : "Error de conexión. Verifica tu internet.");
     } finally {
       setIsLoading(false);
     }
