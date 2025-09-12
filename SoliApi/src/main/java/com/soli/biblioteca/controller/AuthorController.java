@@ -2,7 +2,9 @@ package com.soli.biblioteca.controller;
 
 import com.soli.biblioteca.Dto.AuthorCreateDTO;
 import com.soli.biblioteca.model.Author;
+import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.service.AuthorService;
+import com.soli.biblioteca.service.CountryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,17 +15,23 @@ import java.util.List;
 public class AuthorController {
 
     private final AuthorService authorService;
+    private final CountryService countryService;
 
-    public AuthorController(AuthorService authorService) {
+    public AuthorController(AuthorService authorService, CountryService countryService) {
         this.authorService = authorService;
+        this.countryService = countryService;
     }
 
     @PostMapping
     public ResponseEntity<Author> createAuthor(@RequestBody AuthorCreateDTO dto) {
+        Country country = countryService.findById(dto.getCountryID())
+                .orElseThrow(() -> new RuntimeException("Country not found"));
+
         Author author = new Author();
-        author.setAuthorName(dto.getName());
-        author.setAuthorMiddleName(dto.getMiddleName());
-        author.setAuthorLastName(dto.getLastName());
+        author.setName(dto.getName());
+        author.setMiddleName(dto.getMiddleName());
+        author.setLastName(dto.getLastName());
+        author.setCountry(country);
 
         return ResponseEntity.ok(authorService.save(author));
     }

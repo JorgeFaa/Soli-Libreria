@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Configuration
 public class DatabaseConfig {
@@ -20,7 +23,9 @@ public class DatabaseConfig {
     private String dbPassword;
 
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource() throws Exception {
+
+
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
         dataSource.setUrl(dbUrl);

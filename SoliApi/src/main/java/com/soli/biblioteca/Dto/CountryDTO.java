@@ -1,9 +1,12 @@
 package com.soli.biblioteca.Dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class CountryDTO {
+    // getters y setters
     private String name;
 
-    // getters y setters
-    public  String getName() { return name; }
-    public void setName(String name) { this.name = name; }
 }

@@ -1,13 +1,11 @@
 package com.soli.biblioteca.Dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class TextTypeUpdateDTO {
     private String type; // el único campo que quieres actualizar
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 }

@@ -1,8 +1,11 @@
 package com.soli.biblioteca.Dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class TextTypeCreateDTO {
     private String type;
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
 }

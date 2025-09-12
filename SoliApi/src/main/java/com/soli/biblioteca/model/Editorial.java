@@ -1,7 +1,11 @@
 package com.soli.biblioteca.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "editorials", schema = "public")
 public class Editorial {
@@ -11,21 +15,12 @@ public class Editorial {
     @Column(name = "editorialid")
     private Long id;
 
+
     @Column(name = "companyname", nullable = false, length = 250)
     private String companyName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "countryid")
     private Country country;
 
-    // --------- Getters y Setters ---------
-
-    public Long getEditorialId() { return id; }
-    public void setEditorialId(Long id) { this.id = id; }
-
-    public String getCompanyName() { return companyName; }
-    public void setCompanyName(String companyName) { this.companyName = companyName; }
-
-    public Country getEditorialCountry() { return country; }
-    public void setEditorialCountry(Country country) { this.country = country; }
 }

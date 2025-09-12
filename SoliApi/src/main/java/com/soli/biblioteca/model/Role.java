@@ -1,7 +1,11 @@
 package com.soli.biblioteca.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "roles", schema = "public")
 public class Role {
@@ -14,11 +18,4 @@ public class Role {
     @Column(name = "role")
     private String role;
 
-    // --------- Getters y Setters ---------
-
-    public Long getRoleId() { return id; }
-    public void setRoleId(Long id) { this.id = id; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
 }

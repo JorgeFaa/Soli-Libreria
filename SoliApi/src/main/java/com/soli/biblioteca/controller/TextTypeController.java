@@ -22,7 +22,7 @@ public class TextTypeController {
     @PostMapping
     public ResponseEntity<TextType> create(@RequestBody TextTypeCreateDTO dto) {
         TextType type = new TextType();
-        type.setTextType(dto.getType());
+        type.setType(dto.getType());
         return ResponseEntity.ok(textTypeService.save(type));
     }
 
@@ -52,7 +52,7 @@ public class TextTypeController {
         return textTypeService.findById(id)
                 .map(existing -> {
                     if (dto.getType() != null) {
-                        existing.setTextType(dto.getType());
+                        existing.setType(dto.getType());
                     }
                     return ResponseEntity.ok(textTypeService.save(existing));
                 })

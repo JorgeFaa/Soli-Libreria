@@ -64,6 +64,8 @@ public class CognitoService {
     // Login con credenciales AWS explícitas
     public Map<String, String> login(String username, String password) {
         try {
+            System.out.println("Login called with username=" + username + ", password=" + password);
+            System.out.println("clientId=" + clientId + ", clientSecret=" + clientSecret + ", userPoolId=" + userPoolId);
             String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
 
             AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder()

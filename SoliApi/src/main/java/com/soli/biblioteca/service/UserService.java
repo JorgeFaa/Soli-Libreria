@@ -1,6 +1,5 @@
 package com.soli.biblioteca.service;
 
-import com.soli.biblioteca.Dto.RegisterDTO;
 import com.soli.biblioteca.Dto.UserCreateDTO;
 import com.soli.biblioteca.Dto.UserDTO;
 import com.soli.biblioteca.mapper.UserMapper;
@@ -11,16 +10,13 @@ import com.soli.biblioteca.repository.UserRepository;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
     }

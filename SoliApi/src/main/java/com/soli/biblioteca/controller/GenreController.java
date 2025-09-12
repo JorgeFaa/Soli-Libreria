@@ -21,7 +21,7 @@ public class GenreController {
     @PostMapping
     public ResponseEntity<Genre> create(@RequestBody GenreCreateDTO dto) {
         Genre genre = new Genre();
-        genre.setGenreName(dto.getName());
+        genre.setName(dto.getName());
         return ResponseEntity.ok(genreService.save(genre));
     }
 
