@@ -11,6 +11,8 @@ import {
   Easing,
 } from "react-native";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+// Si quieres guardar token, descomenta esto:
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -42,15 +44,46 @@ export default function LoginScreen({ navigation }) {
     outputRange: ["0deg", "360deg"],
   });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (email && password) {
       setLoading(true);
+      try {
+        const response = await fetch(
+          "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/user/login",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: email,
+              password: password,
+            }),
+          }
+        );
 
-      // Simula un delay de login antes de ir al Home
-      setTimeout(() => {
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert("❌ Error: " + (data.message || "Credenciales inválidas"));
+          setLoading(false);
+          return;
+        }
+
+        console.log("✅ Login exitoso:", data);
+
+        alert("Bienvenido 🎉");
         setLoading(false);
-        navigation.replace("Home");
-      }, 2500);
+
+        // Si tu API devuelve un token, guárdalo:
+        // await AsyncStorage.setItem("token", data.token);
+
+        navigation.replace("Home"); // 🔄 Va al Home si login correcto
+      } catch (error) {
+        console.error("❌ Error en la API:", error);
+        alert("Hubo un error de conexión, intenta más tarde");
+        setLoading(false);
+      }
     } else {
       alert("Por favor ingresa tus credenciales");
     }
@@ -103,19 +136,6 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.loginButtonText}>Iniciar sesión</Text>
       </TouchableOpacity>
 
-      <Text style={styles.divider}>o</Text>
-
-      <TouchableOpacity style={styles.googleButton}>
-        <AntDesign name="google" size={20} color="black" />
-        <Text style={styles.socialText}>Continuar con Google</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.appleButton}>
-        <AntDesign name="apple1" size={20} color="white" />
-        <Text style={[styles.socialText, { color: "white" }]}>
-          Continuar con Apple
-        </Text>
-      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.register}>Regístrate aquí</Text>

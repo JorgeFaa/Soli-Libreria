@@ -22,7 +22,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require("../assets/Logo.png")} // 👈 coloca tu logo en la carpeta /assets
+        source={require("../assets/Logo.png")} 
         style={[styles.logo, { transform: [{ rotate: spin }] }]}
         resizeMode="contain"
       />
@@ -34,7 +34,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFD24C", // fondo negro (puedes cambiarlo)
+    backgroundColor: "#FFD24C", 
     justifyContent: "center",
     alignItems: "center",
   },
