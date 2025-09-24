@@ -1,0 +1,23 @@
+[build]
+  # Build command
+  command = "npm run build"
+  
+  # Output directory  
+  publish = "dist"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "18"
+
+[[redirects]]
+  # API proxy
+  from = "/api/*"
+  to = "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  # SPA fallback
+  from = "/*"
+  to = "/index.html"
+  status = 200
