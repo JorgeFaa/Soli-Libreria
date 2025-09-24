@@ -7,6 +7,8 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import HomeScreen from "./screens/HomeScreen";
 import EmailVerification from "./screens/EmailVerification";
+import DetailsScreen from "./screens/DetailsScreen";
+
 
 const Stack = createStackNavigator();
 
@@ -33,6 +35,8 @@ export default function App() {
             <Stack.Screen name="Register" component={RegisterScreen} />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="EmailVerification" component={EmailVerification} />
+            <Stack.Screen name="Details" component={DetailsScreen} />
+
           </>
         )}
       </Stack.Navigator>

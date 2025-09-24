@@ -5,9 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  FlatList,
   TextInput,
   Animated,
+  ScrollView,
+  FlatList,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
@@ -18,18 +19,31 @@ export default function HomeScreen({ navigation }) {
   const [searchActive, setSearchActive] = useState(false);
   const slideAnim = useRef(new Animated.Value(-240)).current;
 
-  const [books] = useState([
-    { id: "1", name: "Platinum End" },
-    { id: "2", name: "Death Note" },
-    { id: "3", name: "Naruto" },
-    { id: "4", name: "Dragon Ball" },
-    { id: "5", name: "One Piece" },
-    { id: "6", name: "Chainsaw Man" },
+  // 📚 Datos de ejemplo para cada sección
+  const [sections] = useState([
+    {
+      title: "Tus libros",
+      data: [
+        { id: "1", name: "Platinum End" },
+        { id: "2", name: "Death Note" },
+      ],
+    },
+    {
+      title: "Favoritos",
+      data: [
+        { id: "3", name: "Naruto" },
+        { id: "4", name: "Dragon Ball" },
+      ],
+    },
+    {
+      title: "Recomendados",
+      data: [
+        { id: "5", name: "One Piece" },
+        { id: "6", name: "Chainsaw Man" },
+        { id: "7", name: "Bleach" },
+      ],
+    },
   ]);
-
-  const filteredBooks = books.filter((book) =>
-    book.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -39,22 +53,25 @@ export default function HomeScreen({ navigation }) {
     }).start();
   }, [menuOpen]);
 
+  // 🎯 Render de libro clicable
   const renderBook = ({ item }) => (
-    <View style={styles.bookItem}>
+    <TouchableOpacity
+      style={styles.bookItem}
+      onPress={() => navigation.navigate("Details", { book: item })}
+    >
       <View style={styles.bookCover} />
       <Text style={styles.bookTitle}>{item.name}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const handleLogout = () => {
-    // 🔥 Animar cierre del menú
     Animated.timing(slideAnim, {
       toValue: -240,
       duration: 300,
       useNativeDriver: false,
     }).start(() => {
-      setMenuOpen(false); // asegurar que se cierre
-      navigation.replace("Login"); // 👈 redirigir al LoginScreen
+      setMenuOpen(false);
+      navigation.replace("Login");
     });
   };
 
@@ -70,7 +87,10 @@ export default function HomeScreen({ navigation }) {
         style={styles.header}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => setMenuOpen(true)} style={styles.menuBtn}>
+          <TouchableOpacity
+            onPress={() => setMenuOpen(true)}
+            style={styles.menuBtn}
+          >
             <AntDesign name="menu-fold" size={28} color="#000" />
           </TouchableOpacity>
           <Text style={styles.logoText}>Soli Libreria</Text>
@@ -78,7 +98,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => {
               if (searchActive) {
                 setSearchActive(false);
-                setSearch(""); // limpia al cerrar
+                setSearch("");
               } else {
                 setSearchActive(true);
               }
@@ -102,14 +122,24 @@ export default function HomeScreen({ navigation }) {
         </View>
       )}
 
-      {/* Lista de libros */}
-      <FlatList
-        data={filteredBooks}
-        keyExtractor={(item) => item.id}
-        renderItem={renderBook}
-        numColumns={3}
-        contentContainerStyle={styles.listContainer}
-      />
+      {/* 📚 Secciones scrolleables */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {sections.map((section) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <FlatList
+              data={section.data.filter((book) =>
+                book.name.toLowerCase().includes(search.toLowerCase())
+              )}
+              keyExtractor={(item) => item.id}
+              renderItem={renderBook}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContainer}
+            />
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Drawer Overlay */}
       {menuOpen && (
@@ -192,15 +222,30 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  listContainer: { paddingHorizontal: 8, paddingBottom: 20 },
-  bookItem: { flex: 1, margin: 8, alignItems: "center" },
+  scrollContainer: { paddingBottom: 20 },
+  section: { marginVertical: 12 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 12,
+    marginBottom: 8,
+    color: "#3C2A1E",
+  },
+  listContainer: { paddingLeft: 12 },
+  bookItem: { marginRight: 12, alignItems: "center" },
   bookCover: {
-    width: 80,
-    height: 120,
+    width: 100,
+    height: 150,
     backgroundColor: "#ddd",
     borderRadius: 8,
   },
-  bookTitle: { marginTop: 6, fontSize: 12, fontWeight: "500", textAlign: "center" },
+  bookTitle: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
+    maxWidth: 100,
+  },
 
   drawerOverlay: {
     position: "absolute",
