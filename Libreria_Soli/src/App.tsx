@@ -9,6 +9,7 @@ import Contacto from './assets/components/Contacto'
 import Libreria from './assets/components/Libreria'
 import Login from './assets/components/Login'
 import Registro from './assets/components/Registro'
+import VerificarCodigo from './assets/components/VerificarCodigo'
 import Perfil from './assets/components/Perfil'
 
 // Importar servicios de autenticación
@@ -52,7 +53,6 @@ function App() {
           }
         }
       } catch (error) {
-        console.error("Error verificando autenticación:", error);
         logoutUser();
         setIsUserLoggedIn(false);
       } finally {
@@ -98,6 +98,7 @@ function App() {
         onLogout={handleLogout}
       />
       <Routes>
+        {/* Página principal */}
         <Route path="/" element={<HomePage />} />
         <Route path="/libreria" element={<Libreria />} />
         <Route 
@@ -106,7 +107,11 @@ function App() {
         />
         <Route 
           path="/registro" 
-          element={<Registro onRegistroSuccess={handleLoginSuccess} />}
+          element={<Registro />}
+        />
+        <Route 
+          path="/verificar-codigo" 
+          element={<VerificarCodigo />}
         />
         <Route 
           path="/perfil" 

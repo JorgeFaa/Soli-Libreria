@@ -6,18 +6,18 @@ import "./Registro.css";
 import { registerUser } from "../../services/authService";
 import type { RegisterRequest } from "../../services/authService";
 
+// Importar sistema de Toast
+import Toast from "./Toast";
+
 // Tipo para las props del Registro
-//Se puede pasar como argumento en los componentes, la idea es que simule el registro y luego inicie sesión automáticamente
 type RegistroProps = {
-  onRegistroSuccess: () => void;
-}; //Esta función no necesita parametros, y no retorna nada, pues es solo para simular el registro
+  // No necesitamos onRegistroSuccess ya que el registro no inicia sesión automáticamente
+};
 
 //Por ejemplo, aquí lo estamos pasando como argumento, en este caso, primero el prop onRegistroSuccess, que es lo que se debe pasar 
-export default function Registro({ onRegistroSuccess }: RegistroProps) {
+export default function Registro({}: RegistroProps) {
   // Estados para manejar los inputs del formulario
   const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -26,8 +26,20 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
   const [error, setError] = useState<string>("");
   const [isErrorFading, setIsErrorFading] = useState<boolean>(false);
 
+  // Estados para Toast
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<"success" | "error" | "warning">("success");
+  const [showToast, setShowToast] = useState<boolean>(false);
+
   // Hook de navegación
   const navigate = useNavigate();
+
+  // Función para mostrar notificaciones
+  const showNotification = (message: string, type: "success" | "error" | "warning") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
 
   // Auto-ocultar error después de 5 segundos
   useEffect(() => {
@@ -64,7 +76,7 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
     setError("");
 
     // Validaciones básicas
-    if (!formData.nombre || !formData.apellido || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
       setError("Por favor, completa todos los campos");
       setIsLoading(false);
       return;
@@ -94,31 +106,55 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
 
     // Llamada a la API real
     try {
-      // Preparar datos para la API
+      console.log("🚀 Iniciando registro con email:", formData.email);
+      
+      // Preparar datos para la API (solo username y password)
       const userData: RegisterRequest = {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
+        nombre: "Usuario", // Valor temporal, no se usa en la API
+        apellido: "", // Valor temporal, no se usa en la API
         email: formData.email,
         password: formData.password
       };
       
+      console.log("📦 Datos preparados para enviar:", {
+        username: formData.email,
+        password: "***oculta***"
+      });
+      
       const response = await registerUser(userData);
       
+      console.log("📡 Respuesta recibida del registro:", response);
+      
       if (response.success) {
-        console.log("Registro exitoso:", response.user);
+        console.log("✅ Registro exitoso:", response.user);
+        // Mostrar mensaje de éxito
+        showNotification("¡Registro exitoso! Te hemos enviado un código de verificación por correo.", "success");
         
-        // Actualizar el estado global de autenticación
-        onRegistroSuccess();
-        
-        // Navegar de vuelta al inicio
-        navigate("/");
+        // Esperar un momento para que el usuario vea el mensaje
+        setTimeout(() => {
+          // Navegar a la verificación con el email como parámetro
+          navigate(`/verificar-codigo?email=${encodeURIComponent(formData.email)}`);
+        }, 2000);
       } else {
-        setError(response.message || "Error al crear la cuenta");
+        console.log("❌ Registro fallido:", response.message);
+        showNotification(response.message || "Error al crear la cuenta", "error");
       }
       
     } catch (err) {
-      console.error("Error en registro:", err);
-      setError(err instanceof Error ? err.message : "Error de conexión. Verifica tu internet.");
+      console.error("🔥 Error en registro:", err);
+      
+      // Mensaje más específico según el tipo de error
+      if (err instanceof Error) {
+        console.log("🔍 Tipo de error:", err.message);
+        if (err.message.includes('fetch')) {
+          showNotification("Error de conexión. Verifica tu internet e intenta nuevamente.", "error");
+        } else {
+          showNotification(err.message, "error");
+        }
+      } else {
+        console.log("❓ Error desconocido:", err);
+        showNotification("Error de conexión. Verifica tu internet.", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -275,6 +311,16 @@ export default function Registro({ onRegistroSuccess }: RegistroProps) {
         <div className={`registro-error ${isErrorFading ? 'fade-out' : ''}`}>
           {error}
         </div>
+      )}
+
+      {/* Toast de notificaciones */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          isVisible={showToast}
+          onClose={() => setShowToast(false)}
+        />
       )}
     </section>
   );

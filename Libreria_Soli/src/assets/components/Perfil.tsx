@@ -43,7 +43,6 @@ export default function Perfil() {
   // Función para guardar cambios
   const handleSaveChanges = () => {
     // Aquí iría la lógica para guardar en el backend
-    console.log("Guardando cambios:", userInfo);
     setIsEditing(false);
   };
 
