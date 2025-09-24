@@ -11,7 +11,7 @@ create or replace procedure sp_create_user(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.users(firstName, lastName, activeMember, genrePreference, roleID, cognitoSub)
+    insert into public.users(firstName, lastName, activeMember, genrePreference, roleID, cognitoSub)
     values(p_firstName, p_lastName, p_activeMember, p_genrePreference, p_roleID, p_cognitoSub);
 end; $$;
 
@@ -31,7 +31,7 @@ as $$
 begin
     return query
     select u.userID, u.firstName, u.lastName, u.activeMember, u.genrePreference, u.roleID, u.cognitoSub
-    from soli_db.public.Users u
+    from public.Users u
     where u.userID = p_userID;
 end; $$;
 
@@ -48,7 +48,7 @@ create or replace procedure sp_update_user(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Users
+    update public.Users
     set firstName = p_firstName,
         lastName = p_lastName,
         activeMember = p_activeMember,
@@ -63,7 +63,7 @@ create or replace procedure sp_delete_user(p_userID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Users where userID = p_userID;
+    delete from public.Users where userID = p_userID;
 end; $$;
 
 ------ AUTHORS ------
@@ -77,7 +77,7 @@ create or replace procedure sp_create_author(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Authors(authorName, authorMiddleName, authorLastName, countryID)
+    insert into public.Authors(authorName, authorMiddleName, authorLastName, countryID)
     values(p_authorName, p_authorMiddleName, p_authorLastName, p_countryID);
 end; $$;
 
@@ -95,7 +95,7 @@ as $$
 begin
     return query
     select a.authorID, a.authorName, a.authorMiddleName, a.authorLastName, a.countryID
-    from soli_db.public.Authors a
+    from public.Authors a
     where a.authorID = p_authorID;
 end; $$;
 
@@ -110,7 +110,7 @@ create or replace procedure sp_update_author(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Authors
+    update public.Authors
     set authorName = p_authorName,
         authorMiddleName = p_authorMiddleName,
         authorLastName = p_authorLastName,
@@ -123,7 +123,7 @@ create or replace procedure sp_delete_author(p_authorID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Authors where authorID = p_authorID;
+    delete from public.Authors where authorID = p_authorID;
 end; $$;
 
 ------ EDITORIALS ------
@@ -135,7 +135,7 @@ create or replace procedure sp_create_editorial(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Editorials(companyName, countryID)
+    insert into public.Editorials(companyName, countryID)
     values(p_companyName, p_countryID);
 end; $$;
 
@@ -152,7 +152,7 @@ as $$
 begin
     return query
     select e.editorialID, e.companyName, e.countryID
-    from soli_db.public.Editorials e
+    from public.Editorials e
     where e.editorialID = p_editorialID;
 end; $$;
 
@@ -166,7 +166,7 @@ create or replace procedure sp_update_editorial(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Editorials
+    update public.Editorials
     set companyName = p_companyName,
         countryID   = p_countryID
     where editorialID = p_editorialID;
@@ -178,7 +178,7 @@ create or replace procedure sp_delete_editorial(p_editorialID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Editorials where editorialID = p_editorialID;
+    delete from public.Editorials where editorialID = p_editorialID;
 end; $$;
 
 ------ GENRES ------
@@ -189,7 +189,7 @@ create or replace procedure sp_create_genre(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Genres(genreName)
+    insert into public.Genres(genreName)
     values(p_genreName);
 end; $$;
 
@@ -205,7 +205,7 @@ as $$
 begin
     return query
     select g.genreID, g.genreName
-    from soli_db.public.Genres g
+    from public.Genres g
     where g.genreID = p_genreID;
 end; $$;
 
@@ -218,7 +218,7 @@ create or replace procedure sp_update_genre(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Genres
+    update public.Genres
     set genreName = p_genreName
     where genreID = p_genreID;
 end; $$;
@@ -229,7 +229,7 @@ create or replace procedure sp_delete_genre(p_genreID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Genres where genreID = p_genreID;
+    delete from public.Genres where genreID = p_genreID;
 end; $$;
 
 ------ COUNTRY ------
@@ -240,7 +240,7 @@ create or replace procedure sp_create_country(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Country(countryName)
+    insert into public.Country(countryName)
     values(p_countryName);
 end; $$;
 
@@ -256,7 +256,7 @@ as $$
 begin
     return query
     select c.countryID, c.countryName
-    from soli_db.public.Country c
+    from public.Country c
     where c.countryID = p_countryID;
 end; $$;
 
@@ -269,7 +269,7 @@ create or replace procedure sp_update_country(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Country
+    update public.Country
     set countryName = p_countryName
     where countryID = p_countryID;
 end; $$;
@@ -280,7 +280,7 @@ create or replace procedure sp_delete_country(p_countryID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Country where countryID = p_countryID;
+    delete from public.Country where countryID = p_countryID;
 end; $$;
 
 ------ ROLES ------
@@ -291,7 +291,7 @@ create or replace procedure sp_create_role(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Roles(role)
+    insert into public.Roles(role)
     values(p_role);
 end; $$;
 
@@ -307,7 +307,7 @@ as $$
 begin
     return query
     select r.roleID, r.role
-    from soli_db.public.Roles r
+    from public.Roles r
     where r.roleID = p_roleID;
 end; $$;
 
@@ -320,7 +320,7 @@ create or replace procedure sp_update_role(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Roles
+    update public.Roles
     set role = p_role
     where roleID = p_roleID;
 end; $$;
@@ -331,7 +331,7 @@ create or replace procedure sp_delete_role(p_roleID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Roles where roleID = p_roleID;
+    delete from public.Roles where roleID = p_roleID;
 end; $$;
 
 
@@ -343,7 +343,7 @@ create or replace procedure sp_create_texttype(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.textType(textType)
+    insert into public.textType(textType)
     values(p_textType);
 end; $$;
 
@@ -359,7 +359,7 @@ as $$
 begin
     return query
     select t.typeID, t.textType
-    from soli_db.public.textType t
+    from public.textType t
     where t.typeID = p_typeID;
 end; $$;
 
@@ -372,7 +372,7 @@ create or replace procedure sp_update_texttype(
 language plpgsql
 as $$
 begin
-    update soli_db.public.textType
+    update public.textType
     set textType = p_textType
     where typeID = p_typeID;
 end; $$;
@@ -383,7 +383,7 @@ create or replace procedure sp_delete_texttype(p_typeID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.textType where typeID = p_typeID;
+    delete from public.textType where typeID = p_typeID;
 end; $$;
 
 ------ TEXTS ------
@@ -399,7 +399,7 @@ create or replace procedure sp_create_text(
 language plpgsql
 as $$
 begin
-    insert into soli_db.public.Texts(textTitle, publishedDate, authorID, editorialID, genreID, typeID)
+    insert into public.Texts(textTitle, publishedDate, authorID, editorialID, genreID, typeID)
     values(p_textTitle, p_publishedDate, p_authorID, p_editorialID, p_genreID, p_typeID);
 end; $$;
 
@@ -421,7 +421,7 @@ begin
     return query
     select t.textID, t.textTitle, t.publishedDate,
            t.authorID, t.editorialID, t.genreID, t.typeID
-    from soli_db.public.Texts t
+    from public.Texts t
     where t.textID = p_textID;
 end; $$;
 
@@ -435,7 +435,7 @@ create or replace procedure sp_update_text(
 language plpgsql
 as $$
 begin
-    update soli_db.public.Texts
+    update public.Texts
     set textTitle    = p_textTitle,
         publishedDate = p_publishedDate
     where textID = p_textID;
@@ -447,5 +447,5 @@ create or replace procedure sp_delete_text(p_textID int)
 language plpgsql
 as $$
 begin
-    delete from soli_db.public.Texts where textID = p_textID;
+    delete from public.Texts where textID = p_textID;
 end; $$;
