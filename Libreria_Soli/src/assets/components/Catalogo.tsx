@@ -1,5 +1,4 @@
 // src/components/Catalogo.tsx
-import React from "react";
 import { Link } from "react-router-dom";
 import "./Catalogo.css";
 

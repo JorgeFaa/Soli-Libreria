@@ -1,0 +1,5 @@
+# Redirect API calls to Lambda
+/api/* https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/:splat 200
+
+# SPA fallback
+/* /index.html 200

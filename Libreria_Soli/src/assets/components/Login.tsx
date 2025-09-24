@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 
@@ -8,6 +8,9 @@ import SunIcon from "../icons/sun.svg";
 // Importar el servicio de autenticación
 import { loginUser } from "../../services/authService";
 import type { LoginRequest } from "../../services/authService";
+
+// Importar componente Toast
+import Toast from "./Toast";
 
 // Tipo para las props del Login
 type LoginProps = {
@@ -19,20 +22,36 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  
+  // Estados para notificaciones Toast
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [showToast, setShowToast] = useState<boolean>(false);
 
   // Hook de navegación
   const navigate = useNavigate();
+
+  // Función para mostrar notificación
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
+  // Función para cerrar notificación
+  const closeNotification = () => {
+    setShowToast(false);
+  };
 
   // Función para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    closeNotification(); // Cerrar notificación anterior si existe
 
     // Validaciones básicas
     if (!email || !password) {
-      setError("Por favor, completa todos los campos");
+      showNotification("Por favor, completa todos los campos", "warning");
       setIsLoading(false);
       return;
     }
@@ -40,31 +59,46 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     // Validación de formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Por favor, ingresa un email válido");
+      showNotification("Por favor, ingresa un email válido", "warning");
       setIsLoading(false);
       return;
     }
 
     try {
-      // Llamada a la API real
+      // Llamada a la API real de AWS Lambda
       const credentials: LoginRequest = { email, password };
       const response = await loginUser(credentials);
       
       if (response.success) {
-        console.log("Login exitoso:", response.user);
+        
+        // Mostrar notificación de éxito
+        showNotification("¡Bienvenido de vuelta! Login exitoso", "success");
         
         // Actualizar el estado global de autenticación
         onLoginSuccess();
         
-        // Navegar de vuelta al inicio
-        navigate("/");
+        // Navegar de vuelta al inicio después de un pequeño delay
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       } else {
-        setError(response.message || "Error al iniciar sesión");
+        showNotification(response.message || "Credenciales incorrectas", "error");
       }
       
     } catch (err) {
-      console.error("Error en login:", err);
-      setError(err instanceof Error ? err.message : "Error de conexión. Verifica tu internet.");
+      
+      // Mensaje más específico según el tipo de error
+      if (err instanceof Error) {
+        if (err.message.includes('fetch')) {
+          showNotification("Error de conexión. Verifica tu internet e intenta nuevamente.", "error");
+        } else if (err.message.includes('401') || err.message.includes('403')) {
+          showNotification("Credenciales incorrectas. Verifica tu email y contraseña.", "error");
+        } else {
+          showNotification(err.message, "error");
+        }
+      } else {
+        showNotification("Error inesperado. Intenta nuevamente.", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -128,11 +162,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </div>
 
               {/* Mensaje de error */}
-              {error && (
-                <div className="login-error">
-                  {error}
-                </div>
-              )}
+              {/* Removido: Ahora usamos notificaciones flotantes */}
 
               {/* Botón de envío */}
               <button
@@ -213,6 +243,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
         </div>
       </div>
+
+      {/* Notificación flotante */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={closeNotification}
+        duration={5000}
+      />
     </section>
   );
 }

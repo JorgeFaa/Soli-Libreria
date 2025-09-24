@@ -30,19 +30,10 @@ export interface VerifyAccountRequest {
   code: string;
 }
 
-export interface ResendVerificationRequest {
-  username: string;
-}
-
-export interface ResendVerificationResponse {
-  success: boolean;
-  message: string;
-}
-
 // Configuración de la API - Siempre usar /api para que Netlify maneje el proxy
 const API_BASE_URL = '/api';
 
-// Función auxiliar para manejar respuestas HTTP de la API Lambda (Login)
+// Función auxiliar para manejar respuestas HTTP de la API Lambda
 const handleResponse = async (response: Response): Promise<AuthResponse> => {
   try {
     const data = await response.json();
@@ -84,9 +75,116 @@ const handleResponse = async (response: Response): Promise<AuthResponse> => {
   }
 };
 
+// Función auxiliar para manejar respuestas HTTP del endpoint de verificación
+const handleVerifyResponse = async (response: Response): Promise<AuthResponse> => {
+  try {
+    console.log("🔍 [handleVerifyResponse] Status de respuesta:", response.status);
+    console.log("🔍 [handleVerifyResponse] Headers de respuesta:", Object.fromEntries(response.headers.entries()));
+    
+    const data = await response.json();
+    console.log("📋 [handleVerifyResponse] Datos crudos recibidos:", data);
+    
+    // La API Lambda devuelve la estructura: { headers, body, statusCode }
+    // El body es un string JSON que necesitamos parsear
+    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+    console.log("📋 [handleVerifyResponse] Body parseado:", parsedBody);
+    console.log("📋 [handleVerifyResponse] StatusCode de Lambda:", data.statusCode);
+    
+    // Verificar si hay error en la respuesta de Lambda
+    if (data.statusCode !== 200 || parsedBody.error) {
+      console.log("❌ [handleVerifyResponse] Error detectado:", parsedBody.error || parsedBody.message);
+      return {
+        success: false,
+        message: parsedBody.error || parsedBody.message || "Error en la verificación"
+      };
+    }
+    
+    // Verificar si la verificación fue exitosa
+    if (data.statusCode === 200 && parsedBody.message) {
+      // Verificar si el mensaje indica éxito o error
+      if (parsedBody.message.includes("inválido") || parsedBody.message.includes("expirado")) {
+        console.log("❌ [handleVerifyResponse] Código inválido:", parsedBody.message);
+        return {
+          success: false,
+          message: parsedBody.message
+        };
+      } else {
+        console.log("✅ [handleVerifyResponse] Verificación exitosa");
+        return {
+          success: true,
+          message: "Cuenta verificada exitosamente"
+        };
+      }
+    } else {
+      console.log("❌ [handleVerifyResponse] Respuesta inesperada:", { statusCode: data.statusCode, message: parsedBody.message });
+      return {
+        success: false,
+        message: "Error en la verificación"
+      };
+    }
+    
+  } catch (error) {
+    console.error("🔥 [handleVerifyResponse] Error parseando respuesta:", error);
+    throw new Error('Error procesando respuesta del servidor');
+  }
+};
+
+// Función auxiliar para manejar respuestas HTTP del endpoint de verificación
+const handleVerifyResponse = async (response: Response): Promise<AuthResponse> => {
+  try {
+    console.log("🔍 [handleVerifyResponse] Status de respuesta:", response.status);
+    console.log("🔍 [handleVerifyResponse] Headers de respuesta:", Object.fromEntries(response.headers.entries()));
+    
+    const data = await response.json();
+    console.log("📋 [handleVerifyResponse] Datos crudos recibidos:", data);
+    
+    // La API Lambda devuelve la estructura: { headers, body, statusCode }
+    // El body es un string JSON que necesitamos parsear
+    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+    console.log("📋 [handleVerifyResponse] Body parseado:", parsedBody);
+    console.log("📋 [handleVerifyResponse] StatusCode de Lambda:", data.statusCode);
+    
+    // Verificar si hay error en la respuesta de Lambda
+    if (data.statusCode !== 200 || parsedBody.error) {
+      console.log("❌ [handleVerifyResponse] Error detectado:", parsedBody.error || parsedBody.message);
+      return {
+        success: false,
+        message: parsedBody.error || parsedBody.message || "Error en la verificación"
+      };
+    }
+    
+    // Verificar si la verificación fue exitosa
+    if (data.statusCode === 200 && parsedBody.message) {
+      // Verificar si el mensaje indica éxito o error
+      if (parsedBody.message.includes("inválido") || parsedBody.message.includes("expirado")) {
+        console.log("❌ [handleVerifyResponse] Código inválido:", parsedBody.message);
+        return {
+          success: false,
+          message: parsedBody.message
+        };
+      } else {
+        console.log("✅ [handleVerifyResponse] Verificación exitosa");
+        return {
+          success: true,
+          message: "Cuenta verificada exitosamente"
+        };
+      }
+    } else {
+      console.log("❌ [handleVerifyResponse] Respuesta inesperada:", { statusCode: data.statusCode, message: parsedBody.message });
+      return {
+        success: false,
+        message: "Error en la verificación"
+      };
+    }
+    
+  } catch (error) {
+    console.error("🔥 [handleVerifyResponse] Error parseando respuesta:", error);
+    throw new Error('Error procesando respuesta del servidor');
+  }
+};
+
 // Función auxiliar para manejar respuestas HTTP del endpoint de registro
 const handleRegisterResponse = async (response: Response, userData: RegisterRequest): Promise<AuthResponse> => {
-  try {
     console.log("🔍 [handleRegisterResponse] Status de respuesta:", response.status);
     console.log("🔍 [handleRegisterResponse] Headers de respuesta:", Object.fromEntries(response.headers.entries()));
     
@@ -275,6 +373,61 @@ export const registerUser = async (userData: RegisterRequest): Promise<AuthRespo
   }
 };
 
+// Función para logout
+export const logoutUser = (): void => {
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userData');
+};
+
+// Función para verificar si hay una sesión activa
+export const isAuthenticated = (): boolean => {
+  const token = localStorage.getItem('authToken');
+  return !!token;
+};
+
+// Función para obtener el token
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('authToken');
+};
+
+// Función para obtener datos del usuario
+export const getUserData = () => {
+  const userData = localStorage.getItem('userData');
+  return userData ? JSON.parse(userData) : null;
+};
+
+// Función para verificar token con el servidor
+export const verifyToken = async (): Promise<boolean> => {
+  try {
+    const token = getAuthToken();
+    if (!token) return false;
+
+    // Si es un token mock (simulación), considerarlo válido
+    if (token.startsWith('mock-jwt-token-')) {
+      return true;
+    }
+    
+    // TODO: Implementar verificación con API real cuando esté disponible
+    // Por ahora, si tenemos un token real (refreshToken), lo consideramos válido
+    return true;
+    
+    // TODO: Descomentar esto cuando tengas endpoint de verificación
+    /*
+    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.ok;
+    */
+  } catch (error) {
+    return false;
+  }
+};
+
 // Función para verificar cuenta con código
 export const verifyAccount = async (email: string, code: string): Promise<AuthResponse> => {
   try {
@@ -363,141 +516,5 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
       // Re-lanzar otros errores
       throw error;
     }
-  }
-};
-
-// Función para reenviar código de verificación
-export const resendVerificationCode = async (request: ResendVerificationRequest): Promise<ResendVerificationResponse> => {
-  console.log("📧 Iniciando reenvío de código de verificación...");
-  console.log("🔍 Request:", request);
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/resend-verification`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    console.log("📡 Response status:", response.status);
-    console.log("📦 Response headers:", Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      console.log("❌ Response no OK, status:", response.status);
-      
-      const errorText = await response.text();
-      console.log("📄 Error response text:", errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        return {
-          success: false,
-          message: errorData.message || errorData.error || `Error del servidor: ${response.status}`
-        };
-      } catch {
-        return {
-          success: false,
-          message: `Error del servidor: ${response.status} - ${errorText}`
-        };
-      }
-    }
-
-    const data = await response.json();
-    console.log("📦 Raw response data:", data);
-
-    // Parsear respuesta de Lambda
-    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    console.log("📦 Parsed body:", parsedBody);
-
-    if (data.statusCode === 200) {
-      console.log("✅ Reenvío exitoso");
-      return {
-        success: true,
-        message: parsedBody.message || "Código de verificación reenviado exitosamente"
-      };
-    } else {
-      console.log("❌ Error en reenvío:", parsedBody);
-      return {
-        success: false,
-        message: parsedBody.error || parsedBody.message || "Error al reenviar el código"
-      };
-    }
-
-  } catch (error) {
-    console.error("🔥 Error en reenvío:", error);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('fetch')) {
-        return {
-          success: false,
-          message: "Error de conexión. Verifica tu internet e intenta nuevamente."
-        };
-      }
-      return {
-        success: false,
-        message: error.message
-      };
-    }
-
-    return {
-      success: false,
-      message: "Error desconocido al reenviar código"
-    };
-  }
-};
-
-// Función para logout
-export const logoutUser = (): void => {
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('userData');
-};
-
-// Función para verificar si hay una sesión activa
-export const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem('authToken');
-  return !!token;
-};
-
-// Función para obtener el token
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
-
-// Función para obtener datos del usuario
-export const getUserData = () => {
-  const userData = localStorage.getItem('userData');
-  return userData ? JSON.parse(userData) : null;
-};
-
-// Función para verificar token con el servidor
-export const verifyToken = async (): Promise<boolean> => {
-  try {
-    const token = getAuthToken();
-    if (!token) return false;
-
-    // Si es un token mock (simulación), considerarlo válido
-    if (token.startsWith('mock-jwt-token-')) {
-      return true;
-    }
-    
-    // TODO: Implementar verificación con API real cuando esté disponible
-    // Por ahora, si tenemos un token real (refreshToken), lo consideramos válido
-    return true;
-    
-    // TODO: Descomentar esto cuando tengas endpoint de verificación
-    /*
-    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return response.ok;
-    */
-  } catch (error) {
-    return false;
   }
 };
