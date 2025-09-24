@@ -52,8 +52,6 @@ export default function Contacto() {
       // Simulación de envío de contacto (aquí iría la llamada a la API)
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      console.log("Mensaje enviado:", formData);
-      
       // Mostrar mensaje de éxito
       setSuccess("¡Mensaje enviado correctamente! Te responderemos pronto.");
       

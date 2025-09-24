@@ -1,4 +1,3 @@
-import React from "react";
 import "./Libreria.css";
 
 export default function Libreria() {
