@@ -1,14 +1,20 @@
 package com.soli.biblioteca.controller;
 
 import com.soli.biblioteca.Dto.EditorialCreateDTO;
+import com.soli.biblioteca.Dto.EditorialResponseDTO;
 import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.model.Editorial;
 import com.soli.biblioteca.service.CountryService;
 import com.soli.biblioteca.service.EditorialService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/editorials")
@@ -23,30 +29,60 @@ public class EditorialController {
     }
 
     @PostMapping
-    public ResponseEntity<Editorial> create(@RequestBody EditorialCreateDTO dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EditorialResponseDTO> create(@Valid @RequestBody EditorialCreateDTO dto) {
         Country country = countryService.findById(dto.getCountryID())
-                .orElseThrow(() -> new RuntimeException("Country not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Country not found"));
 
         Editorial editorial = new Editorial();
         editorial.setCompanyName(dto.getCompanyName());
-        editorial.setCountry(country);
-        return ResponseEntity.ok(editorialService.save(editorial));
+        editorial.setCountry(country);Editorial saved = editorialService.save(editorial);
+
+        EditorialResponseDTO response = new EditorialResponseDTO(
+                saved.getId(),
+                saved.getCompanyName(),
+                saved.getCountry().getId(),
+                saved.getCountry().getName()
+        );
+
+        URI location = URI.create("/api/editorials/" + saved.getId());
+        return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping
-    public List<Editorial> getAll() {
-        return editorialService.findAll();
+    public List<EditorialResponseDTO> getAll() {
+        return editorialService.findAll()
+                .stream()
+                .map(e -> new EditorialResponseDTO(
+                        e.getId(),
+                        e.getCompanyName(),
+                        e.getCountry().getId(),
+                        e.getCountry().getName()
+                ))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Editorial> getById(@PathVariable Long id) {
+    public ResponseEntity<EditorialResponseDTO> getById(@PathVariable Long id) {
         return editorialService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(e -> ResponseEntity.ok(new EditorialResponseDTO(
+                        e.getId(),
+                        e.getCompanyName(),
+                        e.getCountry().getId(),
+                        e.getCountry().getName()
+                )))
+                .orElseThrow(() -> new ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Editorial not found"));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (editorialService.findById(id).isEmpty()) {
+            throw new ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Editorial not found");
+        }
         editorialService.delete(id);
         return ResponseEntity.noContent().build();
     }

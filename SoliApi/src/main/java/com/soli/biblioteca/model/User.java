@@ -30,8 +30,4 @@ public class User {
     @Column(name = "genrepreference")
     private String genrePreference;
 
-    @ManyToOne
-    @JoinColumn(name = "roleid")
-    private Role role;
-
 }

@@ -3,9 +3,7 @@ package com.soli.biblioteca.service;
 import com.soli.biblioteca.Dto.UserCreateDTO;
 import com.soli.biblioteca.Dto.UserDTO;
 import com.soli.biblioteca.mapper.UserMapper;
-import com.soli.biblioteca.model.Role;
 import com.soli.biblioteca.model.User;
-import com.soli.biblioteca.repository.RoleRepository;
 import com.soli.biblioteca.repository.UserRepository;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -14,11 +12,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
-    private RoleRepository roleRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
     }
 
     // =============================
@@ -35,9 +31,6 @@ public class UserService {
         user.setGenrePreference(dto.getGenrePreference());
         user.setActiveMember(false);
 
-        Role defaultRole = roleRepository.findByRole("READER")
-                .orElseThrow(() -> new RuntimeException("Role READER no encontrado"));
-        user.setRole(defaultRole);
 
         User saved = userRepository.save(user);
         return UserMapper.toDTO(saved);
@@ -75,14 +68,6 @@ public class UserService {
         return UserMapper.toDTO(userRepository.save(user));
     }
 
-    public UserDTO updateRole(Long id, String newRole) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
-        Role role = roleRepository.findByRole(newRole)
-                .orElseThrow(() -> new RuntimeException("Role no encontrado: " + newRole));
-        user.setRole(role);
-        return UserMapper.toDTO(userRepository.save(user));
-    }
 
     public UserDTO activateMembership(Long id) {
         User user = userRepository.findById(id)
@@ -91,15 +76,4 @@ public class UserService {
         return UserMapper.toDTO(userRepository.save(user));
     }
 
-    // =============================
-    // Helpers
-    // =============================
-
-    public void checkAdmin(String cognitoSub) {
-        User user = userRepository.findByCognitoSub(cognitoSub)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        if (user.getRole() == null || !"ADMIN".equalsIgnoreCase(user.getRole().getRole())) {
-            throw new RuntimeException("Acceso denegado: requiere rol ADMIN");
-        }
-    }
 }

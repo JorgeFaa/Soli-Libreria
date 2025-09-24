@@ -9,11 +9,13 @@ import java.time.LocalDate;
 @Getter
 public class BookResponseDTO {
 
-    // --------- Getters y Setters ---------
     private Long id;
     private String title;
     private LocalDate publishedDate;
+    private String textUrl;
+    private String coverUrl;
 
+    // Foreign Keys
     private Long authorId;
     private Long editorialId;
     private Long genreId;

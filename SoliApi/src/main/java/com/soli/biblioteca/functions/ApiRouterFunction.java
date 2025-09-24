@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soli.biblioteca.Dto.*;
 import com.soli.biblioteca.model.*;
 import com.soli.biblioteca.service.*;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -92,16 +91,6 @@ public class ApiRouterFunction implements Function<Map<String, Object>, Map<Stri
                                 identifier.matches("\\d+")
                                         ? userService.updateGenreById(Long.valueOf(identifier), newGenre)
                                         : userService.updateGenreBySub(identifier, newGenre));
-                    }
-                    break;
-
-                case "/user/{id}/role":
-                    if ("PUT".equalsIgnoreCase(method)) {
-                        Long id = Long.valueOf(pathParams.get("id"));
-                        String role = (String) body.get("roleName");
-                        String jwtSub = (String) body.get("jwtSub");
-                        userService.checkAdmin(jwtSub);
-                        return buildResponse(200, userService.updateRole(id, role));
                     }
                     break;
 
@@ -205,7 +194,7 @@ public class ApiRouterFunction implements Function<Map<String, Object>, Map<Stri
                 // ===================== CountryController =====================
                 case "/api/countries":
                     if ("POST".equalsIgnoreCase(method)) {
-                        CountryDTO dto = objectMapper.convertValue(body, CountryDTO.class);
+                        CountryCreateDTO dto = objectMapper.convertValue(body, CountryCreateDTO.class);
                         Country country = new Country();
                         country.setName(dto.getName());
                         return buildResponse(200, countryService.save(country));

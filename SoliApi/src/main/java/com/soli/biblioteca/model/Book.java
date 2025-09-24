@@ -1,10 +1,13 @@
 package com.soli.biblioteca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -23,24 +26,38 @@ public class Book {
     @Column(name = "publisheddate") // minúscula
     private LocalDate publishedDate;
 
+    @Column(name = "texturl")
+    private String textUrl;
+
+    @Column(name = "coverurl")
+    private String coverUrl;
+
     // --------- Relaciones ---------
 
-    @ManyToOne
-    @JoinColumn(name = "authors") // minúscula
-    private Author author;
+    @ManyToMany
+    @JoinTable(
+            name = "TextAuthors",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "authorID")
+    )
+    @JsonIgnoreProperties("books")
+    private Set<Author> authors = new HashSet<>();
 
     @ManyToOne
-    @JoinColumn(name = "editorials") // minúscula
+    @JoinColumn(name = "editorialid") // minúscula
     private Editorial editorial;
 
-    @ManyToOne
-    @JoinColumn(name = "genres") // minúscula
-    private Genre genre;
+    @ManyToMany
+    @JoinTable(
+            name = "TextGenres",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "genreID")
+    )
+    @JsonIgnoreProperties("genres")
+    private Set<Genre> genres = new HashSet<>();
 
     @ManyToOne
-    @JoinColumn(name = "texttype") // minúscula
+    @JoinColumn(name = "typeid") // minúscula
     private TextType type;
-
-    // --------- Getters y Setters ---------
 
 }

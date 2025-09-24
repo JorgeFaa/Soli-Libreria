@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -28,5 +30,9 @@ public class Author {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "countryid")
     private Country country;
+
+    @ManyToMany(mappedBy = "authors")
+    @JsonIgnoreProperties("authors")
+    private Set<Book> books;
 
 }

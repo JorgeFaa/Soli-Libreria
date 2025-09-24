@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,10 +54,13 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "Solicitud inválida", content = @Content)
     })
     @PostMapping
-    public Book createBook(BookCreateDTO dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public Book createBook(@RequestBody BookCreateDTO dto) {
         Book book = new Book();
         book.setTitle(dto.getTitle());
         book.setPublishedDate(dto.getPublishedDate());
+        book.setTextUrl(dto.getTextUrl());
+        book.setCoverUrl(dto.getCoverUrl());
 
         // Validar y asignar relaciones
         Author author = authorService.findById(dto.getAuthorId())

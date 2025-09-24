@@ -14,9 +14,6 @@ public class UserMapper {
         dto.setActiveMember(user.isActiveMember());
         dto.setGenrePreference(user.getGenrePreference());
 
-        if (user.getRole() != null) {
-            dto.setRoleName(user.getRole().getRole()); // 👈 viene de la entidad Role
-        }
 
         return dto;
     }

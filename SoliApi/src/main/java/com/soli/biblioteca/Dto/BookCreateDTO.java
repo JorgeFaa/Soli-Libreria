@@ -11,7 +11,10 @@ public class BookCreateDTO {
 
     private String title;
     private LocalDate publishedDate;
+    private String textUrl;
+    private String coverUrl;
 
+    // Foreign Keys
     private Long authorId;
     private Long editorialId;
     private Long genreId;
