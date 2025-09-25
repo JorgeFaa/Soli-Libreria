@@ -1,5 +1,10 @@
 package com.soli.biblioteca.Dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class UserCreateDTO {
     private String firstName;
     private String lastName;
@@ -9,18 +14,4 @@ public class UserCreateDTO {
 
     // Getters y Setters
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public boolean isActiveMember() { return activeMember; }
-    public void setActiveMember(boolean activeMember) { this.activeMember = activeMember; }
-
-    public String getGenrePreference() { return genrePreference; }
-    public void setGenrePreference(String genrePreference) { this.genrePreference = genrePreference; }
-
-    public String getRoleName() { return roleName; }
-    public void setRoleName(String roleName) { this.roleName = roleName; }
 }

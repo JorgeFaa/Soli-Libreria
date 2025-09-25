@@ -1,5 +1,6 @@
 package com.soli.biblioteca.service;
 
+import com.soli.biblioteca.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -83,7 +84,8 @@ public class CognitoService {
             return Map.of(
                     "idToken", result.idToken(),
                     "accessToken", result.accessToken(),
-                    "refreshToken", result.refreshToken()
+                    "refreshToken", result.refreshToken(),
+                    "expiresIn", result.expiresIn().toString()
             );
 
         } catch (CognitoIdentityProviderException e) {
@@ -122,11 +124,84 @@ public class CognitoService {
                     .build();
 
             cognitoClient.confirmSignUp(request);
+            addUserToReaderGroup(username);
             return true; // si no lanza excepción, se confirma correctamente
 
         } catch (CognitoIdentityProviderException e) {
             // puedes capturar excepciones específicas si quieres
             return false;
         }
+    }
+
+    // Refrescar tokens usando Refresh Token
+    public Map<String, String> refreshToken(String username, String refreshToken) {
+        try {
+            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+
+            AdminInitiateAuthRequest refreshRequest = AdminInitiateAuthRequest.builder()
+                    .userPoolId(userPoolId)
+                    .clientId(clientId)
+                    .authFlow(AuthFlowType.REFRESH_TOKEN_AUTH)
+                    .authParameters(Map.of(
+                            "REFRESH_TOKEN", refreshToken,
+                            "SECRET_HASH", secretHash
+                    ))
+                    .build();
+
+            AdminInitiateAuthResponse response = cognitoClient.adminInitiateAuth(refreshRequest);
+            AuthenticationResultType result = response.authenticationResult();
+
+            return Map.of(
+                    "idToken", result.idToken(),
+                    "accessToken", result.accessToken()
+                    // refreshToken normalmente no cambia, así que no lo regresamos de nuevo
+            );
+
+        } catch (CognitoIdentityProviderException e) {
+            throw new RuntimeException("Error al refrescar token: " + e.awsErrorDetails().errorMessage(), e);
+        }
+    }
+
+    // Agregar usuario al grupo READER
+    public void addUserToReaderGroup(String username) {
+        try {
+            AdminAddUserToGroupRequest request = AdminAddUserToGroupRequest.builder()
+                    .userPoolId(userPoolId)
+                    .username(username)
+                    .groupName("READER")
+                    .build();
+
+            cognitoClient.adminAddUserToGroup(request);
+
+        } catch (CognitoIdentityProviderException e) {
+            throw new RuntimeException("Error al agregar usuario al grupo READER: " + e.awsErrorDetails().errorMessage(), e);
+        }
+    }
+
+
+    public Boolean getUserStatus(String username) {
+        AdminGetUserRequest request = AdminGetUserRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .build();
+
+        AdminGetUserResponse response = cognitoClient.adminGetUser(request);
+        if (response.userStatus() == UserStatusType.CONFIRMED){
+            return true;
+        }
+        return false;
+    }
+
+    public Boolean getUserByUsername(String username) {
+        AdminGetUserRequest request = AdminGetUserRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .build();
+
+        AdminGetUserResponse response = cognitoClient.adminGetUser(request);
+        if (response.username() != null){
+            return true;
+        }
+        return false;
     }
 }

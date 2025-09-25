@@ -1,8 +1,16 @@
 package com.soli.biblioteca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
+@Setter
+@Getter
 @Entity
 @Table(name = "texts", schema = "public") // Postgres lo guarda en minúsculas
 public class Book {
@@ -18,79 +26,38 @@ public class Book {
     @Column(name = "publisheddate") // minúscula
     private LocalDate publishedDate;
 
+    @Column(name = "texturl")
+    private String textUrl;
+
+    @Column(name = "coverurl")
+    private String coverUrl;
+
     // --------- Relaciones ---------
 
-    @ManyToOne
-    @JoinColumn(name = "authorid") // minúscula
-    private Author author;
+    @ManyToMany
+    @JoinTable(
+            name = "TextAuthors",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "authorID")
+    )
+    @JsonIgnoreProperties("books")
+    private Set<Author> authors = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "editorialid") // minúscula
     private Editorial editorial;
 
-    @ManyToOne
-    @JoinColumn(name = "genreid") // minúscula
-    private Genre genre;
+    @ManyToMany
+    @JoinTable(
+            name = "TextGenres",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "genreID")
+    )
+    @JsonIgnoreProperties("genres")
+    private Set<Genre> genres = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "typeid") // minúscula
     private TextType type;
 
-    // --------- Getters y Setters ---------
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public LocalDate getPublishedDate() {
-        return publishedDate;
-    }
-
-    public void setPublishedDate(LocalDate publishedDate) {
-        this.publishedDate = publishedDate;
-    }
-
-    public Author getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(Author author) {
-        this.author = author;
-    }
-
-    public Editorial getEditorial() {
-        return editorial;
-    }
-
-    public void setEditorial(Editorial editorial) {
-        this.editorial = editorial;
-    }
-
-    public Genre getGenre() {
-        return genre;
-    }
-
-    public void setGenre(Genre genre) {
-        this.genre = genre;
-    }
-
-    public TextType getType() {
-        return type;
-    }
-
-    public void setType(TextType type) {
-        this.type = type;
-    }
 }

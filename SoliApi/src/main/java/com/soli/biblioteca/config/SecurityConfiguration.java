@@ -1,12 +1,16 @@
 package com.soli.biblioteca.config;
 
 import com.soli.biblioteca.controller.CognitoLogoutHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -15,7 +19,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity   // 👈 ESTA ES LA CLAVE
 public class SecurityConfiguration {
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    public String jwkSetUri;
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        // Reemplaza con tu region y poolId
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -27,14 +41,20 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
                         // Swagger y root sin autenticación
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/").permitAll()
-                        // Permitir login para obtener token
-                        .requestMatchers("/user/**",
-                                "/user/login",
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/"
+                        ).permitAll()
+                        // Endpoints públicos
+                        .requestMatchers(
                                 "/user/register",
+                                "/user/login",
+                                "/user/verify-account",
+                                "/user/resend-verification",
                                 "/books/**",
-                                "/api/**",
-                                "/v3/api-docs/**").permitAll()
+                                "/api/**"
+                        ).permitAll()
                         // El resto requiere JWT
                         .anyRequest().authenticated()
                 )

@@ -5,10 +5,14 @@ import com.soli.biblioteca.service.UserService;
 import com.soli.biblioteca.service.CognitoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserStatusType;
 
 import java.util.Map;
 
@@ -29,6 +33,10 @@ public class UserController {
     @Operation(summary = "Registro de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO dto) {
+        boolean exists = cognitoService.getUserByUsername(dto.getUsername());
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
+        }
         cognitoService.registerUser(dto.getUsername(), dto.getPassword());
         return ResponseEntity.ok("Registrado en Cognito");
     }
@@ -37,6 +45,12 @@ public class UserController {
     @Operation(summary = "Login de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest dto) {
+        Boolean status = cognitoService.getUserStatus(dto.getUsername());
+        if (status == false) {
+            // Redirigir al flujo de confirmación de correo
+            cognitoService.resendConfirmationCode(dto.getUsername());
+            return ResponseEntity.ok(Map.of("status","UNCONFIRMED"));
+        }
         Map<String, String> tokens = cognitoService.login(dto.getUsername(), dto.getPassword());
         // No crear usuario en BD todavía
         return ResponseEntity.ok(tokens);
@@ -54,6 +68,7 @@ public class UserController {
     // 4. Obtener usuario por cognitoSub
     @Operation(summary = "Obtener usuario por cognitoSub", security = { @SecurityRequirement(name = "bearerAuth") })
     @GetMapping("/user/{cognitoSub}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getBySub(@PathVariable String cognitoSub) {
         UserDTO user = userService.findByCognitoSubDTO(cognitoSub);
         return ResponseEntity.ok(user);
@@ -61,7 +76,7 @@ public class UserController {
 
     // 5. Obtener usuario logueado (usando JWT)
     @Operation(summary = "Obtener usuario logueado", security = { @SecurityRequirement(name = "bearerAuth") })
-    @GetMapping("/me")
+    @GetMapping("/user/me")
     public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(userService.findUserByJwt(jwt));
     }
@@ -80,14 +95,6 @@ public class UserController {
         return ResponseEntity.ok(dto);
     }
 
-    // 7. Cambiar rol
-    @Operation(summary = "Cambiar rol de usuario", security = { @SecurityRequirement(name = "bearerAuth") })
-    @PutMapping("/{id}/role")
-    public ResponseEntity<UserDTO> changeRole(
-            @PathVariable Long id, @RequestBody Map<String,String> body, @AuthenticationPrincipal Jwt jwt) {
-        userService.checkAdmin(jwt.getSubject());
-        return ResponseEntity.ok(userService.updateRole(id, body.get("roleName")));
-    }
 
     // =======================================
     // Activar membresía (backend)
@@ -98,21 +105,51 @@ public class UserController {
         return ResponseEntity.ok(userService.activateMembership(id));
     }
 
-    @PostMapping("/resend-verification")
+    @PostMapping("/auth/resend-verification")
     public ResponseEntity<String> resendVerification(@RequestBody VerificationRequest dto) {
         cognitoService.resendConfirmationCode(dto.getUsername());
         return ResponseEntity.ok("Código de verificación reenviado");
     }
 
-    @PostMapping("/verify-account")
-    public ResponseEntity<String> verifyAccount(@RequestBody ConfirmAccountRequest dto) {
-        boolean verified = cognitoService.confirmSignUp(dto.getUsername(), dto.getCode());
-        if (verified) {
-            return ResponseEntity.ok("Cuenta verificada correctamente");
-        } else {
-            return ResponseEntity.badRequest().body("Código inválido o expirado");
+    @PostMapping("/auth/verify-account")
+    public ResponseEntity<Map<String, String>> verifyAccount(@RequestBody ConfirmAccountRequest dto) {
+        try {
+            boolean verified = cognitoService.confirmSignUp(dto.getUsername(), dto.getCode());
+            if (verified) {
+                return ResponseEntity.ok(Map.of("status", "SUCCESS"));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("status", "INVALID_CODE"));
+            }
+        } catch (CognitoIdentityProviderException e) {
+            if (e.awsErrorDetails().errorCode().equals("ExpiredCodeException")) {
+                // informar al usuario que el código expiró
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("status", "CODE_EXPIRED"));
+            }
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "ERROR"));
+    }
+
+    @PostMapping("/auth/refresh-token")
+    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody RefreshTokenRequestDTO dto){
+        Map<String, String> tokens = cognitoService.refreshToken(dto.getUsername(), dto.getRefreshToken());
+        return ResponseEntity.ok(tokens);
+    }
+
+
+    @GetMapping("/user/status")
+    public ResponseEntity<Map<String, Boolean>> getUserStatus(@RequestBody String username) {
+        try {
+            boolean confirmed = cognitoService.getUserStatus(username);
+            return ResponseEntity.ok(Map.of("isConfirmed", confirmed));
+        } catch (CognitoIdentityProviderException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("isConfirmed", false));
         }
     }
+
 }
 
 
