@@ -1,71 +1,85 @@
--- CREATE database Soli_DB;
+-- =====================================================
+-- Base de datos: Soli_DB
+-- =====================================================
+--CREATE DATABASE Soli_DB;
 
-create table if not exists public.Texts(
-    textID serial not null primary key,
-    textTitle varchar(250) not null,
-    publishedDate date
+-- =====================================================
+-- Tablas de catálogo / referencia
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS Country (
+    countryID SERIAL PRIMARY KEY,
+    countryName VARCHAR(100) NOT NULL
 );
 
-create table if not exists public.Authors(
-    authorID serial not null primary key,
-    authorName varchar(50) not null ,
-    AuthorMiddleName varchar(50),
-    authorLastName varchar(100)
-);
-create table if not exists public.Editorials(
-    editorialID serial not null primary key,
-    companyName varchar(250) not null
+CREATE TABLE IF NOT EXISTS Genres (
+    genreID SERIAL PRIMARY KEY,
+    genreName VARCHAR(100) NOT NULL
 );
 
-Create table if not exists public.Users(
-    userID serial not null primary key,
-    firstName varchar(50) not null,
-    lastName varchar(50) not null ,
-    activeMember boolean not null,
-    genrePreference varchar(256)
+CREATE TABLE IF NOT EXISTS TextType (
+    typeID SERIAL PRIMARY KEY,
+    textType VARCHAR(100) NOT NULL
 );
 
-Create table if not exists public.Country(
-    countryID serial not null primary key,
-    countryName varchar
+-- =====================================================
+-- Tablas principales
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS Authors (
+    authorID SERIAL PRIMARY KEY,
+    authorName VARCHAR(50) NOT NULL,
+    authorMiddleName VARCHAR(50),
+    authorLastName VARCHAR(100),
+    countryID INT REFERENCES Country(countryID)
 );
 
-Create Table if not exists public.Genres(
-    genreID serial not null primary key,
-    genreName varchar
+CREATE TABLE IF NOT EXISTS Editorials (
+    editorialID SERIAL PRIMARY KEY,
+    companyName VARCHAR(250) NOT NULL,
+    countryID INT REFERENCES Country(countryID)
 );
 
-Create table if not exists public.textType(
-    typeID serial not null primary key,
-    textType varchar
+CREATE TABLE IF NOT EXISTS Users (
+    userID SERIAL PRIMARY KEY,
+    firstName VARCHAR(50) NOT NULL,
+    lastName VARCHAR(50) NOT NULL,
+    activeMember BOOLEAN NOT NULL DEFAULT TRUE,
+    cognitoSub VARCHAR(64) UNIQUE NOT NULL
 );
 
-Create table if not exists public.Roles(
-    roleID serial not null primary key,
-    role varchar
+CREATE TABLE IF NOT EXISTS Texts (
+    textID SERIAL PRIMARY KEY,
+    textTitle VARCHAR(250) NOT NULL,
+    publishedDate DATE,
+    editorialID INT REFERENCES Editorials(editorialID),
+    typeID INT REFERENCES TextType(typeID),
+    textUrl VARCHAR(512),
+    coverUrl VARCHAR(512)
 );
 
-alter table public.Texts add column if not exists
-    authorID int references Authors(authorID);
+-- =====================================================
+-- Tablas de relación N:M
+-- =====================================================
 
-alter table public.Texts add column if not exists
-    editorialID int references Editorials(editorialID);
+-- Un texto puede tener varios autores y un autor varios textos
+CREATE TABLE IF NOT EXISTS TextAuthors (
+    textID INT REFERENCES Texts(textID) ON DELETE CASCADE,
+    authorID INT REFERENCES Authors(authorID) ON DELETE CASCADE,
+    PRIMARY KEY (textID, authorID)
+);
 
-alter table public.Texts add column if not exists
-    genreID int references Genres(genreID);
+-- Un texto puede tener varios géneros y un género aplicarse a varios textos
+CREATE TABLE IF NOT EXISTS TextGenres (
+    textID INT REFERENCES Texts(textID) ON DELETE CASCADE,
+    genreID INT REFERENCES Genres(genreID) ON DELETE CASCADE,
+    PRIMARY KEY (textID, genreID)
+);
 
-alter table public.Texts add column if not exists
-    typeID int references textType(typeID);
-
-alter table public.Authors add column if not exists
-    countryID int references Country(countryID);
-
-alter table public.Editorials add column if not exists
-    countryID int references Country(countryID);
-
-alter table public.Users add column if not exists
-    roleID int references Roles(roleID);
-
-alter table public.Users add column if not exists cognitoSub varchar(64);
-
+-- Un usuario puede preferir varios géneros
+CREATE TABLE IF NOT EXISTS UserGenres (
+    userID INT REFERENCES Users(userID) ON DELETE CASCADE,
+    genreID INT REFERENCES Genres(genreID) ON DELETE CASCADE,
+    PRIMARY KEY (userID, genreID)
+);
 

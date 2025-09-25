@@ -1,7 +1,15 @@
 package com.soli.biblioteca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
+@Setter
+@Getter
 @Entity
 @Table(name = "genres", schema = "public")
 public class Genre {
@@ -14,11 +22,7 @@ public class Genre {
     @Column(name = "genrename")
     private String name;
 
-    // --------- Getters y Setters ---------
-
-    public Long getGenreId() { return id; }
-    public void setGenreId(Long id) { this.id = id; }
-
-    public String getGenreName() { return name; }
-    public void setGenreName(String name) { this.name = name; }
+    @ManyToMany(mappedBy = "genres")
+    @JsonIgnoreProperties("genres") // evita recursión infinita al serializar JSON
+    private Set<Book> books = new HashSet<>();
 }

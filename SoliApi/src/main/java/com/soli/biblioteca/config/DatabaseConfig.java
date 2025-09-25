@@ -20,7 +20,9 @@ public class DatabaseConfig {
     private String dbPassword;
 
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource() throws Exception {
+
+
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
         dataSource.setUrl(dbUrl);

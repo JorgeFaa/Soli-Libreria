@@ -21,10 +21,8 @@ public class BookService {
     }
 
     // Crear un libro
-    public BookResponseDTO createBook(BookCreateDTO dto) {
-        Book book = BookMapper.toEntity(dto);
-        Book saved = bookRepository.save(book);
-        return BookMapper.toResponseDTO(saved);
+    public Book createBook(Book book) {
+        return bookRepository.save(book);
     }
 
     // Obtener todos los libros

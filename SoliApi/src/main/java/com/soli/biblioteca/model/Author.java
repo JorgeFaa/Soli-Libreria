@@ -1,7 +1,14 @@
 package com.soli.biblioteca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.Set;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "authors", schema = "public")
 public class Author {
@@ -20,24 +27,12 @@ public class Author {
     @Column(name = "authorlastname", length = 100)
     private String lastName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "countryid")
     private Country country;
 
-    // --------- Getters y Setters ---------
+    @ManyToMany(mappedBy = "authors")
+    @JsonIgnoreProperties("authors")
+    private Set<Book> books;
 
-    public Long getAuthorId() { return id; }
-    public void setAuthorId(Long id) { this.id = id; }
-
-    public String getAuthorName() { return name; }
-    public void setAuthorName(String name) { this.name = name; }
-
-    public String getAuthorMiddleName() { return middleName; }
-    public void setAuthorMiddleName(String middleName) { this.middleName = middleName; }
-
-    public String getAuthorLastName() { return lastName; }
-    public void setAuthorLastName(String lastName) { this.lastName = lastName; }
-
-    public Country getAuthorCountry() { return country; }
-    public void setAuthorCountry(Country country) { this.country = country; }
 }
