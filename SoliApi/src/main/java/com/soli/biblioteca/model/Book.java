@@ -1,66 +1,63 @@
 package com.soli.biblioteca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
+@Setter
+@Getter
 @Entity
-@Table(name = "libros")
+@Table(name = "texts", schema = "public") // Postgres lo guarda en minúsculas
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "textid") // minúscula
     private Long id;
 
-    private String titulo;
-    private String autor;
+    @Column(name = "texttitle", nullable = false, length = 250) // minúscula
+    private String title;
 
-    @Column(length = 1000)
-    private String descripcion;
+    @Column(name = "publisheddate") // minúscula
+    private LocalDate publishedDate;
 
-    private Integer paginas;
+    @Column(name = "texturl")
+    private String textUrl;
 
-    private String categoria; // Ej: Fantástica, Clásica, Biología, Física
+    @Column(name = "coverurl")
+    private String coverUrl;
 
-    @ElementCollection
-    private List<String> etiquetas; // Etiquetas adicionales opcionales
+    // --------- Relaciones ---------
 
-    private String urlArchivo; // URL de S3, opcional
+    @ManyToMany
+    @JoinTable(
+            name = "TextAuthors",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "authorID")
+    )
+    @JsonIgnoreProperties("books")
+    private Set<Author> authors = new HashSet<>();
 
-    public Book() {}
+    @ManyToOne
+    @JoinColumn(name = "editorialid") // minúscula
+    private Editorial editorial;
 
-    public Book(String titulo, String autor, String descripcion, Integer paginas,
-                String categoria, List<String> etiquetas, String urlArchivo) {
-        this.titulo = titulo;
-        this.autor = autor;
-        this.descripcion = descripcion;
-        this.paginas = paginas;
-        this.categoria = categoria;
-        this.etiquetas = etiquetas;
-        this.urlArchivo = urlArchivo;
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "TextGenres",
+            joinColumns = @JoinColumn(name = "textID"),
+            inverseJoinColumns = @JoinColumn(name = "genreID")
+    )
+    @JsonIgnoreProperties("genres")
+    private Set<Genre> genres = new HashSet<>();
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @ManyToOne
+    @JoinColumn(name = "typeid") // minúscula
+    private TextType type;
 
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
-
-    public String getAutor() { return autor; }
-    public void setAutor(String autor) { this.autor = autor; }
-
-    public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-
-    public Integer getPaginas() { return paginas; }
-    public void setPaginas(Integer paginas) { this.paginas = paginas; }
-
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
-    public List<String> getEtiquetas() { return etiquetas; }
-    public void setEtiquetas(List<String> etiquetas) { this.etiquetas = etiquetas; }
-
-    public String getUrlArchivo() { return urlArchivo; }
-    public void setUrlArchivo(String urlArchivo) { this.urlArchivo = urlArchivo; }
 }

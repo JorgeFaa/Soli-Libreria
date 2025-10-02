@@ -1,0 +1,561 @@
+/* ===========================================
+   SECCIÓN PROMOCIÓN DE APP MÓVIL - SOLI
+=========================================== */
+
+.app-promo-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-promo-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 80%, rgba(255, 165, 0, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.app-promo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===========================================
+   CONTENIDO PRINCIPAL
+=========================================== */
+
+.app-promo-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+/* ===========================================
+   COLUMNA 1: INFORMACIÓN
+=========================================== */
+
+.app-promo-info {
+  color: white;
+}
+
+.app-promo-header {
+  margin-bottom: 40px;
+}
+
+.app-promo-logo {
+  margin-bottom: 20px;
+}
+
+.app-promo-logo-icon {
+  width: 50px;
+  height: 50px;
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(15deg);
+}
+
+.app-promo-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.app-promo-accent {
+  color: #FFA500;
+  background: linear-gradient(45deg, #FFA500, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-promo-description {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  color: #B8B8D4;
+  max-width: 500px;
+}
+
+/* ===========================================
+   CARACTERÍSTICAS DE LA APP
+=========================================== */
+
+.app-promo-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.app-promo-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 165, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.app-promo-feature:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 165, 0, 0.4);
+  box-shadow: 0 10px 25px rgba(255, 165, 0, 0.15);
+}
+
+.app-promo-feature-icon {
+  font-size: 1.5rem;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 165, 0, 0.2);
+  border-radius: 8px;
+  margin-top: 2px;
+}
+
+.app-promo-feature-content {
+  flex: 1;
+}
+
+.app-promo-feature-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.app-promo-feature-description {
+  font-size: 0.9rem;
+  color: #B8B8D4;
+  line-height: 1.5;
+}
+
+/* ===========================================
+   BOTÓN DE DESCARGA CON IMAGEN OFICIAL
+=========================================== */
+
+.app-promo-download {
+  text-align: left;
+}
+
+.app-promo-google-play-button {
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.app-promo-google-play-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  filter: brightness(1.1);
+}
+
+.app-promo-google-play-image {
+  height: 60px;
+  width: auto;
+  max-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.app-promo-google-play-button:hover .app-promo-google-play-image {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.app-promo-download-note {
+  font-size: 0.9rem;
+  color: #B8B8D4;
+  margin: 0;
+}
+
+/* ===========================================
+   COLUMNA 2: MOCKUP DEL TELÉFONO
+=========================================== */
+
+.app-promo-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-promo-phone {
+  position: relative;
+  z-index: 2;
+}
+
+.app-promo-phone-frame {
+  width: 280px;
+  height: 550px;
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  border-radius: 35px;
+  padding: 25px 15px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.app-promo-phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: #7f8c8d;
+  border-radius: 2px;
+}
+
+.app-promo-phone-screen {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 25px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header de la app */
+.app-promo-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-promo-screen-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-promo-screen-logo-icon {
+  width: 24px;
+  height: 24px;
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(15deg);
+}
+
+.app-promo-screen-title {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.app-promo-screen-user {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 165, 0, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* Contenido de la app */
+.app-promo-screen-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.app-promo-screen-section {
+  margin-bottom: 25px;
+}
+
+.app-promo-screen-section-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.app-promo-screen-book {
+  display: flex;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 165, 0, 0.2);
+}
+
+.app-promo-screen-book-cover {
+  width: 45px;
+  height: 60px;
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.app-promo-screen-book-info {
+  flex: 1;
+}
+
+.app-promo-screen-book-title {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.app-promo-screen-book-author {
+  color: #B8B8D4;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.app-promo-screen-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-promo-screen-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.app-promo-screen-progress-fill {
+  width: 68%;
+  height: 100%;
+  background: linear-gradient(90deg, #FFA500, #FFD700);
+}
+
+.app-promo-screen-progress-text {
+  color: #FFA500;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.app-promo-screen-books {
+  display: flex;
+  gap: 10px;
+}
+
+.app-promo-screen-book-mini {
+  width: 35px;
+  height: 45px;
+  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.app-promo-screen-book-mini:nth-child(2) {
+  background: linear-gradient(135deg, #50C878, #3E8E41);
+}
+
+.app-promo-screen-book-mini:nth-child(3) {
+  background: linear-gradient(135deg, #E74C3C, #C0392B);
+}
+
+.app-promo-screen-book-mini:nth-child(4) {
+  background: linear-gradient(135deg, #F39C12, #E67E22);
+}
+
+/* Footer de navegación */
+.app-promo-screen-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-promo-screen-nav-item {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.app-promo-screen-nav-item.active {
+  background: rgba(255, 165, 0, 0.2);
+  color: #FFA500;
+}
+
+/* Elementos decorativos */
+.app-promo-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.app-promo-decoration {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.app-promo-decoration-1 {
+  top: 20%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.app-promo-decoration-2 {
+  top: 60%;
+  right: -15%;
+  animation-delay: 2s;
+}
+
+.app-promo-decoration-3 {
+  bottom: 30%;
+  left: -5%;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateY(-20px) rotate(10deg);
+    opacity: 0.6;
+  }
+}
+
+/* ===========================================
+   ESTADÍSTICAS
+=========================================== */
+
+.app-promo-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  padding: 40px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-promo-stat {
+  text-align: center;
+  color: white;
+}
+
+.app-promo-stat-number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(45deg, #FFA500, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-promo-stat-label {
+  font-size: 1rem;
+  color: #B8B8D4;
+  font-weight: 500;
+}
+
+/* ===========================================
+   RESPONSIVE DESIGN
+=========================================== */
+
+@media (max-width: 768px) {
+  .app-promo-section {
+    padding: 60px 0;
+  }
+
+  .app-promo-content {
+    grid-template-columns: 1fr;
+    gap: 50px;
+    text-align: center;
+  }
+
+  .app-promo-title {
+    font-size: 2.5rem;
+  }
+
+  .app-promo-features {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .app-promo-phone-frame {
+    width: 250px;
+    height: 480px;
+    padding: 20px 12px;
+  }
+
+  .app-promo-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+
+  .app-promo-stat-number {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-promo-container {
+    padding: 0 15px;
+  }
+
+  .app-promo-title {
+    font-size: 2rem;
+  }
+
+  .app-promo-description {
+    font-size: 1.1rem;
+  }
+
+  .app-promo-phone-frame {
+    width: 220px;
+    height: 420px;
+    padding: 18px 10px;
+  }
+
+  .app-promo-features {
+    gap: 15px;
+  }
+
+  .app-promo-feature {
+    padding: 15px;
+  }
+
+  .app-promo-stats {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

@@ -1,45 +1,33 @@
 package com.soli.biblioteca.model;
 
 import jakarta.persistence.*;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
-@Table(name = "usuarios")
+@Table(name = "users", schema = "public")
 public class User {
-
+    // Getters y Setters
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "userid")
     private Long id;
 
-    private String nombre;
-    private String email;
-    private String contrasena;
+    @Column(name = "cognitosub", unique = true, nullable = false)
+    private String cognitoSub; // UUID de Cognito
 
-    @ElementCollection
-    private List<String> categoriasPreferidas; // Para recomendar libros según categoría
+    @Column(name = "firstname", nullable = false)
+    private String firstName;
 
-    public User() {}
+    @Column(name = "lastname", nullable = false)
+    private String lastName;
 
-    public User(String nombre, String email, String contrasena, List<String> categoriasPreferidas) {
-        this.nombre = nombre;
-        this.email = email;
-        this.contrasena = contrasena;
-        this.categoriasPreferidas = categoriasPreferidas;
-    }
+    @Column(name = "activemember", nullable = false)
+    private boolean activeMember;
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @Column(name = "genrepreference")
+    private String genrePreference;
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getContrasena() { return contrasena; }
-    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
-
-    public List<String> getCategoriasPreferidas() { return categoriasPreferidas; }
-    public void setCategoriasPreferidas(List<String> categoriasPreferidas) { this.categoriasPreferidas = categoriasPreferidas; }
 }
