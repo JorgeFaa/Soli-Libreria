@@ -1,29 +1,41 @@
+
+   ---- Create Database ----
 CREATE database Soli_DB;
 
+
+   ---- Create Main Tables ----
 create table Soli_DB.public.Texts(
     textID serial not null primary key,
     textTitle varchar(250) not null,
-    publishedDate date
+    publishedDate date,
+    editorialID INT references Editorials(editorialID),
+    typeID INT references TextType(typeID),
+    textUrl varchar(512),
+    coverUrl varchar(512)
 );
 
 create table Soli_DB.public.Authors(
     authorID serial not null primary key,
     authorName varchar(50) not null ,
     AuthorMiddleName varchar(50),
-    authorLastName varchar(100)
+    authorLastName varchar(100),
+    countryID INT references Country(countryID)
 );
 create table  Soli_DB.public.Editorials(
     editorialID serial not null primary key,
-    companyName varchar(250) not null
+    companyName varchar(250) not null,
+    countryID INT references Country(countryID)
 );
 
 Create table Soli_DB.public.Users(
     userID serial not null primary key,
     firstName varchar(50) not null,
     lastName varchar(50) not null ,
-    activeMember boolean not null,
-    genrePreference varchar(256)
+    activeMember boolean not null DEFAULT TRUE,
+    cognitoSub varchar(64) UNIQUE  NOT NULL
 );
+
+   ---- Create Auxiliary Catalog Tables ----
 
 Create table Soli_DB.public.Country(
     countryID serial not null primary key,
@@ -35,7 +47,7 @@ Create Table Soli_DB.public.Genres(
     genreName varchar
 );
 
-Create table Soli_DB.public.textType(
+Create table Soli_DB.public.TextType(
     typeID serial not null primary key,
     textType varchar
 );
@@ -45,23 +57,22 @@ Create table Soli_DB.public.Roles(
     role varchar
 );
 
-alter table Soli_DB.public.Texts add column
-    authorID int references Authors(authorID);
+     ---- Create Tables Many to Many ----
 
-alter table Soli_DB.public.Texts add column
-    editorialID int references Editorials(editorialID);
+CREATE TABLE IF NOT EXISTS TextGenres(
+    textID INT references Texts(textID) ON DELETE CASCADE,
+    genreID INT references Genres(genreID) ON DELETE CASCADE,
+    PRIMARY KEY (textID, genreID)
+);
 
-alter table Soli_DB.public.Texts add column
-    genreID int references Genres(genreID);
+CREATE TABLE IF NOT EXISTS TextAuthors(
+    textID INT references Texts(textID) ON DELETE CASCADE,
+    authorID INT REFERENCES Authors(authorID) ON DELETE CASCADE,
+    PRIMARY KEY (textID, authorID)
+);
 
-alter table Soli_DB.public.Texts add column
-    typeID int references textType(typeID);
-
-alter table Soli_DB.public.Authors add column
-    countryID int references Country(countryID);
-
-alter table Soli_DB.public.Editorials add column
-    countryID int references Country(countryID);
-
-alter table Soli_DB.public.Users add column
-    roleID int references Roles(roleID);
+CREATE TABLE IF NOT EXISTS UserGenres(
+    userID INT references  Users(userID) ON DELETE CASCADE,
+    genreID INT references Genres(genreID) ON DELETE CASCADE,
+    PRIMARY KEY (userID, genreID)
+)
