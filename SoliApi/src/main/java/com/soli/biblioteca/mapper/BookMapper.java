@@ -13,7 +13,10 @@ public class BookMapper {
 
         Book book = new Book();
         book.setTitle(dto.getTitle());
+        book.setDescription(dto.getDescription());
         book.setPublishedDate(dto.getPublishedDate());
+        book.setTextUrl(dto.getTextUrl());
+        book.setCoverUrl(dto.getCoverUrl());
 
         if (dto.getAuthorIds() != null) {
             book.setAuthors(
@@ -67,7 +70,10 @@ public class BookMapper {
         BookResponseDTO dto = new BookResponseDTO();
         dto.setId(book.getId());
         dto.setTitle(book.getTitle());
+        dto.setDescription(book.getDescription());
         dto.setPublishedDate(book.getPublishedDate());
+        dto.setTextUrl(book.getTextUrl());
+        dto.setCoverUrl(book.getCoverUrl());
 
         if (book.getAuthors() != null) {
             dto.setAuthorIds(
