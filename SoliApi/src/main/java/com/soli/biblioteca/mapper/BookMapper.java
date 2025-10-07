@@ -105,4 +105,60 @@ public class BookMapper {
 
         return dto;
     }
+
+    // Método para actualización parcial
+    public static void updateBookFromDTO(Book existingBook, BookUpdateDTO updateDTO) {
+        if (updateDTO == null) return;
+
+        // Actualizar solo los campos que no son null
+        if (updateDTO.getTitle() != null) {
+            existingBook.setTitle(updateDTO.getTitle());
+        }
+        if (updateDTO.getDescription() != null) {
+            existingBook.setDescription(updateDTO.getDescription());
+        }
+        if (updateDTO.getPublishedDate() != null) {
+            existingBook.setPublishedDate(updateDTO.getPublishedDate());
+        }
+        if (updateDTO.getTextUrl() != null) {
+            existingBook.setTextUrl(updateDTO.getTextUrl());
+        }
+        if (updateDTO.getCoverUrl() != null) {
+            existingBook.setCoverUrl(updateDTO.getCoverUrl());
+        }
+
+        // Para las relaciones, si se proporciona una lista (incluso vacía), reemplazar completamente
+        if (updateDTO.getAuthorIds() != null) {
+            existingBook.getAuthors().clear();
+            updateDTO.getAuthorIds().forEach(id -> {
+                Author author = new Author();
+                author.setId(id);
+                existingBook.getAuthors().add(author);
+            });
+        }
+
+        if (updateDTO.getEditorialIds() != null) {
+            existingBook.getEditorials().clear();
+            updateDTO.getEditorialIds().forEach(id -> {
+                Editorial editorial = new Editorial();
+                editorial.setId(id);
+                existingBook.getEditorials().add(editorial);
+            });
+        }
+
+        if (updateDTO.getGenreIds() != null) {
+            existingBook.getGenres().clear();
+            updateDTO.getGenreIds().forEach(id -> {
+                Genre genre = new Genre();
+                genre.setId(id);
+                existingBook.getGenres().add(genre);
+            });
+        }
+
+        if (updateDTO.getTypeId() != null) {
+            TextType type = new TextType();
+            type.setId(updateDTO.getTypeId());
+            existingBook.setType(type);
+        }
+    }
 }

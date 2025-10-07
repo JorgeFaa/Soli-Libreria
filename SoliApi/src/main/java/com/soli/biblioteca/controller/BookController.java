@@ -2,6 +2,7 @@ package com.soli.biblioteca.controller;
 
 import com.soli.biblioteca.Dto.BookCreateDTO;
 import com.soli.biblioteca.Dto.BookResponseDTO;
+import com.soli.biblioteca.Dto.BookUpdateDTO;
 import com.soli.biblioteca.model.*;
 import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.TextTypeRepository;
@@ -146,6 +147,75 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
         return bookService.getBookById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Actualizar libro por ID
+    @Operation(
+            summary = "Actualizar un libro por ID",
+            description = "Actualiza un libro específico según el ID proporcionado. Permite actualización parcial de campos."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Libro actualizado correctamente",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = BookResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Libro no encontrado", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Datos de actualización inválidos", content = @Content)
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookUpdateDTO updateDTO) {
+        // Verificar que el libro existe antes de la actualización
+        if (!bookService.findById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Si se proporciona un nuevo título, verificar que no exista otro libro con ese título
+        if (updateDTO.getTitle() != null) {
+            // Obtener el libro actual para comparar títulos
+            BookResponseDTO currentBook = bookService.getBookById(id).orElse(null);
+            if (currentBook != null && !currentBook.getTitle().equals(updateDTO.getTitle())) {
+                // Solo verificar duplicados si el título es diferente al actual
+                if (bookService.existsBookByTitle(updateDTO.getTitle())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un libro con este título");
+                }
+            }
+        }
+
+        // Validar que los IDs de relaciones existen (si se proporcionan)
+        if (updateDTO.getAuthorIds() != null) {
+            for (Long authorId : updateDTO.getAuthorIds()) {
+                if (!authorService.findById(authorId).isPresent()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Autor no encontrado con ID " + authorId);
+                }
+            }
+        }
+
+        if (updateDTO.getEditorialIds() != null) {
+            for (Long editorialId : updateDTO.getEditorialIds()) {
+                if (!editorialService.findById(editorialId).isPresent()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Editorial no encontrada con ID " + editorialId);
+                }
+            }
+        }
+
+        if (updateDTO.getGenreIds() != null) {
+            for (Long genreId : updateDTO.getGenreIds()) {
+                if (!genreRepository.findById(genreId).isPresent()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Género no encontrado con ID " + genreId);
+                }
+            }
+        }
+
+        if (updateDTO.getTypeId() != null) {
+            if (!textTypeRepository.findById(updateDTO.getTypeId()).isPresent()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de texto no encontrado con ID " + updateDTO.getTypeId());
+            }
+        }
+
+        // Realizar la actualización
+        return bookService.updateBook(id, updateDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

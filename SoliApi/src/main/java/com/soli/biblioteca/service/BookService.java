@@ -2,6 +2,7 @@ package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.BookCreateDTO;
 import com.soli.biblioteca.Dto.BookResponseDTO;
+import com.soli.biblioteca.Dto.BookUpdateDTO;
 import com.soli.biblioteca.mapper.BookMapper;
 import com.soli.biblioteca.model.Book;
 import com.soli.biblioteca.repository.BookRepository;
@@ -50,5 +51,30 @@ public class BookService {
             return true;
         }
         return false;
+    }
+
+    // Actualizar libro por ID
+    public Optional<BookResponseDTO> updateBook(Long id, BookUpdateDTO updateDTO) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        
+        if (optionalBook.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        Book existingBook = optionalBook.get();
+        
+        // Usar el mapper para actualizar solo los campos proporcionados
+        BookMapper.updateBookFromDTO(existingBook, updateDTO);
+        
+        // Guardar el libro actualizado
+        Book updatedBook = bookRepository.save(existingBook);
+        
+        // Retornar como DTO
+        return Optional.of(BookMapper.toResponseDTO(updatedBook));
+    }
+
+    // Método auxiliar para obtener la entidad Book por ID (para uso interno)
+    public Optional<Book> findById(Long id) {
+        return bookRepository.findById(id);
     }
 }
