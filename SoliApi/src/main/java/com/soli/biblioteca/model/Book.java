@@ -23,16 +23,18 @@ public class Book {
     @Column(name = "texttitle", nullable = false, length = 250) // minúscula
     private String title;
 
-    @Column(name = "descripcion", nullable = false)
+    // Declarar explicitamente como TEXT para evitar mapeo por defecto a varchar(255)
+    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "publisheddate") // minúscula
     private LocalDate publishedDate;
 
-    @Column(name = "texturl")
+    // URLs largas como pre-signed S3 pueden exceder 255; elevamos a 1024
+    @Column(name = "texturl", length = 1024)
     private String textUrl;
 
-    @Column(name = "coverurl")
+    @Column(name = "coverurl", length = 1024)
     private String coverUrl;
 
     // --------- Relaciones ---------
@@ -40,8 +42,8 @@ public class Book {
     @ManyToMany
     @JoinTable(
             name = "text_authors",
-            joinColumns = @JoinColumn(name = "textID"),
-            inverseJoinColumns = @JoinColumn(name = "authorID")
+            joinColumns = @JoinColumn(name = "textid"),
+            inverseJoinColumns = @JoinColumn(name = "authorid")
     )
     @JsonIgnoreProperties("books")
     private Set<Author> authors = new HashSet<>();
@@ -58,8 +60,8 @@ public class Book {
     @ManyToMany
     @JoinTable(
             name = "text_genres",
-            joinColumns = @JoinColumn(name = "textID"),
-            inverseJoinColumns = @JoinColumn(name = "genreID")
+            joinColumns = @JoinColumn(name = "textid"),
+            inverseJoinColumns = @JoinColumn(name = "genreid")
     )
     @JsonIgnoreProperties("genres")
     private Set<Genre> genres = new HashSet<>();
