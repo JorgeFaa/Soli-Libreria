@@ -42,4 +42,13 @@ public class BookService {
         return bookRepository.findById(id)
                 .map(BookMapper::toResponseDTO);
     }
+
+    // Eliminar libro por ID
+    public boolean deleteBook(Long id) {
+        if (bookRepository.existsById(id)) {
+            bookRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

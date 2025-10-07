@@ -149,4 +149,24 @@ public class BookController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    // Eliminar libro por ID
+    @Operation(
+            summary = "Eliminar un libro por ID",
+            description = "Elimina un libro específico según el ID proporcionado"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Libro eliminado correctamente", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Libro no encontrado", content = @Content)
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        boolean deleted = bookService.deleteBook(id);
+        if (deleted) {
+            return ResponseEntity.noContent().build(); // 204 No Content
+        } else {
+            return ResponseEntity.notFound().build(); // 404 Not Found
+        }
+    }
 }

@@ -32,7 +32,7 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-            name = "UserGenres",
+            name = "user_genres",
             joinColumns = @JoinColumn(name = "userid"),
             inverseJoinColumns = @JoinColumn(name = "genreid")
     )
