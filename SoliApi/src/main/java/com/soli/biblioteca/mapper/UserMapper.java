@@ -2,7 +2,10 @@ package com.soli.biblioteca.mapper;
 
 import com.soli.biblioteca.Dto.UserDTO;
 import com.soli.biblioteca.Dto.RegisterDTO;
+import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
+
+import java.util.stream.Collectors;
 
 public class UserMapper {
 
@@ -12,8 +15,12 @@ public class UserMapper {
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
         dto.setActiveMember(user.isActiveMember());
-        dto.setGenrePreference(user.getGenrePreference());
-
+        dto.setPrefferedGenreIds(
+                user.getPreferredGenres()
+                        .stream()
+                        .map(g -> g.getId())
+                        .collect(Collectors.toSet())
+        );
 
         return dto;
     }
@@ -25,7 +32,6 @@ public class UserMapper {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setActiveMember(dto.isActiveMember());
-        user.setGenrePreference(dto.getGenrePreference());
         return user;
     }
 

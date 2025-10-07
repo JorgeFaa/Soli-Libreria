@@ -14,11 +14,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/books")
@@ -55,35 +58,62 @@ public class BookController {
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Book createBook(@RequestBody BookCreateDTO dto) {
+    public BookResponseDTO createBook(@RequestBody BookCreateDTO dto) {
+
+        // Verificar título duplicado
+        if (bookService.existsBookByTitle(dto.getTitle())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Book already exists");
+        }
+
         Book book = new Book();
         book.setTitle(dto.getTitle());
+        book.setDescription(dto.getDescription());
         book.setPublishedDate(dto.getPublishedDate());
         book.setTextUrl(dto.getTextUrl());
         book.setCoverUrl(dto.getCoverUrl());
 
-        // Validar y asignar relaciones
-        Author author = authorService.findById(dto.getAuthorId())
-                .orElseThrow(() -> new RuntimeException("Autor no encontrado"));
-        System.out.println("Author found: " + author.getName());
-        book.setAuthor(author);
+        // Asignar autores
+        for (Long authorId : dto.getAuthorIds()) {
+            Author author = authorService.findById(authorId)
+                    .orElseThrow(() -> new RuntimeException("Autor no encontrado con ID " + authorId));
+            book.getAuthors().add(author);
+        }
 
-        Editorial editorial = editorialService.findById(dto.getEditorialId())
-                .orElseThrow(() -> new RuntimeException("Editorial no encontrada"));
-        System.out.println("Editorial found: " + editorial.getId());
-        book.setEditorial(editorial);
+        // Asignar editorial
+        for (Long editorialId : dto.getEditorialIds()) {
+            Editorial editorial = editorialService.findById(editorialId)
+                    .orElseThrow(() -> new RuntimeException("Editorial no encontrada con ID " + editorialId));
+            book.getEditorials().add(editorial);
+        }
 
-        Genre genre = genreRepository.findById(dto.getGenreId())
-                .orElseThrow(() -> new RuntimeException("Género no encontrado"));
-        System.out.println("Genre found: " + genre.getId());
-        book.setGenre(genre);
+        // Asignar géneros
+        for (Long genreId : dto.getGenreIds()) {
+            Genre genre = genreRepository.findById(genreId)
+                    .orElseThrow(() -> new RuntimeException("Género no encontrado con ID " + genreId));
+            book.getGenres().add(genre);
+        }
 
+        // Asignar tipo de texto
         TextType type = textTypeRepository.findById(dto.getTypeId())
-                .orElseThrow(() -> new RuntimeException("Tipo de texto no encontrado"));
-        System.out.println("Type found: " + type.getId());
+                .orElseThrow(() -> new RuntimeException("Tipo de texto no encontrado con ID " + dto.getTypeId()));
         book.setType(type);
 
-        return bookService.createBook(book);
+        // Guardar libro
+        Book savedBook = bookService.createBook(book);
+
+        // Convertir a DTO de respuesta
+        return new BookResponseDTO(
+                savedBook.getId(),
+                savedBook.getTitle(),
+                savedBook.getDescription(),
+                savedBook.getPublishedDate(),
+                savedBook.getTextUrl(),
+                savedBook.getCoverUrl(),
+                savedBook.getAuthors().stream().map(Author::getId).collect(Collectors.toSet()), // Set<Long>
+                savedBook.getEditorials().stream().map(Editorial::getId).collect(Collectors.toSet()), // Set<Long>
+                savedBook.getGenres().stream().map(Genre::getId).collect(Collectors.toSet()),   // Set<Long>
+                savedBook.getType() != null ? savedBook.getType().getId() : null
+        );
     }
 
     // Obtener todos los libros

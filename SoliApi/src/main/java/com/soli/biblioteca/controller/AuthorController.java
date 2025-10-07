@@ -6,6 +6,7 @@ import com.soli.biblioteca.model.Author;
 import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.service.AuthorService;
 import com.soli.biblioteca.service.CountryService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,7 +30,10 @@ public class AuthorController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AuthorResponseDTO> createAuthor(@RequestBody AuthorCreateDTO dto) {
+    public ResponseEntity<AuthorResponseDTO> createAuthor(@Valid @RequestBody AuthorCreateDTO dto) {
+        if (authorService.existsByAuthorName(dto.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Author already exists");
+        }
         Country country = countryService.findById(dto.getCountryID())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Country not found"));
 
@@ -54,15 +58,33 @@ public class AuthorController {
     }
 
     @GetMapping
-    public List<Author> getAll() {
-        return authorService.findAll();
+    public List<AuthorResponseDTO> getAll() {
+        return authorService.findAll().stream()
+                .map(author -> new AuthorResponseDTO(
+                        author.getId(),
+                        author.getName(),
+                        author.getMiddleName(),
+                        author.getLastName(),
+                        author.getCountry().getName()
+                ))
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Author> getById(@PathVariable Long id) {
-        return authorService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));    }
+    public ResponseEntity<AuthorResponseDTO> getById(@PathVariable Long id) {
+        Author author = authorService.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+
+        AuthorResponseDTO dto = new AuthorResponseDTO(
+                author.getId(),
+                author.getName(),
+                author.getMiddleName(),
+                author.getLastName(),
+                author.getCountry().getName()
+        );
+
+        return ResponseEntity.ok(dto);
+    }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
