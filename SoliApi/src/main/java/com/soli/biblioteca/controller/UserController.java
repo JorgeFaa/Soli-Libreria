@@ -34,8 +34,33 @@ public class UserController {
     @Operation(summary = "Registro de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO dto) {
-        cognitoService.registerUser(dto.getUsername(), dto.getPassword());
-        return ResponseEntity.ok("Registrado en Cognito");
+        try {
+            // Validación básica
+            if (dto.getUsername() == null || dto.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Username es requerido");
+            }
+            if (dto.getPassword() == null || dto.getPassword().length() < 6) {
+                return ResponseEntity.badRequest().body("Password debe tener al menos 6 caracteres");
+            }
+
+            // Intentar registro directo sin verificar existencia previa
+            cognitoService.registerUser(dto.getUsername(), dto.getPassword());
+            return ResponseEntity.ok("Usuario registrado en Cognito. Revisa tu email para confirmar la cuenta.");
+            
+        } catch (RuntimeException e) {
+            // Manejar errores específicos de Cognito
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("UsernameExistsException") || errorMessage.contains("already exists")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("El usuario ya existe");
+            }
+            if (errorMessage.contains("InvalidPasswordException")) {
+                return ResponseEntity.badRequest()
+                    .body("Password no cumple los requisitos de seguridad");
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error en el registro: " + errorMessage);
+        }
     }
 
     // 2. Iniciar sesión con Cognito
@@ -64,7 +89,7 @@ public class UserController {
 
     // 4. Obtener usuario por cognitoSub
     @Operation(summary = "Obtener usuario por cognitoSub", security = { @SecurityRequirement(name = "bearerAuth") })
-    @GetMapping("/user/{cognitoSub}")
+    @GetMapping("/{cognitoSub}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getBySub(@PathVariable String cognitoSub) {
         UserDTO user = userService.findByCognitoSubDTO(cognitoSub);
@@ -73,7 +98,7 @@ public class UserController {
 
     // 5. Obtener usuario logueado (usando JWT)
     @Operation(summary = "Obtener usuario logueado", security = { @SecurityRequirement(name = "bearerAuth") })
-    @GetMapping("/user/me")
+    @GetMapping("/me")
     public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(userService.findUserByJwt(jwt));
     }
@@ -89,13 +114,13 @@ public class UserController {
         return ResponseEntity.ok(userService.activateMembership(id));
     }
 
-    @PostMapping("/auth/resend-verification")
+    @PostMapping("/resend-verification")
     public ResponseEntity<String> resendVerification(@RequestBody VerificationRequest dto) {
         cognitoService.resendConfirmationCode(dto.getUsername());
         return ResponseEntity.ok("Código de verificación reenviado");
     }
 
-    @PostMapping("/auth/verify-account")
+    @PostMapping("/verify-account")
     public ResponseEntity<Map<String, String>> verifyAccount(@RequestBody ConfirmAccountRequest dto) {
         try {
             boolean verified = cognitoService.confirmSignUp(dto.getUsername(), dto.getCode());
@@ -123,7 +148,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/user/status")
+    @GetMapping("/status")
     public ResponseEntity<Map<String, Boolean>> getUserStatus(@RequestBody String username) {
         try {
             boolean confirmed = cognitoService.getUserStatus(username);

@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -19,7 +20,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity   // 👈 ESTA ES LA CLAVE
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)  // 👈 Habilita @PreAuthorize
 public class SecurityConfiguration {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
@@ -40,22 +42,33 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Swagger y root sin autenticación
+                        // Swagger y documentación
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/").permitAll()
+                        // Endpoints de usuario públicos
                         .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/"
+                                "/user/register", 
+                                "/user/login", 
+                                "/user/verify-account", 
+                                "/user/resend-verification", 
+                                "/user/auth/refresh-token",
+                                "/user/status"
                         ).permitAll()
-                        // Endpoints públicos
+                        // Endpoints de usuario que requieren JWT
                         .requestMatchers(
-                                "/user/register",
-                                "/user/login",
-                                "/user/verify-account",
-                                "/user/resend-verification",
-                                "/books/**",
-                                "/api/**"
-                        ).permitAll()
-                        // El resto requiere JWT
+                                "/user/createUser",
+                                "/user/me",
+                                "/user/*/active"
+                        ).authenticated()
+                        // Endpoints de usuario que requieren ADMIN  
+                        .requestMatchers("/user/{cognitoSub}").hasRole("ADMIN")
+                        // TODOS los endpoints GET son públicos (temporal para debug)
+                        .requestMatchers(HttpMethod.GET).permitAll()
+                        // POST, PUT, PATCH, DELETE requieren ADMIN
+                        .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt())

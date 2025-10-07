@@ -43,9 +43,17 @@ public class CognitoService {
                 .build();
     }
 
-    // Registro de usuario (sin cambios)
+    // Registro de usuario - Método limpio sin verificaciones previas
     public void registerUser(String username, String password) {
         try {
+            // Validación de entrada
+            if (username == null || username.trim().isEmpty()) {
+                throw new IllegalArgumentException("Username no puede estar vacío");
+            }
+            if (password == null || password.length() < 6) {
+                throw new IllegalArgumentException("Password debe tener al menos 6 caracteres");
+            }
+
             String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
 
             SignUpRequest signUpRequest = SignUpRequest.builder()
@@ -55,10 +63,18 @@ public class CognitoService {
                     .secretHash(secretHash)
                     .build();
 
+            // Registro directo en Cognito
             cognitoClient.signUp(signUpRequest);
 
         } catch (CognitoIdentityProviderException e) {
-            throw new RuntimeException("Error en registro: " + e.awsErrorDetails().errorMessage(), e);
+            // Agregar más detalles del error
+            String errorCode = e.awsErrorDetails().errorCode();
+            String errorMessage = e.awsErrorDetails().errorMessage();
+            throw new RuntimeException("Error en registro Cognito [" + errorCode + "]: " + errorMessage, e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Error de validación: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error inesperado en registro: " + e.getMessage(), e);
         }
     }
 
@@ -180,28 +196,42 @@ public class CognitoService {
 
 
     public Boolean getUserStatus(String username) {
-        AdminGetUserRequest request = AdminGetUserRequest.builder()
-                .userPoolId(userPoolId)
-                .username(username)
-                .build();
+        try {
+            AdminGetUserRequest request = AdminGetUserRequest.builder()
+                    .userPoolId(userPoolId)
+                    .username(username)
+                    .build();
 
-        AdminGetUserResponse response = cognitoClient.adminGetUser(request);
-        if (response.userStatus() == UserStatusType.CONFIRMED){
-            return true;
+            AdminGetUserResponse response = cognitoClient.adminGetUser(request);
+            if (response.userStatus() == UserStatusType.CONFIRMED){
+                return true;
+            }
+            return false;
+        } catch (UserNotFoundException e) {
+            // Usuario no existe en Cognito
+            return false;
+        } catch (CognitoIdentityProviderException e) {
+            throw new RuntimeException("Error al obtener estado del usuario: " + e.awsErrorDetails().errorMessage(), e);
         }
-        return false;
     }
 
     public Boolean getUserByUsername(String username) {
-        AdminGetUserRequest request = AdminGetUserRequest.builder()
-                .userPoolId(userPoolId)
-                .username(username)
-                .build();
+        try {
+            AdminGetUserRequest request = AdminGetUserRequest.builder()
+                    .userPoolId(userPoolId)
+                    .username(username)
+                    .build();
 
-        AdminGetUserResponse response = cognitoClient.adminGetUser(request);
-        if (response.username() != null){
-            return true;
+            AdminGetUserResponse response = cognitoClient.adminGetUser(request);
+            if (response.username() != null){
+                return true;
+            }
+            return false;
+        } catch (UserNotFoundException e) {
+            // Usuario no existe en Cognito
+            return false;
+        } catch (CognitoIdentityProviderException e) {
+            throw new RuntimeException("Error al buscar usuario: " + e.awsErrorDetails().errorMessage(), e);
         }
-        return false;
     }
 }
