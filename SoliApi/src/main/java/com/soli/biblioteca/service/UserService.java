@@ -3,18 +3,25 @@ package com.soli.biblioteca.service;
 import com.soli.biblioteca.Dto.UserCreateDTO;
 import com.soli.biblioteca.Dto.UserDTO;
 import com.soli.biblioteca.mapper.UserMapper;
+import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
+import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.UserRepository;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GenreRepository genreRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, GenreRepository genreRepository) {
         this.userRepository = userRepository;
+        this.genreRepository = genreRepository;
     }
 
     // =============================
@@ -28,7 +35,12 @@ public class UserService {
         user.setCognitoSub(cognitoSub);
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
-        user.setGenrePreference(dto.getGenrePreference());
+        Set<Genre> genres = new HashSet<>();
+        if (dto.getPreferredGenreIds() != null) {
+            dto.getPreferredGenreIds().forEach(id -> {
+                genreRepository.findById(id).ifPresent(genres::add);
+            });
+        }
         user.setActiveMember(false);
 
 
@@ -54,17 +66,21 @@ public class UserService {
     // Actualizaciones específicas
     // =============================
 
-    public UserDTO updateGenreById(Long id, String newGenre) {
+    public UserDTO updateGenreById(Long id, Set<Long> newGenreIds) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
-        user.setGenrePreference(newGenre);
+        Set<Genre> genres = new HashSet<>();
+        newGenreIds.forEach(gid -> genreRepository.findById(gid).ifPresent(genres::add));
+
+        user.setPreferredGenres(genres);
         return UserMapper.toDTO(userRepository.save(user));
     }
 
-    public UserDTO updateGenreBySub(String sub, String newGenre) {
+    public UserDTO updateGenreBySub(String sub, Set<Long> newGenreIds) {
         User user = userRepository.findByCognitoSub(sub)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
-        user.setGenrePreference(newGenre);
+        Set<Genre> genres = new HashSet<>();
+        newGenreIds.forEach(gid -> genreRepository.findById(gid).ifPresent(genres::add));
         return UserMapper.toDTO(userRepository.save(user));
     }
 

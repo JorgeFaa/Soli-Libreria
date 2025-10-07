@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Setter
 @Getter
 @Entity
@@ -27,7 +30,13 @@ public class User {
     @Column(name = "activemember", nullable = false)
     private boolean activeMember;
 
-    @Column(name = "genrepreference")
-    private String genrePreference;
+    @ManyToMany
+    @JoinTable(
+            name = "UserGenres",
+            joinColumns = @JoinColumn(name = "userid"),
+            inverseJoinColumns = @JoinColumn(name = "genreid")
+    )
+    private Set<Genre> preferredGenres = new HashSet<>();
+
 
 }

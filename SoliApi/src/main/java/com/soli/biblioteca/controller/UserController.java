@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserStatusType;
 
 import java.util.Map;
@@ -33,10 +34,6 @@ public class UserController {
     @Operation(summary = "Registro de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO dto) {
-        boolean exists = cognitoService.getUserByUsername(dto.getUsername());
-        if (exists) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
-        }
         cognitoService.registerUser(dto.getUsername(), dto.getPassword());
         return ResponseEntity.ok("Registrado en Cognito");
     }
@@ -81,19 +78,6 @@ public class UserController {
         return ResponseEntity.ok(userService.findUserByJwt(jwt));
     }
 
-    // 6. Patch genrePreference por id o cognitoSub
-    @Operation(summary = "cambiar preferencia de genero por id", security = { @SecurityRequirement(name = "bearerAuth") })
-    @PatchMapping("/{identifier}/genre")
-    public ResponseEntity<UserDTO> patchGenre(
-            @PathVariable String identifier, @RequestBody Map<String, String> body) {
-
-        String newGenre = body.get("genrePreference");
-        UserDTO dto = identifier.matches("\\d+")
-                ? userService.updateGenreById(Long.valueOf(identifier), newGenre)
-                : userService.updateGenreBySub(identifier, newGenre);
-
-        return ResponseEntity.ok(dto);
-    }
 
 
     // =======================================

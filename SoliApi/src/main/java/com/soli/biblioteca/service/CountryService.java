@@ -20,6 +20,8 @@ public class CountryService {
 
     public List<Country> findAll() { return countryRepository.findAll(); }
 
+    public boolean existsByName(String name){ return countryRepository.existsByName(name); }
+
     public Optional<Country> findById(Long id) { return countryRepository.findById(id); }
 
     public void delete(Long id) { countryRepository.deleteById(id); }

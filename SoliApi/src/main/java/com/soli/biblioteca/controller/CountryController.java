@@ -28,6 +28,10 @@ public class CountryController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CountryResponseDTO> create(@Valid @RequestBody CountryCreateDTO dto) {
+        if (countryService.existsByName(dto.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Country already exists");
+        }
+
         Country country = new Country();
         country.setName(dto.getName());
         Country saved = countryService.save(country);

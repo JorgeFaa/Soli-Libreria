@@ -19,6 +19,8 @@ public class EditorialService {
 
     public List<Editorial> findAll() { return editorialRepository.findAll(); }
 
+    public boolean existsByCompanyName(String companyname) { return editorialRepository.existsByCompanyName(companyname); }
+
     public Optional<Editorial> findById(Long id) { return editorialRepository.findById(id); }
 
     public void delete(Long id) { editorialRepository.deleteById(id); }

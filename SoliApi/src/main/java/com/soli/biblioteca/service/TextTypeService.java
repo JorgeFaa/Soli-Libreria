@@ -19,6 +19,8 @@ public class TextTypeService {
 
     public List<TextType> findAll() { return textTypeRepository.findAll(); }
 
+    public boolean existsByName(String name){ return textTypeRepository.existsByType(name); }
+
     public Optional<TextType> findById(Long id) { return textTypeRepository.findById(id); }
 
     public void delete(Long id) { textTypeRepository.deleteById(id); }

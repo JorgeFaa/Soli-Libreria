@@ -27,7 +27,7 @@ public class Editorial {
     @JoinColumn(name = "countryid")
     private Country country;
 
-    @OneToMany(mappedBy = "editorial")
-    @JsonIgnoreProperties("editorial") // evita loops infinitos al serializar JSON
-    private Set<Book> books = new HashSet<>();
+    @ManyToMany(mappedBy = "editorials")
+    @JsonIgnoreProperties("editorials") // evita loops infinitos al serializar JSON
+    private Set<Book> books;
 }
