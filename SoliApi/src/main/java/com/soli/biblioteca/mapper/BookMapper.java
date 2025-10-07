@@ -3,6 +3,8 @@ package com.soli.biblioteca.mapper;
 import com.soli.biblioteca.Dto.*;
 import com.soli.biblioteca.model.*;
 
+import java.util.stream.Collectors;
+
 public class BookMapper {
 
     // DTO → Entidad
@@ -13,22 +15,40 @@ public class BookMapper {
         book.setTitle(dto.getTitle());
         book.setPublishedDate(dto.getPublishedDate());
 
-        if (dto.getAuthorId() != null) {
-            Author author = new Author();
-            author.setId(dto.getAuthorId()); // solo referencia
-            book.setAuthor(author);
+        if (dto.getAuthorIds() != null) {
+            book.setAuthors(
+                    dto.getAuthorIds().stream()
+                            .map(id -> {
+                                Author author = new Author();
+                                author.setId(id);
+                                return author;
+                            })
+                            .collect(Collectors.toSet())
+            );
         }
 
-        if (dto.getEditorialId() != null) {
-            Editorial editorial = new Editorial();
-            editorial.setId(dto.getEditorialId());
-            book.setEditorial(editorial);
+        if (dto.getEditorialIds() != null) {
+            book.setEditorials(
+                    dto.getEditorialIds().stream()
+                            .map(id -> {
+                                Editorial editorial = new Editorial();
+                                editorial.setId(id);
+                                return editorial;
+                            })
+                            .collect(Collectors.toSet())
+            );
         }
 
-        if (dto.getGenreId() != null) {
-            Genre genre = new Genre();
-            genre.setId(dto.getGenreId());
-            book.setGenre(genre);
+        if (dto.getGenreIds() != null) {
+            book.setGenres(
+                    dto.getGenreIds().stream()
+                            .map(id -> {
+                                Genre genre = new Genre();
+                                genre.setId(id);
+                                return genre;
+                            })
+                            .collect(Collectors.toSet())
+            );
         }
 
         if (dto.getTypeId() != null) {
@@ -49,16 +69,28 @@ public class BookMapper {
         dto.setTitle(book.getTitle());
         dto.setPublishedDate(book.getPublishedDate());
 
-        if (book.getAuthor() != null) {
-            dto.setAuthorId(book.getAuthor().getId());
+        if (book.getAuthors() != null) {
+            dto.setAuthorIds(
+                    book.getAuthors().stream()
+                            .map(Author::getId)
+                            .collect(Collectors.toSet())
+            );
         }
 
-        if (book.getEditorial() != null) {
-            dto.setEditorialId(book.getEditorial().getId());
+        if (book.getEditorials() != null) {
+            dto.setEditorialIds(
+                    book.getEditorials().stream()
+                            .map(Editorial::getId)
+                            .collect(Collectors.toSet())
+            );
         }
 
-        if (book.getGenre() != null) {
-            dto.setGenreId(book.getGenre().getId());
+        if (book.getGenres() != null) {
+            dto.setGenreIds(
+                    book.getGenres().stream()
+                            .map(Genre::getId)
+                            .collect(Collectors.toSet())
+            );
         }
 
         if (book.getType() != null) {

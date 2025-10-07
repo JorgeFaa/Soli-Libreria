@@ -23,6 +23,9 @@ public class Book {
     @Column(name = "texttitle", nullable = false, length = 250) // minúscula
     private String title;
 
+    @Column(name = "descripcion", nullable = false)
+    private String description;
+
     @Column(name = "publisheddate") // minúscula
     private LocalDate publishedDate;
 
@@ -36,20 +39,25 @@ public class Book {
 
     @ManyToMany
     @JoinTable(
-            name = "TextAuthors",
+            name = "text_authors",
             joinColumns = @JoinColumn(name = "textID"),
             inverseJoinColumns = @JoinColumn(name = "authorID")
     )
     @JsonIgnoreProperties("books")
     private Set<Author> authors = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "editorialid") // minúscula
-    private Editorial editorial;
+    @ManyToMany
+    @JoinTable(
+            name = "text_editorials",
+            joinColumns = @JoinColumn(name = "textid"),
+            inverseJoinColumns = @JoinColumn(name = "editorialid")
+    )
+    @JsonIgnoreProperties("editorials")
+    private Set<Editorial> editorials = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
-            name = "TextGenres",
+            name = "text_genres",
             joinColumns = @JoinColumn(name = "textID"),
             inverseJoinColumns = @JoinColumn(name = "genreID")
     )

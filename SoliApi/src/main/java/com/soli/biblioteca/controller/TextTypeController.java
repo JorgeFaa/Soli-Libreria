@@ -6,6 +6,7 @@ import com.soli.biblioteca.Dto.TextTypeUpdateDTO;
 import com.soli.biblioteca.model.TextType;
 import com.soli.biblioteca.service.TextTypeService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,9 @@ public class TextTypeController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TextTypeResponseDTO> create(@Valid @RequestBody TextTypeCreateDTO dto) {
+        if (textTypeService.existsByName(dto.getType())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "TextType already exists");
+        }
         TextType type = new TextType();
         type.setType(dto.getType());
         TextType saved = textTypeService.save(type);

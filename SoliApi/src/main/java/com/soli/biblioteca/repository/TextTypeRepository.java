@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TextTypeRepository extends JpaRepository<TextType, Long> {
+    boolean existsByType(String name);
 }

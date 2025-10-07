@@ -20,6 +20,8 @@ public class AuthorService {
 
     public List<Author> findAll() { return authorRepository.findAll(); }
 
+    public boolean existsByAuthorName(String name){ return authorRepository.existsByName(name); }
+
     public Optional<Author> findById(Long id) { return authorRepository.findById(id); }
 
     public void delete(Long id) { authorRepository.deleteById(id); }

@@ -19,6 +19,8 @@ public class GenreService {
 
     public List<Genre> findAll() { return genreRepository.findAll(); }
 
+    public boolean existsByName(String name){ return genreRepository.existsByName(name); }
+
     public Optional<Genre> findById(Long id) { return genreRepository.findById(id); }
 
     public void delete(Long id) { genreRepository.deleteById(id); }

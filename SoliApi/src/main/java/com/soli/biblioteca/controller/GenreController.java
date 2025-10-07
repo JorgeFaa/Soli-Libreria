@@ -5,6 +5,7 @@ import com.soli.biblioteca.Dto.GenreResponseDTO;
 import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.service.GenreService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,10 @@ public class GenreController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GenreResponseDTO> create(@Valid @RequestBody GenreCreateDTO dto) {
+        if (genreService.existsByName(dto.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Genre already exists");
+        }
+
         Genre genre = new Genre();
         genre.setName(dto.getName());
         Genre saved = genreService.save(genre);

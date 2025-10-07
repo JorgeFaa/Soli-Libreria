@@ -33,6 +33,10 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    public boolean existsBookByTitle(String title) {
+        return bookRepository.existsByTitle(title);
+    }
+
     // Obtener libro por ID
     public Optional<BookResponseDTO> getBookById(Long id) {
         return bookRepository.findById(id)

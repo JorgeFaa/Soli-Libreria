@@ -3,6 +3,8 @@ package com.soli.biblioteca.Dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Setter
 @Getter
 public class UserDTO {
@@ -11,7 +13,7 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private boolean activeMember;
-    private String genrePreference;
+    private Set<Long> prefferedGenreIds;
     private String roleName;
 
 }

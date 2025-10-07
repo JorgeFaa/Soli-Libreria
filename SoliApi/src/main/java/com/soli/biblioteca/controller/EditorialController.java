@@ -7,6 +7,7 @@ import com.soli.biblioteca.model.Editorial;
 import com.soli.biblioteca.service.CountryService;
 import com.soli.biblioteca.service.EditorialService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +32,18 @@ public class EditorialController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EditorialResponseDTO> create(@Valid @RequestBody EditorialCreateDTO dto) {
+        if (editorialService.existsByCompanyName(dto.getCompanyName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Editorial already exists");
+        }
         Country country = countryService.findById(dto.getCountryID())
                 .orElseThrow(() -> new ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Country not found"));
 
         Editorial editorial = new Editorial();
         editorial.setCompanyName(dto.getCompanyName());
-        editorial.setCountry(country);Editorial saved = editorialService.save(editorial);
+        editorial.setCountry(country);
+
+        Editorial saved = editorialService.save(editorial);
 
         EditorialResponseDTO response = new EditorialResponseDTO(
                 saved.getId(),
