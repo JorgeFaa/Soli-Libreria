@@ -76,31 +76,42 @@ public class BookMapper {
         dto.setCoverUrl(book.getCoverUrl());
 
         if (book.getAuthors() != null) {
-            dto.setAuthorIds(
+            dto.setAuthors(
                     book.getAuthors().stream()
-                            .map(Author::getId)
+                            .map(a -> new AuthorResponseDTO(
+                                    a.getId(),
+                                    a.getName(),
+                                    a.getMiddleName(),
+                                    a.getLastName(),
+                                    a.getCountry() != null ? a.getCountry().getName() : null
+                            ))
                             .collect(Collectors.toSet())
             );
         }
 
         if (book.getEditorials() != null) {
-            dto.setEditorialIds(
+            dto.setEditorials(
                     book.getEditorials().stream()
-                            .map(Editorial::getId)
+                            .map(e -> new EditorialResponseDTO(
+                                    e.getId(),
+                                    e.getCompanyName(),
+                                    e.getCountry() != null ? e.getCountry().getId() : null,
+                                    e.getCountry() != null ? e.getCountry().getName() : null
+                            ))
                             .collect(Collectors.toSet())
             );
         }
 
         if (book.getGenres() != null) {
-            dto.setGenreIds(
+            dto.setGenres(
                     book.getGenres().stream()
-                            .map(Genre::getId)
+                            .map(g -> new GenreResponseDTO(g.getId(), g.getName()))
                             .collect(Collectors.toSet())
             );
         }
 
         if (book.getType() != null) {
-            dto.setTypeId(book.getType().getId());
+            dto.setType(new TextTypeResponseDTO(book.getType().getId(), book.getType().getType()));
         }
 
         return dto;
