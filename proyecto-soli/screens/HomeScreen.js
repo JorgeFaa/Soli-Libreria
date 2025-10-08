@@ -1,127 +1,273 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  TextInput,
+  Animated,
+  ScrollView,
+  FlatList,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { AntDesign } from "@expo/vector-icons";
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
+  const slideAnim = useRef(new Animated.Value(-240)).current;
+
+  // 📚 Datos de ejemplo para cada sección
+  const [sections] = useState([
+    {
+      title: "Tus libros",
+      data: [
+        { id: "1", name: "Platinum End" },
+        { id: "2", name: "Death Note" },
+      ],
+    },
+    {
+      title: "Favoritos",
+      data: [
+        { id: "3", name: "Naruto" },
+        { id: "4", name: "Dragon Ball" },
+      ],
+    },
+    {
+      title: "Recomendados",
+      data: [
+        { id: "5", name: "One Piece" },
+        { id: "6", name: "Chainsaw Man" },
+        { id: "7", name: "Bleach" },
+      ],
+    },
+  ]);
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: menuOpen ? 0 : -240,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [menuOpen]);
+
+  // 🎯 Render de libro clicable
+  const renderBook = ({ item }) => (
+    <TouchableOpacity
+      style={styles.bookItem}
+      onPress={() => navigation.navigate("Details", { book: item })}
+    >
+      <View style={styles.bookCover} />
+      <Text style={styles.bookTitle}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const handleLogout = () => {
+    Animated.timing(slideAnim, {
+      toValue: -240,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setMenuOpen(false);
+      navigation.replace("Login");
+    });
+  };
+
   return (
     <View style={styles.container}>
-      {/* Título principal */}
-      <Text style={styles.title}>Bienvenido a la Librería Soli</Text>
+      <View style={styles.statusBarSpacer} />
 
-      {/* Descripción */}
-      <Text style={styles.subtitle}>
-        Descubre tu próxima gran lectura. Explora miles de títulos cuidadosamente
-        seleccionados desde clásicos atemporales hasta las últimas novedades literarias.
-      </Text>
+      {/* Header */}
+      <LinearGradient
+        colors={["#FFD24C", "#FF8C42"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => setMenuOpen(true)}
+            style={styles.menuBtn}
+          >
+            <AntDesign name="menu-fold" size={28} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.logoText}>Soli Libreria</Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (searchActive) {
+                setSearchActive(false);
+                setSearch("");
+              } else {
+                setSearchActive(true);
+              }
+            }}
+          >
+            <AntDesign name="search1" size={28} color="#000" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
-      {/* Tarjetas de métricas */}
-      <View style={styles.cardContainer}>
-        <View style={styles.card}>
-          <Text style={styles.cardNumber}>15,000+</Text>
-          <Text style={styles.cardLabel}>Libros disponibles</Text>
+      {/* 🔎 Barra de búsqueda */}
+      {searchActive && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Buscar libro..."
+            value={search}
+            onChangeText={setSearch}
+            style={styles.searchInput}
+            autoFocus
+          />
         </View>
-        <View style={styles.card}>
-          <Text style={styles.cardNumber}>50+</Text>
-          <Text style={styles.cardLabel}>Categorías</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardNumber}>2,500+</Text>
-          <Text style={styles.cardLabel}>Autores</Text>
-        </View>
-      </View>
+      )}
 
-      {/* Botones de acción */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.catalogButton}>
-          <Text style={styles.catalogText}>Explorar Catálogo</Text>
+      {/* 📚 Secciones scrolleables */}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {sections.map((section) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <FlatList
+              data={section.data.filter((book) =>
+                book.name.toLowerCase().includes(search.toLowerCase())
+              )}
+              keyExtractor={(item) => item.id}
+              renderItem={renderBook}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listContainer}
+            />
+          </View>
+        ))}
+      </ScrollView>
+
+      {/* Drawer Overlay */}
+      {menuOpen && (
+        <TouchableOpacity
+          style={styles.drawerOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuOpen(false)}
+        >
+          <View />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.searchButton}>
-          <Text style={styles.searchText}>Búsqueda Avanzada</Text>
+      )}
+
+      {/* Drawer con animación */}
+      <Animated.View style={[styles.drawer, { left: slideAnim }]}>
+        <Text style={styles.drawerTitle}>Mi cuenta</Text>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Mi Perfil</Text>
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Mis Autores</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Mis Libros</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Favoritos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Wishlist</Text>
+        </TouchableOpacity>
+
+        <View style={styles.separator} />
+
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Configuración</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Soporte</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuText}>Sobre Nosotros</Text>
+        </TouchableOpacity>
+
+        <View style={styles.separator} />
+
+        <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+          <Text style={styles.menuText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F6EFD7",
-    alignItems: "center",
-    padding: 20,
+  container: { flex: 1, backgroundColor: "#F6EFD7" },
+  statusBarSpacer: {
+    height: StatusBar.currentHeight || 24,
+    backgroundColor: "#FFD24C",
   },
-  title: {
-    fontSize: 26,
+  header: { paddingVertical: 12, paddingHorizontal: 16 },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  menuBtn: { padding: 4 },
+  logoText: { fontSize: 20, fontWeight: "bold", color: "#000" },
+
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#fff",
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 40,
+    backgroundColor: "#fff",
+  },
+
+  scrollContainer: { paddingBottom: 20 },
+  section: { marginVertical: 12 },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 30,
+    marginLeft: 12,
+    marginBottom: 8,
     color: "#3C2A1E",
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 15,
-    marginBottom: 25,
-    color: "#444",
-    lineHeight: 22,
+  listContainer: { paddingLeft: 12 },
+  bookItem: { marginRight: 12, alignItems: "center" },
+  bookCover: {
+    width: 100,
+    height: 150,
+    backgroundColor: "#ddd",
+    borderRadius: 8,
   },
-  cardContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+  bookTitle: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
+    maxWidth: 100,
+  },
+
+  drawerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
     width: "100%",
-    marginBottom: 30,
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
-  card: {
+  drawer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 240,
     backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    flex: 1,
-    marginHorizontal: 5,
-    elevation: 3, // sombra en Android
-    shadowColor: "#000", // sombra en iOS
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    elevation: 10,
+    shadowColor: "#000",
   },
-  cardNumber: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#E67E22",
-    marginBottom: 5,
-  },
-  cardLabel: {
-    fontSize: 14,
-    textAlign: "center",
-    color: "#555",
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 10,
-  },
-  catalogButton: {
-    backgroundColor: "#FFD966",
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 25,
-    marginRight: 10,
-  },
-  catalogText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000",
-  },
-  searchButton: {
-    borderColor: "#E74C3C",
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 25,
-  },
-  searchText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#E74C3C",
-  },
+  drawerTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
+  menuItem: { paddingVertical: 12 },
+  menuText: { fontSize: 16, color: "#333" },
+  separator: { height: 1, backgroundColor: "#ccc", marginVertical: 8 },
 });
