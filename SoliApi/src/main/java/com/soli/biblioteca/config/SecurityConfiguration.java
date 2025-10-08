@@ -61,7 +61,7 @@ public class SecurityConfiguration {
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .logout(logout -> logout.logoutSuccessHandler(cognitoLogoutHandler));
 
         return http.build();
