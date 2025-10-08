@@ -21,10 +21,10 @@ public class BookResponseDTO {
     private String textUrl;
     private String coverUrl;
 
-    // Foreign Keys
-    private Set<Long> authorIds;
-    private Set<Long> editorialIds;
-    private Set<Long> genreIds;
-    private Long typeId;
+    // Entidades embebidas en la respuesta
+    private Set<AuthorResponseDTO> authors;
+    private Set<EditorialResponseDTO> editorials;
+    private Set<GenreResponseDTO> genres;
+    private TextTypeResponseDTO type;
 
 }
