@@ -34,18 +34,9 @@ public class SecurityConfiguration {
         return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter gac = new JwtGrantedAuthoritiesConverter();
-        gac.setAuthoritiesClaimName("cognito:groups");
-        gac.setAuthorityPrefix("ROLE_");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(gac);
-        return converter;
-    }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         CognitoLogoutHandler cognitoLogoutHandler = new CognitoLogoutHandler();
 
         http
