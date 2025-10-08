@@ -8,6 +8,7 @@ import com.soli.biblioteca.repository.TextTypeRepository;
 import com.soli.biblioteca.service.AuthorService;
 import com.soli.biblioteca.service.BookService;
 import com.soli.biblioteca.service.EditorialService;
+import com.soli.biblioteca.mapper.BookMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -101,19 +102,8 @@ public class BookController {
         // Guardar libro
         Book savedBook = bookService.createBook(book);
 
-        // Convertir a DTO de respuesta
-        return new BookResponseDTO(
-                savedBook.getId(),
-                savedBook.getTitle(),
-                savedBook.getDescription(),
-                savedBook.getPublishedDate(),
-                savedBook.getTextUrl(),
-                savedBook.getCoverUrl(),
-                savedBook.getAuthors().stream().map(Author::getId).collect(Collectors.toSet()), // Set<Long>
-                savedBook.getEditorials().stream().map(Editorial::getId).collect(Collectors.toSet()), // Set<Long>
-                savedBook.getGenres().stream().map(Genre::getId).collect(Collectors.toSet()),   // Set<Long>
-                savedBook.getType() != null ? savedBook.getType().getId() : null
-        );
+        // Convertir a DTO de respuesta con entidades embebidas
+        return BookMapper.toResponseDTO(savedBook);
     }
 
     // Obtener todos los libros

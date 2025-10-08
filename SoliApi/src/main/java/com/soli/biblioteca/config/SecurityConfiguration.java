@@ -6,12 +6,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -21,7 +23,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)  // 👈 Habilita @PreAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
@@ -29,12 +31,12 @@ public class SecurityConfiguration {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        // Reemplaza con tu region y poolId
         return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         CognitoLogoutHandler cognitoLogoutHandler = new CognitoLogoutHandler();
 
         http
@@ -42,36 +44,24 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Swagger y documentación
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/").permitAll()
-                        // Endpoints de usuario públicos
+                        // Endpoints públicos: SOLO login y registro y verificación de correo
                         .requestMatchers(
-                                "/user/register", 
-                                "/user/login", 
-                                "/user/verify-account", 
-                                "/user/resend-verification", 
-                                "/user/auth/refresh-token",
-                                "/user/status"
+                                "/user/register",
+                                "/user/login",
+                                "/user/verify-account",
+                                "/user/resend-verification"
                         ).permitAll()
-                        // Endpoints de usuario que requieren JWT
-                        .requestMatchers(
-                                "/user/createUser",
-                                "/user/me",
-                                "/user/*/active"
-                        ).authenticated()
-                        // Endpoints de usuario que requieren ADMIN  
-                        .requestMatchers("/user/{cognitoSub}").hasRole("ADMIN")
-                        // TODOS los endpoints GET son públicos (temporal para debug)
-                        .requestMatchers(HttpMethod.GET).permitAll()
-                        // POST, PUT, PATCH, DELETE requieren ADMIN
-                        .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                        // GET requieren al menos rol READER o ADMIN
+                        .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("READER", "ADMIN")
+                        // POST, PUT, PATCH, DELETE requieren ADMIN (salvo excepciones arriba)
+                        .requestMatchers(HttpMethod.POST, "/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .logout(logout -> logout.logoutSuccessHandler(cognitoLogoutHandler));
 
         return http.build();
@@ -80,7 +70,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Permitir cualquier origen
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(false);
