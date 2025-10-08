@@ -36,7 +36,7 @@ const handleVerify = async () => {
   setLoading(true);
   try {
     const response = await fetch(
-      "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/user/verify-account",
+      "https://soliapi-223325065421.northamerica-south1.run.app/user/verify-account",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,7 +67,7 @@ const handleVerify = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/user/resend-verification",
+        "https://soliapi-223325065421.northamerica-south1.run.app/user/resend-verification",
         {
           method: "POST",
           headers: {

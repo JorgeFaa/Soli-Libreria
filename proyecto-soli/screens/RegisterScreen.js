@@ -29,7 +29,7 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       const response = await fetch(
-        "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/user/register",
+        "https://soliapi-223325065421.northamerica-south1.run.app/user/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

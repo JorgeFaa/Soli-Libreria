@@ -9,12 +9,12 @@ import {
   Modal,
   Animated,
   Easing,
-  ScrollView, // 👈 Importamos ScrollView
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -44,49 +44,62 @@ export default function LoginScreen({ navigation }) {
     outputRange: ["0deg", "360deg"],
   });
 
-  const handleLogin = async () => {
-    if (email && password) {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          "https://x6au4w6374bk3ntf7wyo3wacmm0wwlaq.lambda-url.us-east-1.on.aws/user/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: email,
-              password: password,
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          alert("❌ Error: " + (data.message || "Credenciales inválidas"));
-          setLoading(false);
-          return;
+const handleLogin = async () => {
+  if (email && password) {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        "https://soliapi-223325065421.northamerica-south1.run.app/user/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: email,
+            password: password,
+          }),
         }
+      );
 
-        console.log("✅ Login exitoso:", data);
+      const data = await response.json();
 
-        alert("Bienvenido 🎉");
+      if (!response.ok) {
+        alert("❌ Error: " + (data.message || "Credenciales inválidas"));
         setLoading(false);
-
-        // await AsyncStorage.setItem("token", data.token);
-
-        navigation.replace("Home");
-      } catch (error) {
-        console.error("❌ Error en la API:", error);
-        alert("Hubo un error de conexión, intenta más tarde");
-        setLoading(false);
+        return;
       }
-    } else {
-      alert("Por favor ingresa tus credenciales");
+
+      console.log("✅ Login exitoso:", data);
+
+      // Guardar el token en AsyncStorage - CAMBIO AQUÍ
+      if (data.accessToken) {  // ✅ Cambiar de data.token a data.accessToken
+        await AsyncStorage.setItem("authToken", data.accessToken);
+        console.log("💾 Token guardado:", data.accessToken.substring(0, 50) + "...");
+        
+        // Verificar que se guardó correctamente
+        const savedToken = await AsyncStorage.getItem("authToken");
+        console.log("🔍 Token verificado:", savedToken ? "✅ Guardado correctamente" : "❌ Error al guardar");
+      } else {
+        console.log("⚠️ No se recibió accessToken del servidor");
+        alert("Error: No se recibió token de autenticación");
+        setLoading(false);
+        return;
+      }
+
+      alert("Bienvenido 🎉");
+      setLoading(false);
+
+      navigation.replace("Home");
+    } catch (error) {
+      console.error("❌ Error en la API:", error);
+      alert("Hubo un error de conexión, intenta más tarde");
+      setLoading(false);
     }
-  };
+  } else {
+    alert("Por favor ingresa tus credenciales");
+  }
+};
 
   return (
     <KeyboardAvoidingView

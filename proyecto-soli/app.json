@@ -2,7 +2,7 @@
   "expo": {
     "name": "proyecto-soli",
     "slug": "proyecto-soli",
-    "version": "2.0.0",
+    "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,22 +10,35 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFD24C"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.edwin_antonio.proyectosoli"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFD24C"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.edwin_antonio.proyectosoli",
-      "versionCode": 8
+      "versionCode": 12,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "allowBackup": false,
+      "jsEngine": "hermes"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
@@ -33,7 +46,22 @@
       }
     },
     "plugins": [
-      "expo-asset"
-    ]
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "proguardFiles": ["proguard-android-optimize.txt"],
+            "packagingOptions": {
+              "pickFirst": ["**/libc++_shared.so", "**/libjsc.so"]
+            }
+          }
+        }
+      ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
