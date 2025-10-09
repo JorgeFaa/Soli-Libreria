@@ -101,7 +101,7 @@ public class BookController {
         book.setType(type);
 
         // Guardar libro
-        Book savedBook = bookService.createBook(book);
+        Book savedBook = bookService.save(book);
 
         // Convertir a DTO de respuesta con entidades embebidas
         return BookMapper.toResponseDTO(savedBook);
