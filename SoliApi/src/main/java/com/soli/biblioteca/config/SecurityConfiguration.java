@@ -44,12 +44,21 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Docs públicas (Scalar y OpenAPI JSON)
+                        // Docs públicas (Scalar y OpenAPI JSON) y recursos estáticos
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/docs",
                                 "/docs/",
-                                "/docs/**"
+                                "/docs/**",
+                                "/**/*.html",
+                                "/**/*.css",
+                                "/**/*.js",
+                                "/**/*.map",
+                                "/**/*.ico",
+                                "/**/*.png",
+                                "/**/*.svg",
+                                "/**/*.webp",
+                                "/"
                         ).permitAll()
                         // Endpoints públicos: SOLO login y registro y verificación de correo
                         .requestMatchers(
