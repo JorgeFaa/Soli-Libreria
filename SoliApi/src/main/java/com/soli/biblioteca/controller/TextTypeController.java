@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/types")
+@RequestMapping("/types")
 public class TextTypeController {
 
     private final TextTypeService textTypeService;
@@ -37,7 +37,7 @@ public class TextTypeController {
         TextType saved = textTypeService.save(type);
 
         TextTypeResponseDTO response = new TextTypeResponseDTO(saved.getId(), saved.getType());
-        URI location = URI.create("/api/types/" + saved.getId());
+URI location = URI.create("/types/" + saved.getId());
         return ResponseEntity.created(location).body(response);
     }
 

@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/authors")
+@RequestMapping("/authors")
 public class AuthorController {
 
     private final AuthorService authorService;
@@ -53,7 +53,7 @@ public class AuthorController {
                 saved.getCountry().getName()
         );
 
-        URI location = URI.create("/api/authors/" + saved.getId());
+URI location = URI.create("/authors/" + saved.getId());
         return ResponseEntity.created(location).body(response);
     }
 
