@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/countries")
+@RequestMapping("/countries")
 public class CountryController {
 
     private final CountryService countryService;
@@ -38,7 +38,7 @@ public class CountryController {
 
         CountryResponseDTO response = new CountryResponseDTO(saved.getId(), saved.getName());
 
-        URI location = URI.create("/api/countries/" + saved.getId());
+URI location = URI.create("/countries/" + saved.getId());
         return ResponseEntity.created(location).body(response);    }
 
     @GetMapping

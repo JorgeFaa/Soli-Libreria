@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/editorials")
+@RequestMapping("/editorials")
 public class EditorialController {
 
     private final EditorialService editorialService;
@@ -52,7 +52,7 @@ public class EditorialController {
                 saved.getCountry().getName()
         );
 
-        URI location = URI.create("/api/editorials/" + saved.getId());
+URI location = URI.create("/editorials/" + saved.getId());
         return ResponseEntity.created(location).body(response);
     }
 

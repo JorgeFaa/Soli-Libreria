@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/genres")
+@RequestMapping("/genres")
 public class GenreController {
 
     private final GenreService genreService;
@@ -37,7 +37,7 @@ public class GenreController {
         Genre saved = genreService.save(genre);
 
         GenreResponseDTO response = new GenreResponseDTO(saved.getId(), saved.getName());
-        URI location = URI.create("/api/genres/" + saved.getId());
+URI location = URI.create("/genres/" + saved.getId());
         return ResponseEntity.created(location).body(response);
     }
 
