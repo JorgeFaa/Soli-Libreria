@@ -47,6 +47,8 @@ public class SecurityConfiguration {
                         // Docs públicas (Scalar y OpenAPI JSON)
                         .requestMatchers(
                                 "/v3/api-docs/**",
+                                "/docs",
+                                "/docs/",
                                 "/docs/**"
                         ).permitAll()
                         // Endpoints públicos: SOLO login y registro y verificación de correo
