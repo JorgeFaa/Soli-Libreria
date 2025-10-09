@@ -1,6 +1,5 @@
 package com.soli.biblioteca.service;
 
-import com.soli.biblioteca.Dto.BookCreateDTO;
 import com.soli.biblioteca.Dto.BookResponseDTO;
 import com.soli.biblioteca.mapper.BookMapper;
 import com.soli.biblioteca.model.Book;
@@ -20,8 +19,8 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    // Crear un libro
-    public Book createBook(Book book) {
+    // Crear o actualizar un libro
+    public Book save(Book book) {
         return bookRepository.save(book);
     }
 
@@ -37,10 +36,15 @@ public class BookService {
         return bookRepository.existsByTitle(title);
     }
 
-    // Obtener libro por ID
+    // Obtener libro por ID (DTO)
     public Optional<BookResponseDTO> getBookById(Long id) {
         return bookRepository.findById(id)
                 .map(BookMapper::toResponseDTO);
+    }
+
+    // Obtener entidad por ID
+    public Optional<Book> findEntityById(Long id) {
+        return bookRepository.findById(id);
     }
 
     // Eliminar libro por ID
