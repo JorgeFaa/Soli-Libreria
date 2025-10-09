@@ -2,6 +2,7 @@ package com.soli.biblioteca.controller;
 
 import com.soli.biblioteca.Dto.BookCreateDTO;
 import com.soli.biblioteca.Dto.BookResponseDTO;
+import com.soli.biblioteca.Dto.BookUpdateDTO;
 import com.soli.biblioteca.model.*;
 import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.TextTypeRepository;
@@ -100,7 +101,7 @@ public class BookController {
         book.setType(type);
 
         // Guardar libro
-        Book savedBook = bookService.createBook(book);
+        Book savedBook = bookService.save(book);
 
         // Convertir a DTO de respuesta con entidades embebidas
         return BookMapper.toResponseDTO(savedBook);
@@ -138,6 +139,65 @@ public class BookController {
         return bookService.getBookById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Actualizar parcialmente un libro por ID (PUT parcial)
+    @Operation(
+            summary = "Actualizar parcialmente un libro",
+            description = "Actualiza solo los campos enviados en el payload"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Libro actualizado",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = BookResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Libro no encontrado", content = @Content)
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookUpdateDTO dto) {
+        Book book = bookService.findEntityById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+
+        // Campos simples
+        if (dto.getTitle() != null) book.setTitle(dto.getTitle());
+        if (dto.getDescription() != null) book.setDescription(dto.getDescription());
+        if (dto.getPublishedDate() != null) book.setPublishedDate(dto.getPublishedDate());
+        if (dto.getTextUrl() != null) book.setTextUrl(dto.getTextUrl());
+        if (dto.getCoverUrl() != null) book.setCoverUrl(dto.getCoverUrl());
+
+        // Relaciones: si vienen presentes (incluso vacías) reemplazamos
+        if (dto.getAuthorIds() != null) {
+            book.getAuthors().clear();
+            for (Long authorId : dto.getAuthorIds()) {
+                Author author = authorService.findById(authorId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autor no encontrado con ID " + authorId));
+                book.getAuthors().add(author);
+            }
+        }
+        if (dto.getEditorialIds() != null) {
+            book.getEditorials().clear();
+            for (Long editorialId : dto.getEditorialIds()) {
+                Editorial editorial = editorialService.findById(editorialId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Editorial no encontrada con ID " + editorialId));
+                book.getEditorials().add(editorial);
+            }
+        }
+        if (dto.getGenreIds() != null) {
+            book.getGenres().clear();
+            for (Long genreId : dto.getGenreIds()) {
+                Genre genre = genreRepository.findById(genreId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Género no encontrado con ID " + genreId));
+                book.getGenres().add(genre);
+            }
+        }
+        if (dto.getTypeId() != null) {
+            TextType type = textTypeRepository.findById(dto.getTypeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tipo de texto no encontrado con ID " + dto.getTypeId()));
+            book.setType(type);
+        }
+
+        Book saved = bookService.save(book);
+        return ResponseEntity.ok(BookMapper.toResponseDTO(saved));
     }
 
     // Eliminar libro por ID
