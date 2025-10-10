@@ -346,6 +346,9 @@ language plpgsql
 as $$
 declare
     v_textid int;
+    v_authorid int;
+    v_editorialid int;
+    v_genreid int;
 begin
     insert into public.texts(texttitle, descripcion, publisheddate, typeid, texturl, coverurl)
     values(p_texttitle, p_descripcion, p_publisheddate, p_typeid, p_texturl, p_coverurl)
@@ -411,6 +414,10 @@ create or replace procedure sp_update_text(
 )
 language plpgsql
 as $$
+declare
+    v_authorid int;
+    v_editorialid int;
+    v_genreid int;
 begin
     update public.texts
     set texttitle = coalesce(p_texttitle, texttitle),
