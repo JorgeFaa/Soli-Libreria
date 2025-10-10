@@ -44,21 +44,10 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Docs públicas (Scalar y OpenAPI JSON) y recursos estáticos
+                        // Docs públicas: Swagger UI y OpenAPI JSON
                         .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/docs",
-                                "/docs/",
-                                "/docs/**",
-                                "/**/*.html",
-                                "/**/*.css",
-                                "/**/*.js",
-                                "/**/*.map",
-                                "/**/*.ico",
-                                "/**/*.png",
-                                "/**/*.svg",
-                                "/**/*.webp",
-                                "/"
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         // Endpoints públicos: SOLO login y registro y verificación de correo
                         .requestMatchers(
@@ -67,6 +56,8 @@ public class SecurityConfiguration {
                                 "/user/verify-account",
                                 "/user/resend-verification"
                         ).permitAll()
+                        // Logout endpoints accesibles a cualquier usuario autenticado
+                        .requestMatchers("/user/auth/logout", "/user/auth/logout-all").authenticated()
                         // GET requieren al menos rol READER o ADMIN
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("READER", "ADMIN")
                         // POST, PUT, PATCH, DELETE requieren ADMIN (salvo excepciones arriba)
