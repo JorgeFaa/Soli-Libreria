@@ -11,7 +11,7 @@ as $$
 begin
     insert into public.users(firstname, lastname, activemember, cognitosub)
     values(p_firstname, p_lastname, coalesce(p_activemember, true), p_cognitosub);
-end; $$;
+end; $$^;
 
 -- READ (consulta por ID)
 create or replace function sp_get_user(p_userid int)

@@ -10,11 +10,11 @@ begin
     return new;
 end; $$;
 
-drop trigger if exists trg_validate_text_date on public.texts;
+drop trigger if exists trg_validate_text_date on public.texts^;
 create trigger trg_validate_text_date
 before insert or update on public.texts
 for each row
-execute function fn_validate_text_date();
+execute function fn_validate_text_date()^;
 
 -- 2. Normalizar nombres en authors, users y editorials
 create or replace function fn_format_names()
@@ -41,20 +41,20 @@ begin
     return new;
 end; $$;
 
-drop trigger if exists trg_format_author_names on public.authors;
+drop trigger if exists trg_format_author_names on public.authors^;
 create trigger trg_format_author_names
 before insert or update on public.authors
-for each row execute function fn_format_names();
+for each row execute function fn_format_names()^;
 
-drop trigger if exists trg_format_user_names on public.users;
+drop trigger if exists trg_format_user_names on public.users^;
 create trigger trg_format_user_names
 before insert or update on public.users
-for each row execute function fn_format_names();
+for each row execute function fn_format_names()^;
 
-drop trigger if exists trg_format_editorial_name on public.editorials;
+drop trigger if exists trg_format_editorial_name on public.editorials^;
 create trigger trg_format_editorial_name
 before insert or update on public.editorials
-for each row execute function fn_format_names();
+for each row execute function fn_format_names()^;
 
 -- 3. (Eliminado) Validación de genrePreference en Users: no aplica con tabla N:M user_genres
 
@@ -65,7 +65,7 @@ create table if not exists public.auditlog(
     action varchar(10),
     recordid int,
     changedat timestamp default now()
-);
+)^;
 
 create or replace function fn_audit_changes()
 returns trigger
@@ -94,17 +94,17 @@ begin
     return case when tg_op = 'DELETE' then old else new end;
 end; $$;
 
-drop trigger if exists trg_audit_users on public.users;
+drop trigger if exists trg_audit_users on public.users^;
 create trigger trg_audit_users
 after insert or update or delete on public.users
 for each row
-execute function fn_audit_changes();
+execute function fn_audit_changes()^;
 
-drop trigger if exists trg_audit_texts on public.texts;
+drop trigger if exists trg_audit_texts on public.texts^;
 create trigger trg_audit_texts
 after insert or update or delete on public.texts
 for each row
-execute function fn_audit_changes();
+execute function fn_audit_changes()^;
 
 -- 5. Evitar duplicados lógicos en genres
 create or replace function fn_prevent_duplicates()
@@ -128,7 +128,7 @@ begin
     return new;
 end; $$;
 
-drop trigger if exists trg_no_duplicate_genres on public.genres;
+drop trigger if exists trg_no_duplicate_genres on public.genres^;
 create trigger trg_no_duplicate_genres
 before insert or update on public.genres
-for each row execute function fn_prevent_duplicates();
+for each row execute function fn_prevent_duplicates()^;

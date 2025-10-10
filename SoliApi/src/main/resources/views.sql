@@ -82,7 +82,7 @@ SELECT
         WHERE tg.textid = t.textid
     ), ARRAY[]::text[]) AS genre_names
 FROM public.texts t
-LEFT JOIN public.texttype tt ON tt.typeid = t.typeid;
+LEFT JOIN public.texttype tt ON tt.typeid = t.typeid^;
 
 -- Vista de usuarios con géneros preferidos agregados
 CREATE OR REPLACE VIEW public.vw_users AS
@@ -104,4 +104,4 @@ SELECT
         JOIN public.genres g ON g.genreid = ug.genreid
         WHERE ug.userid = u.userid
     ), ARRAY[]::text[]) AS preferred_genres
-FROM public.users u;
+FROM public.users u^;
