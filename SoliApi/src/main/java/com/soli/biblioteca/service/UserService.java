@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -58,6 +59,11 @@ public class UserService {
     }
 
     public UserDTO findByCognitoSubDTO(String sub) {
+        // Intentar vista agregada primero
+        Optional<Object[]> row = userRepository.findUserViewByCognitoSub(sub);
+        if (row.isPresent()) return mapUserViewRow(row.get());
+
+        // Fallback a entidad JPA si la vista no retorna
         return userRepository.findByCognitoSub(sub)
                 .map(UserMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
@@ -66,9 +72,43 @@ public class UserService {
     public UserDTO findUserByJwt(Jwt jwt) {
         String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
 
+        Optional<Object[]> row = userRepository.findUserViewByCognitoSub(cognitoSub);
+        if (row.isPresent()) return mapUserViewRow(row.get());
+
         return userRepository.findByCognitoSub(cognitoSub)
                 .map(UserMapper::toDTO)
                 .orElse(null); // o lanzar excepción si prefieres
+    }
+
+    private UserDTO mapUserViewRow(Object[] r) {
+        // vw_users: userid, firstname, lastname, activemember, cognitosub, preferred_genre_ids, preferred_genres
+        int i = 0;
+        Long id = ((Number) r[i++]).longValue();
+        String first = (String) r[i++];
+        String last = (String) r[i++];
+        Boolean active = (Boolean) r[i++];
+        String cognitoSub = (String) r[i++];
+        // int[] of genre ids may come as java.sql.Array
+        java.util.List<Long> genreIds = new java.util.ArrayList<>();
+        Object idsArr = r[i++];
+        if (idsArr instanceof java.sql.Array a) {
+            try {
+                Object arr = a.getArray();
+                if (arr instanceof Object[]) {
+                    for (Object v : (Object[]) arr) if (v != null) genreIds.add(((Number) v).longValue());
+                }
+            } catch (Exception ignored) {}
+        } else if (idsArr instanceof Object[]) {
+            for (Object v : (Object[]) idsArr) if (v != null) genreIds.add(((Number) v).longValue());
+        }
+
+        UserDTO dto = new UserDTO();
+        dto.setId(id);
+        dto.setFirstName(first);
+        dto.setLastName(last);
+        dto.setActiveMember(active != null ? active : false);
+        dto.setPrefferedGenreIds(new java.util.HashSet<>(genreIds));
+        return dto;
     }
 
     // =============================
