@@ -31,21 +31,30 @@ public class UserService {
 
     // Crea usuario si no existe (desde login Cognito)
     public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
-        User user = new User();
-        user.setCognitoSub(cognitoSub);
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        Set<Genre> genres = new HashSet<>();
+        // Crear usuario vía stored procedure para alinear con la capa SQL
+        boolean active = false; // mantener comportamiento actual (nota: default DB es TRUE)
+        userRepository.createUserByProcedure(
+                dto.getFirstName(),
+                dto.getLastName(),
+                active,
+                cognitoSub
+        );
+
+        // Recuperar el usuario creado para obtener su ID
+        User created = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
+
+        // Asignar géneros preferidos mediante SP N:M si se enviaron
         if (dto.getPreferredGenreIds() != null) {
-            dto.getPreferredGenreIds().forEach(id -> {
-                genreRepository.findById(id).ifPresent(genres::add);
+            dto.getPreferredGenreIds().forEach(gid -> {
+                // Validar que el género existe
+                genreRepository.findById(gid).orElseThrow(() -> new RuntimeException("Género no encontrado con id: " + gid));
+                userRepository.addUserGenre(created.getId(), gid);
             });
         }
-        user.setActiveMember(false);
 
-
-        User saved = userRepository.save(user);
-        return UserMapper.toDTO(saved);
+        // Devolver DTO basado en la entidad actual
+        return UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
     }
 
     public UserDTO findByCognitoSubDTO(String sub) {
