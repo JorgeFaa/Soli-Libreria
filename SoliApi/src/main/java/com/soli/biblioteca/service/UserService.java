@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -31,24 +32,59 @@ public class UserService {
 
     // Crea usuario si no existe (desde login Cognito)
     public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
-        User user = new User();
-        user.setCognitoSub(cognitoSub);
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        Set<Genre> genres = new HashSet<>();
-        if (dto.getPreferredGenreIds() != null) {
-            dto.getPreferredGenreIds().forEach(id -> {
-                genreRepository.findById(id).ifPresent(genres::add);
-            });
+        // Crear usuario vía stored procedure; si falla, usar JPA
+        try {
+            boolean active = false; // mantener comportamiento actual (nota: default DB es TRUE)
+            userRepository.createUserByProcedure(
+                    dto.getFirstName(),
+                    dto.getLastName(),
+                    active,
+                    cognitoSub
+            );
+
+            // Recuperar el usuario creado para obtener su ID
+            User created = userRepository.findByCognitoSub(cognitoSub)
+                    .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
+
+            // Asignar géneros preferidos mediante SP N:M si se enviaron
+            if (dto.getPreferredGenreIds() != null) {
+                dto.getPreferredGenreIds().forEach(gid -> {
+                    // Validar que el género existe
+                    genreRepository.findById(gid).orElseThrow(() -> new RuntimeException("Género no encontrado con id: " + gid));
+                    userRepository.addUserGenre(created.getId(), gid);
+                });
+            }
+
+            // Devolver DTO basado en la entidad actual
+            return UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
+        } catch (Exception ex) {
+            // Fallback a JPA puro si los SPs no están disponibles
+            User user = new User();
+            user.setCognitoSub(cognitoSub);
+            user.setFirstName(dto.getFirstName());
+            user.setLastName(dto.getLastName());
+            user.setActiveMember(false);
+
+            // Asignar géneros (entidad)
+            Set<Genre> genres = new HashSet<>();
+            if (dto.getPreferredGenreIds() != null) {
+                dto.getPreferredGenreIds().forEach(id -> genreRepository.findById(id).ifPresent(genres::add));
+            }
+            user.setPreferredGenres(genres);
+
+            User saved = userRepository.save(user);
+            return UserMapper.toDTO(saved);
         }
-        user.setActiveMember(false);
-
-
-        User saved = userRepository.save(user);
-        return UserMapper.toDTO(saved);
     }
 
     public UserDTO findByCognitoSubDTO(String sub) {
+        // Intentar vista agregada primero
+        try {
+            Optional<Object[]> row = userRepository.findUserViewByCognitoSub(sub);
+            if (row.isPresent()) return mapUserViewRow(row.get());
+        } catch (Exception ignored) {}
+
+        // Fallback a entidad JPA si la vista no retorna
         return userRepository.findByCognitoSub(sub)
                 .map(UserMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
@@ -57,9 +93,45 @@ public class UserService {
     public UserDTO findUserByJwt(Jwt jwt) {
         String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
 
+        try {
+            Optional<Object[]> row = userRepository.findUserViewByCognitoSub(cognitoSub);
+            if (row.isPresent()) return mapUserViewRow(row.get());
+        } catch (Exception ignored) {}
+
         return userRepository.findByCognitoSub(cognitoSub)
                 .map(UserMapper::toDTO)
                 .orElse(null); // o lanzar excepción si prefieres
+    }
+
+    private UserDTO mapUserViewRow(Object[] r) {
+        // vw_users: userid, firstname, lastname, activemember, cognitosub, preferred_genre_ids, preferred_genres
+        int i = 0;
+        Long id = ((Number) r[i++]).longValue();
+        String first = (String) r[i++];
+        String last = (String) r[i++];
+        Boolean active = (Boolean) r[i++];
+        String cognitoSub = (String) r[i++];
+        // int[] of genre ids may come as java.sql.Array
+        java.util.List<Long> genreIds = new java.util.ArrayList<>();
+        Object idsArr = r[i++];
+        if (idsArr instanceof java.sql.Array a) {
+            try {
+                Object arr = a.getArray();
+                if (arr instanceof Object[]) {
+                    for (Object v : (Object[]) arr) if (v != null) genreIds.add(((Number) v).longValue());
+                }
+            } catch (Exception ignored) {}
+        } else if (idsArr instanceof Object[]) {
+            for (Object v : (Object[]) idsArr) if (v != null) genreIds.add(((Number) v).longValue());
+        }
+
+        UserDTO dto = new UserDTO();
+        dto.setId(id);
+        dto.setFirstName(first);
+        dto.setLastName(last);
+        dto.setActiveMember(active != null ? active : false);
+        dto.setPrefferedGenreIds(new java.util.HashSet<>(genreIds));
+        return dto;
     }
 
     // =============================
