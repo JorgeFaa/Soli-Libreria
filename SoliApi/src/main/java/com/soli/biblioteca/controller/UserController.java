@@ -5,6 +5,10 @@ import com.soli.biblioteca.service.UserService;
 import com.soli.biblioteca.service.CognitoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -145,6 +149,55 @@ public class UserController {
     public ResponseEntity<Map<String, String>> refreshToken(@RequestBody RefreshTokenRequestDTO dto){
         Map<String, String> tokens = cognitoService.refreshToken(dto.getUsername(), dto.getRefreshToken());
         return ResponseEntity.ok(tokens);
+    }
+
+    // Cerrar sesión del dispositivo actual (revocar refresh token)
+    @Operation(
+            summary = "Cerrar sesión (revocar refresh token)",
+            description = "Revoca el refresh token del dispositivo actual en Cognito. Requiere body: { username, refreshToken }.",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Logout exitoso"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno", content = @Content)
+    })
+    @PostMapping("/auth/logout")
+    public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequestDTO dto) {
+        try {
+            cognitoService.revokeRefreshToken(dto.getUsername(), dto.getRefreshToken());
+        } catch (RuntimeException e) {
+            // no exponer detalles; mantener idempotencia
+        }
+        return ResponseEntity.ok(Map.of("ok", "true"));
+    }
+
+    // Cerrar sesión global (todas las sesiones del usuario)
+    @Operation(
+            summary = "Cerrar sesión global (todas las sesiones)",
+            description = "Invalida todos los refresh tokens del usuario autenticado en el User Pool. El username se toma del claim cognito:username del JWT.",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Logout global exitoso"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno", content = @Content)
+    })
+    @PostMapping("/auth/logout-all")
+    public ResponseEntity<Map<String, String>> logoutAll(@AuthenticationPrincipal Jwt jwt) {
+        String username = jwt.getClaim("cognito:username");
+        if (username == null) {
+            username = jwt.getClaim("username");
+        }
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("status", "UNAUTHORIZED"));
+        }
+        try {
+            cognitoService.globalSignOut(username);
+            return ResponseEntity.ok(Map.of("ok", "true"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "ERROR"));
+        }
     }
 
 
