@@ -13,26 +13,16 @@
   </head>
   <body>
     <div class="notice">Para probar endpoints protegidos, haz clic en Authorize y pega tu Bearer token.</div>
-    <div id="reference">Cargando documentación…</div>
+    <div id="reference">
+      <api-reference
+        spec-url="/api/v1/v3/api-docs"
+        configuration='{"layout":"classic","theme":"default","hideDownloadButton":false,"showSidebar":true,"servers":[{"url":"/api/v1"}]}'
+        style="display:block; height:100%"
+      ></api-reference>
+    </div>
     <script type="module">
-      try {
-        const { default: createReference } = await import('https://cdn.jsdelivr.net/npm/@scalar/api-reference/dist/browser/standalone.js');
-        const el = await createReference({
-          spec: { url: '/api/v1/v3/api-docs' },
-          theme: 'default',
-          layout: 'classic',
-          hideDownloadButton: false,
-          showSidebar: true,
-          servers: [{ url: '/api/v1' }],
-        });
-        const container = document.getElementById('reference');
-        container.innerHTML = '';
-        container.append(el);
-      } catch (e) {
-        console.error('Error inicializando Scalar:', e);
-        const container = document.getElementById('reference');
-        container.innerHTML = 'No se pudo cargar la documentación. Revisa la consola del navegador.';
-      }
+      // Define the web component by importing the module
+      import 'https://cdn.jsdelivr.net/npm/@scalar/api-reference';
     </script>
     <noscript>Habilita JavaScript para ver la documentación.</noscript>
   </body>
