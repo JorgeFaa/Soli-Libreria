@@ -234,4 +234,33 @@ public class CognitoService {
             throw new RuntimeException("Error al buscar usuario: " + e.awsErrorDetails().errorMessage(), e);
         }
     }
+
+    // Revocar el refresh token del dispositivo actual
+    public void revokeRefreshToken(String username, String refreshToken) {
+        try {
+            // SECRET_HASH no es requerido por RevokeToken, pero mantenemos consistencia en el flujo
+            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            RevokeTokenRequest request = RevokeTokenRequest.builder()
+                    .clientId(clientId)
+                    .clientSecret(clientSecret)
+                    .token(refreshToken)
+                    .build();
+            cognitoClient.revokeToken(request);
+        } catch (CognitoIdentityProviderException e) {
+            // Idempotente: si falla, no interrumpimos el flujo de logout
+        }
+    }
+
+    // Cerrar sesión global (todas las sesiones del usuario)
+    public void globalSignOut(String username) {
+        try {
+            AdminUserGlobalSignOutRequest req = AdminUserGlobalSignOutRequest.builder()
+                    .userPoolId(userPoolId)
+                    .username(username)
+                    .build();
+            cognitoClient.adminUserGlobalSignOut(req);
+        } catch (CognitoIdentityProviderException e) {
+            throw new RuntimeException("Error en logout global: " + e.awsErrorDetails().errorMessage(), e);
+        }
+    }
 }
