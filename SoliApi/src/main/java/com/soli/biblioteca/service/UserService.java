@@ -32,36 +32,57 @@ public class UserService {
 
     // Crea usuario si no existe (desde login Cognito)
     public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
-        // Crear usuario vía stored procedure para alinear con la capa SQL
-        boolean active = false; // mantener comportamiento actual (nota: default DB es TRUE)
-        userRepository.createUserByProcedure(
-                dto.getFirstName(),
-                dto.getLastName(),
-                active,
-                cognitoSub
-        );
+        // Crear usuario vía stored procedure; si falla, usar JPA
+        try {
+            boolean active = false; // mantener comportamiento actual (nota: default DB es TRUE)
+            userRepository.createUserByProcedure(
+                    dto.getFirstName(),
+                    dto.getLastName(),
+                    active,
+                    cognitoSub
+            );
 
-        // Recuperar el usuario creado para obtener su ID
-        User created = userRepository.findByCognitoSub(cognitoSub)
-                .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
+            // Recuperar el usuario creado para obtener su ID
+            User created = userRepository.findByCognitoSub(cognitoSub)
+                    .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
 
-        // Asignar géneros preferidos mediante SP N:M si se enviaron
-        if (dto.getPreferredGenreIds() != null) {
-            dto.getPreferredGenreIds().forEach(gid -> {
-                // Validar que el género existe
-                genreRepository.findById(gid).orElseThrow(() -> new RuntimeException("Género no encontrado con id: " + gid));
-                userRepository.addUserGenre(created.getId(), gid);
-            });
+            // Asignar géneros preferidos mediante SP N:M si se enviaron
+            if (dto.getPreferredGenreIds() != null) {
+                dto.getPreferredGenreIds().forEach(gid -> {
+                    // Validar que el género existe
+                    genreRepository.findById(gid).orElseThrow(() -> new RuntimeException("Género no encontrado con id: " + gid));
+                    userRepository.addUserGenre(created.getId(), gid);
+                });
+            }
+
+            // Devolver DTO basado en la entidad actual
+            return UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
+        } catch (Exception ex) {
+            // Fallback a JPA puro si los SPs no están disponibles
+            User user = new User();
+            user.setCognitoSub(cognitoSub);
+            user.setFirstName(dto.getFirstName());
+            user.setLastName(dto.getLastName());
+            user.setActiveMember(false);
+
+            // Asignar géneros (entidad)
+            Set<Genre> genres = new HashSet<>();
+            if (dto.getPreferredGenreIds() != null) {
+                dto.getPreferredGenreIds().forEach(id -> genreRepository.findById(id).ifPresent(genres::add));
+            }
+            user.setPreferredGenres(genres);
+
+            User saved = userRepository.save(user);
+            return UserMapper.toDTO(saved);
         }
-
-        // Devolver DTO basado en la entidad actual
-        return UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
     }
 
     public UserDTO findByCognitoSubDTO(String sub) {
         // Intentar vista agregada primero
-        Optional<Object[]> row = userRepository.findUserViewByCognitoSub(sub);
-        if (row.isPresent()) return mapUserViewRow(row.get());
+        try {
+            Optional<Object[]> row = userRepository.findUserViewByCognitoSub(sub);
+            if (row.isPresent()) return mapUserViewRow(row.get());
+        } catch (Exception ignored) {}
 
         // Fallback a entidad JPA si la vista no retorna
         return userRepository.findByCognitoSub(sub)
@@ -72,8 +93,10 @@ public class UserService {
     public UserDTO findUserByJwt(Jwt jwt) {
         String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
 
-        Optional<Object[]> row = userRepository.findUserViewByCognitoSub(cognitoSub);
-        if (row.isPresent()) return mapUserViewRow(row.get());
+        try {
+            Optional<Object[]> row = userRepository.findUserViewByCognitoSub(cognitoSub);
+            if (row.isPresent()) return mapUserViewRow(row.get());
+        } catch (Exception ignored) {}
 
         return userRepository.findByCognitoSub(cognitoSub)
                 .map(UserMapper::toDTO)

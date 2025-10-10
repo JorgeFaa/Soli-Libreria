@@ -28,8 +28,16 @@ public class BookService {
 
     // Obtener todos los libros (lectura desde vista agregada)
     public List<BookResponseDTO> getAllBooks() {
-        List<Object[]> rows = bookRepository.findAllFromView();
-        return rows.stream().map(this::mapViewRowToDTO).collect(Collectors.toList());
+        try {
+            List<Object[]> rows = bookRepository.findAllFromView();
+            return rows.stream().map(this::mapViewRowToDTO).collect(Collectors.toList());
+        } catch (Exception e) {
+            // Fallback a JPA si la vista no existe
+            return bookRepository.findAll()
+                    .stream()
+                    .map(BookMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        }
     }
 
     public boolean existsBookByTitle(String title) {
@@ -38,7 +46,12 @@ public class BookService {
 
     // Obtener libro por ID (lectura desde vista agregada)
     public Optional<BookResponseDTO> getBookById(Long id) {
-        return bookRepository.findFromViewById(id).map(this::mapViewRowToDTO);
+        try {
+            return bookRepository.findFromViewById(id).map(this::mapViewRowToDTO);
+        } catch (Exception e) {
+            return bookRepository.findById(id)
+                    .map(BookMapper::toResponseDTO);
+        }
     }
 
     // Obtener entidad por ID (para escrituras/actualizaciones)
