@@ -4,27 +4,36 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Soli API • Referencia (Scalar)</title>
-    <!-- Carga el web component como módulo -->
-    <script id="api-reference" type="module" src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
     <style>
       html, body { height: 100%; margin: 0; }
       body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-      api-reference { height: 100%; }
-      .notice { position: absolute; top: 8px; right: 12px; font-size: 12px; opacity: 0.7; }
+      #reference { height: 100%; }
+      .notice { position: absolute; top: 8px; right: 12px; font-size: 12px; opacity: 0.7; z-index: 10; }
     </style>
   </head>
   <body>
     <div class="notice">Para probar endpoints protegidos, haz clic en Authorize y pega tu Bearer token.</div>
-    <api-reference
-      spec-url="/api/v1/v3/api-docs"
-      configuration='{
-        "layout": "classic",
-        "theme": "default",
-        "hideDownloadButton": false,
-        "showSidebar": true,
-        "servers": [{ "url": "/api/v1" }]
-      }'
-    ></api-reference>
+    <div id="reference">Cargando documentación…</div>
+    <script type="module">
+      try {
+        const { default: createReference } = await import('https://cdn.jsdelivr.net/npm/@scalar/api-reference/dist/browser/standalone.js');
+        const el = await createReference({
+          spec: { url: '/api/v1/v3/api-docs' },
+          theme: 'default',
+          layout: 'classic',
+          hideDownloadButton: false,
+          showSidebar: true,
+          servers: [{ url: '/api/v1' }],
+        });
+        const container = document.getElementById('reference');
+        container.innerHTML = '';
+        container.append(el);
+      } catch (e) {
+        console.error('Error inicializando Scalar:', e);
+        const container = document.getElementById('reference');
+        container.innerHTML = 'No se pudo cargar la documentación. Revisa la consola del navegador.';
+      }
+    </script>
     <noscript>Habilita JavaScript para ver la documentación.</noscript>
   </body>
 </html>
