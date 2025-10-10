@@ -1,46 +1,107 @@
-CREATE OR REPLACE VIEW vw_texts AS
+-- Vista de textos con agregaciones (autores, editoriales, géneros)
+CREATE OR REPLACE VIEW public.vw_texts AS
 SELECT
     t.textid,
     t.texttitle,
+    t.descripcion,
     t.publisheddate,
-    t.texttype,
-    t.genre,
-    a.authorname || ' ' || COALESCE(a.authormiddlename, '') || ' ' || COALESCE(a.authorlastname, '') AS author_fullname,
-    e.companyname AS editorial_name,
-    e.country AS editorial_country
-FROM soli_db.public.texts t
-LEFT JOIN soli_db.public.authors a ON t.authorid = a.authorid
-LEFT JOIN soli_db.public.editorials e ON t.editorialid = e.editorialid;
+    t.texturl,
+    t.coverurl,
+    tt.typeid,
+    tt.texttype AS type_name,
+    -- Autores: IDs y nombres por separado para mapear a DTOs
+    COALESCE((
+        SELECT array_agg(a.authorid)
+        FROM public.text_authors ta
+        JOIN public.authors a ON a.authorid = ta.authorid
+        WHERE ta.textid = t.textid
+    ), ARRAY[]::int[]) AS author_ids,
+    COALESCE((
+        SELECT array_agg(a.authorname)
+        FROM public.text_authors ta
+        JOIN public.authors a ON a.authorid = ta.authorid
+        WHERE ta.textid = t.textid
+    ), ARRAY[]::text[]) AS author_names,
+    COALESCE((
+        SELECT array_agg(a.authormiddlename)
+        FROM public.text_authors ta
+        JOIN public.authors a ON a.authorid = ta.authorid
+        WHERE ta.textid = t.textid
+    ), ARRAY[]::text[]) AS author_middle_names,
+    COALESCE((
+        SELECT array_agg(a.authorlastname)
+        FROM public.text_authors ta
+        JOIN public.authors a ON a.authorid = ta.authorid
+        WHERE ta.textid = t.textid
+    ), ARRAY[]::text[]) AS author_last_names,
+    COALESCE((
+        SELECT array_agg(c.countryname)
+        FROM public.text_authors ta
+        JOIN public.authors a ON a.authorid = ta.authorid
+        JOIN public.country c ON c.countryid = a.countryid
+        WHERE ta.textid = t.textid
+    ), ARRAY[]::text[]) AS author_country_names,
+    -- Editoriales: IDs, nombres y país
+    COALESCE((
+        SELECT array_agg(e.editorialid)
+        FROM public.text_editorials te
+        JOIN public.editorials e ON e.editorialid = te.editorialid
+        WHERE te.textid = t.textid
+    ), ARRAY[]::int[]) AS editorial_ids,
+    COALESCE((
+        SELECT array_agg(e.companyname)
+        FROM public.text_editorials te
+        JOIN public.editorials e ON e.editorialid = te.editorialid
+        WHERE te.textid = t.textid
+    ), ARRAY[]::text[]) AS editorial_names,
+    COALESCE((
+        SELECT array_agg(c.countryid)
+        FROM public.text_editorials te
+        JOIN public.editorials e ON e.editorialid = te.editorialid
+        JOIN public.country c ON c.countryid = e.countryid
+        WHERE te.textid = t.textid
+    ), ARRAY[]::int[]) AS editorial_country_ids,
+    COALESCE((
+        SELECT array_agg(c.countryname)
+        FROM public.text_editorials te
+        JOIN public.editorials e ON e.editorialid = te.editorialid
+        JOIN public.country c ON c.countryid = e.countryid
+        WHERE te.textid = t.textid
+    ), ARRAY[]::text[]) AS editorial_country_names,
+    -- Géneros: IDs y nombres
+    COALESCE((
+        SELECT array_agg(g.genreid)
+        FROM public.text_genres tg
+        JOIN public.genres g ON g.genreid = tg.genreid
+        WHERE tg.textid = t.textid
+    ), ARRAY[]::int[]) AS genre_ids,
+    COALESCE((
+        SELECT array_agg(g.genrename)
+        FROM public.text_genres tg
+        JOIN public.genres g ON g.genreid = tg.genreid
+        WHERE tg.textid = t.textid
+    ), ARRAY[]::text[]) AS genre_names
+FROM public.texts t
+LEFT JOIN public.texttype tt ON tt.typeid = t.typeid^;
 
-CREATE OR REPLACE VIEW vw_authors AS
-SELECT
-    a.authorid,
-    a.authorname,
-    a.authormiddlename,
-    a.authorlastname,
-    a.country,
-    COUNT(t.textid) AS total_texts
-FROM soli_db.public.authors a
-LEFT JOIN soli_db.public.texts t ON a.authorid = t.authorid
-GROUP BY a.authorid, a.authorname, a.authormiddlename, a.authorlastname, a.country;
-
-CREATE OR REPLACE VIEW vw_editorials AS
-SELECT
-    e.editorialid,
-    e.companyname,
-    e.country,
-    COUNT(t.textid) AS total_texts
-FROM soli_db.public.editorials e
-LEFT JOIN soli_db.public.texts t ON e.editorialid = t.editorialid
-GROUP BY e.editorialid, e.companyname, e.country;
-
-
-CREATE OR REPLACE VIEW vw_users AS
+-- Vista de usuarios con géneros preferidos agregados
+CREATE OR REPLACE VIEW public.vw_users AS
 SELECT
     u.userid,
-    u.firstname || ' ' || u.lastname AS full_name,
-    u.useremail,
-    u.userrole,
-    CASE WHEN u.activemember THEN 'Activo' ELSE 'Inactivo' END AS membership_status,
-    u.genrepreference
-FROM soli_db.public.users u;
+    u.firstname,
+    u.lastname,
+    u.activemember,
+    u.cognitosub,
+    COALESCE((
+        SELECT array_agg(g.genreid)
+        FROM public.user_genres ug
+        JOIN public.genres g ON g.genreid = ug.genreid
+        WHERE ug.userid = u.userid
+    ), ARRAY[]::int[]) AS preferred_genre_ids,
+    COALESCE((
+        SELECT array_agg(g.genrename)
+        FROM public.user_genres ug
+        JOIN public.genres g ON g.genreid = ug.genreid
+        WHERE ug.userid = u.userid
+    ), ARRAY[]::text[]) AS preferred_genres
+FROM public.users u^;
