@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -30,10 +31,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-
-    kotlin {
-        jvmToolchain(21)
+    
+    kotlinOptions {
+        jvmTarget = "21"
     }
+
 
     buildFeatures {
         compose = true
@@ -43,6 +45,7 @@ android {
         kotlinCompilerExtensionVersion = "1.7.0"
     }
 }
+
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.01")
