@@ -42,7 +42,17 @@ URI location = URI.create("/genres/" + saved.getId());
     }
 
     @GetMapping
-    public List<GenreResponseDTO> getAll() {
+    public List<GenreResponseDTO> searchGenres(
+            @RequestParam(required = false) String name) {
+        
+        if (name != null && !name.trim().isEmpty()) {
+            return genreService.findByNameContaining(name)
+                    .stream()
+                    .map(g -> new GenreResponseDTO(g.getId(), g.getName()))
+                    .collect(Collectors.toList());
+        }
+        
+        // Sin filtros, devolver todos
         return genreService.findAll()
                 .stream()
                 .map(g -> new GenreResponseDTO(g.getId(), g.getName()))

@@ -58,7 +58,35 @@ URI location = URI.create("/authors/" + saved.getId());
     }
 
     @GetMapping
-    public List<AuthorResponseDTO> getAll() {
+    public List<AuthorResponseDTO> searchAuthors(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String country) {
+        
+        if (name != null && !name.trim().isEmpty()) {
+            return authorService.findByNameContaining(name).stream()
+                    .map(author -> new AuthorResponseDTO(
+                            author.getId(),
+                            author.getName(),
+                            author.getMiddleName(),
+                            author.getLastName(),
+                            author.getCountry().getName()
+                    ))
+                    .toList();
+        }
+        
+        if (country != null && !country.trim().isEmpty()) {
+            return authorService.findByCountryName(country).stream()
+                    .map(author -> new AuthorResponseDTO(
+                            author.getId(),
+                            author.getName(),
+                            author.getMiddleName(),
+                            author.getLastName(),
+                            author.getCountry().getName()
+                    ))
+                    .toList();
+        }
+        
+        // Sin filtros, devolver todos
         return authorService.findAll().stream()
                 .map(author -> new AuthorResponseDTO(
                         author.getId(),

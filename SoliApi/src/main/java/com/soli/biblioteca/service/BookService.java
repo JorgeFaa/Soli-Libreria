@@ -1,17 +1,26 @@
 package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.*;
+import com.soli.biblioteca.exception.BusinessLogicException;
 import com.soli.biblioteca.mapper.BookMapper;
 import com.soli.biblioteca.model.Book;
 import com.soli.biblioteca.repository.BookRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.criteria.Predicate;
 import java.sql.Array;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BookService {
 
@@ -23,20 +32,34 @@ public class BookService {
 
     // Crear o actualizar un libro (escrituras siguen usando JPA)
     public Book save(Book book) {
-        return bookRepository.save(book);
+        try {
+            log.debug("Saving book: {}", book.getTitle());
+            Book savedBook = bookRepository.save(book);
+            log.info("Book saved successfully with ID: {}", savedBook.getId());
+            return savedBook;
+        } catch (Exception e) {
+            log.error("Error saving book '{}': {}", book.getTitle(), e.getMessage(), e);
+            throw new BusinessLogicException("Error al guardar el libro: " + e.getMessage(), e);
+        }
     }
 
     // Obtener todos los libros (lectura desde vista agregada)
     public List<BookResponseDTO> getAllBooks() {
+        log.debug("Fetching all books");
         try {
             List<Object[]> rows = bookRepository.findAllFromView();
-            return rows.stream().map(this::mapViewRowToDTO).collect(Collectors.toList());
+            List<BookResponseDTO> books = rows.stream().map(this::mapViewRowToDTO).collect(Collectors.toList());
+            log.info("Retrieved {} books from view", books.size());
+            return books;
         } catch (Exception e) {
+            log.warn("Failed to fetch from view, falling back to JPA: {}", e.getMessage());
             // Fallback a JPA si la vista no existe
-            return bookRepository.findAll()
+            List<BookResponseDTO> books = bookRepository.findAll()
                     .stream()
                     .map(BookMapper::toResponseDTO)
                     .collect(Collectors.toList());
+            log.info("Retrieved {} books using JPA fallback", books.size());
+            return books;
         }
     }
 
@@ -66,6 +89,113 @@ public class BookService {
             return true;
         }
         return false;
+    }
+
+    // Obtener libros con filtros y paginación
+    public PagedResponseDTO<BookResponseDTO> getBooksWithFilters(BookFilterDTO filters) {
+        log.debug("Fetching books with filters: page={}, size={}, search={}", 
+                filters.getPage(), filters.getSize(), filters.getSearch());
+        
+        try {
+            // Crear especificación para filtros
+            Specification<Book> spec = createBookSpecification(filters);
+            
+            // Crear Pageable para paginación y ordenamiento
+            Sort sort = Sort.by(
+                filters.getSortDirection().equalsIgnoreCase("DESC") ? 
+                Sort.Direction.DESC : Sort.Direction.ASC, 
+                filters.getSortBy()
+            );
+            Pageable pageable = PageRequest.of(filters.getPage(), filters.getSize(), sort);
+            
+            // Ejecutar consulta paginada
+            Page<Book> bookPage = bookRepository.findAll(spec, pageable);
+            
+            // Convertir a DTOs
+            List<BookResponseDTO> bookDTOs = bookPage.getContent()
+                    .stream()
+                    .map(BookMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+            
+            log.info("Retrieved {} books out of {} total (page {} of {})", 
+                    bookDTOs.size(), bookPage.getTotalElements(), 
+                    filters.getPage() + 1, bookPage.getTotalPages());
+            
+            return PagedResponseDTO.of(
+                    bookDTOs,
+                    filters.getPage(),
+                    filters.getSize(),
+                    bookPage.getTotalElements()
+            );
+            
+        } catch (Exception e) {
+            log.error("Error fetching books with filters: {}", e.getMessage(), e);
+            throw new BusinessLogicException("Error al obtener los libros con filtros: " + e.getMessage(), e);
+        }
+    }
+    
+    private Specification<Book> createBookSpecification(BookFilterDTO filters) {
+        return (root, query, criteriaBuilder) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            
+            // Búsqueda general en título y descripción
+            if (filters.getSearch() != null && !filters.getSearch().trim().isEmpty()) {
+                String searchPattern = "%" + filters.getSearch().toLowerCase() + "%";
+                jakarta.persistence.criteria.Predicate titlePredicate = 
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchPattern);
+                jakarta.persistence.criteria.Predicate descriptionPredicate = 
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), searchPattern);
+                predicates.add(criteriaBuilder.or(titlePredicate, descriptionPredicate));
+            }
+            
+            // Filtro por título específico
+            if (filters.getTitle() != null && !filters.getTitle().trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("title")), 
+                    "%" + filters.getTitle().toLowerCase() + "%"
+                ));
+            }
+            
+            // Filtro por nombre de autor
+            if (filters.getAuthorName() != null && !filters.getAuthorName().trim().isEmpty()) {
+                String authorPattern = "%" + filters.getAuthorName().toLowerCase() + "%";
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.join("authors").get("name")), 
+                    authorPattern
+                ));
+            }
+            
+            // Filtro por géneros
+            if (filters.getGenreIds() != null && !filters.getGenreIds().isEmpty()) {
+                predicates.add(root.join("genres").get("id").in(filters.getGenreIds()));
+            }
+            
+            // Filtro por editoriales
+            if (filters.getEditorialIds() != null && !filters.getEditorialIds().isEmpty()) {
+                predicates.add(root.join("editorials").get("id").in(filters.getEditorialIds()));
+            }
+            
+            // Filtro por tipo de texto
+            if (filters.getTypeId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("type").get("id"), filters.getTypeId()));
+            }
+            
+            // Filtro por fecha de publicación (desde)
+            if (filters.getPublishedAfter() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                    root.get("publishedDate"), filters.getPublishedAfter()
+                ));
+            }
+            
+            // Filtro por fecha de publicación (hasta)
+            if (filters.getPublishedBefore() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                    root.get("publishedDate"), filters.getPublishedBefore()
+                ));
+            }
+            
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     private BookResponseDTO mapViewRowToDTO(Object[] r) {

@@ -24,4 +24,8 @@ public class GenreService {
     public Optional<Genre> findById(Long id) { return genreRepository.findById(id); }
 
     public void delete(Long id) { genreRepository.deleteById(id); }
+    
+    public List<Genre> findByNameContaining(String name) {
+        return genreRepository.findByNameContainingIgnoreCase(name);
+    }
 }
