@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +30,7 @@ import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
 @RestController
 @RequestMapping(API_V2_PREFIX + "/books")
 @Tag(name = "Book Management V2", description = "API v2 para gestión de libros - Con paginación avanzada y filtros múltiples")
+@Validated
 public class BookControllerV2 {
 
     private final BookService bookService;
@@ -79,11 +83,35 @@ public class BookControllerV2 {
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
             
             @Parameter(description = "Campo para ordenar (title, publishedDate, id)")
-            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "title") 
+            @Pattern(regexp = "^(title|publishedDate|id)$", message = "sortBy debe ser: title, publishedDate o id")
+            String sortBy,
             
             @Parameter(description = "Dirección del ordenamiento (ASC, DESC)")
-            @RequestParam(defaultValue = "ASC") String sortDirection
+            @RequestParam(defaultValue = "ASC")
+            @Pattern(regexp = "^(ASC|DESC)$", message = "sortDirection debe ser ASC o DESC", flags = Pattern.Flag.CASE_INSENSITIVE)
+            String sortDirection
     ) {
+        // Validación de fechas
+        if (publishedAfter != null && publishedBefore != null && publishedAfter.isAfter(publishedBefore)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "publishedAfter no puede ser posterior a publishedBefore");
+        }
+        
+        // Validación adicional de rango de fechas razonable
+        LocalDate minValidDate = LocalDate.of(1000, 1, 1);
+        LocalDate maxValidDate = LocalDate.now().plusYears(5);
+        
+        if (publishedAfter != null && publishedAfter.isBefore(minValidDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "publishedAfter debe ser una fecha válida (después del año 1000)");
+        }
+        
+        if (publishedBefore != null && publishedBefore.isAfter(maxValidDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "publishedBefore no puede ser más de 5 años en el futuro");
+        }
+        
         BookFilterDTO filter = BookFilterDTO.builder()
                 .search(search)
                 .title(title)

@@ -132,3 +132,49 @@ drop trigger if exists trg_no_duplicate_genres on public.genres^;
 create trigger trg_no_duplicate_genres
 before insert or update on public.genres
 for each row execute function fn_prevent_duplicates()^;
+
+-- 6. Trigger para actualizar updated_at automáticamente
+create or replace function fn_update_timestamp()
+returns trigger
+language plpgsql
+as $$
+begin
+    new.updated_at := current_timestamp;
+    return new;
+end; $$;
+
+-- Aplicar trigger de timestamp a todas las tablas principales
+drop trigger if exists trg_update_timestamp_users on public.users^;
+create trigger trg_update_timestamp_users
+before update on public.users
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_authors on public.authors^;
+create trigger trg_update_timestamp_authors
+before update on public.authors
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_texts on public.texts^;
+create trigger trg_update_timestamp_texts
+before update on public.texts
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_editorials on public.editorials^;
+create trigger trg_update_timestamp_editorials
+before update on public.editorials
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_genres on public.genres^;
+create trigger trg_update_timestamp_genres
+before update on public.genres
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_country on public.country^;
+create trigger trg_update_timestamp_country
+before update on public.country
+for each row execute function fn_update_timestamp()^;
+
+drop trigger if exists trg_update_timestamp_texttype on public.texttype^;
+create trigger trg_update_timestamp_texttype
+before update on public.texttype
+for each row execute function fn_update_timestamp()^;

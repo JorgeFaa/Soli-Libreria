@@ -13,6 +13,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +24,8 @@ import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
 
 @RestController
 @RequestMapping(API_V2_PREFIX + "/authors")
-@Tag(name = "Author Management V2", description = "API v2 para gestión de autores - Con filtros avanzados por nombre y país")
+@Tag(name = "Author Management V2", description = "API v2 para gestión de autores - Búsquedas avanzadas y filtros combinados")
+@Validated
 public class AuthorControllerV2 {
 
     private final AuthorService authorService;
@@ -44,10 +48,14 @@ public class AuthorControllerV2 {
     @GetMapping
     public ResponseEntity<List<AuthorResponseDTO>> searchAuthors(
             @Parameter(description = "Filtrar por nombre del autor (búsqueda parcial)")
-            @RequestParam(required = false) String name,
+            @RequestParam(required = false)
+            @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
+            String name,
             
             @Parameter(description = "Filtrar por país del autor (búsqueda parcial)")
-            @RequestParam(required = false) String country
+            @RequestParam(required = false)
+            @Size(min = 2, max = 100, message = "El país debe tener entre 2 y 100 caracteres")
+            String country
     ) {
         List<AuthorResponseDTO> authors = authorService.findByFilters(name, country)
                 .stream()
@@ -86,7 +94,10 @@ public class AuthorControllerV2 {
     @GetMapping("/search/name")
     public ResponseEntity<List<AuthorResponseDTO>> searchByName(
             @Parameter(description = "Nombre a buscar (búsqueda parcial)")
-            @RequestParam String name
+            @RequestParam
+            @NotBlank(message = "El nombre no puede estar vacío")
+            @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
+            String name
     ) {
         List<AuthorResponseDTO> authors = authorService.findByNameContaining(name)
                 .stream()
@@ -104,7 +115,10 @@ public class AuthorControllerV2 {
     @GetMapping("/search/country")
     public ResponseEntity<List<AuthorResponseDTO>> searchByCountry(
             @Parameter(description = "País a buscar (búsqueda parcial)")
-            @RequestParam String country
+            @RequestParam
+            @NotBlank(message = "El país no puede estar vacío")
+            @Size(min = 2, max = 100, message = "El país debe tener entre 2 y 100 caracteres")
+            String country
     ) {
         List<AuthorResponseDTO> authors = authorService.findByCountryName(country)
                 .stream()

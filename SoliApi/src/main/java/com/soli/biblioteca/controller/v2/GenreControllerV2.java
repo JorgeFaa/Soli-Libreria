@@ -13,6 +13,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +24,8 @@ import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
 
 @RestController
 @RequestMapping(API_V2_PREFIX + "/genres")
-@Tag(name = "Genre Management V2", description = "API v2 para gestión de géneros - Con búsqueda avanzada por nombre")
+@Tag(name = "Genre Management V2", description = "API v2 para gestión de géneros - Búsquedas optimizadas y categorización avanzada")
+@Validated
 public class GenreControllerV2 {
 
     private final GenreService genreService;

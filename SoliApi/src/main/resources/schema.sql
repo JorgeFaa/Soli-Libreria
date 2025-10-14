@@ -9,17 +9,23 @@
 
 CREATE TABLE IF NOT EXISTS country (
     countryid SERIAL PRIMARY KEY,
-    countryname VARCHAR(100) NOT NULL
+    countryname VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS genres (
     genreid SERIAL PRIMARY KEY,
-    genrename VARCHAR(100) NOT NULL
+    genrename VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS texttype (
     typeid SERIAL PRIMARY KEY,
-    texttype VARCHAR(100) NOT NULL
+    texttype VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
@@ -31,13 +37,17 @@ CREATE TABLE IF NOT EXISTS authors (
     authorname VARCHAR(50) NOT NULL,
     authormiddlename VARCHAR(50),
     authorlastname VARCHAR(100),
-    countryid INT REFERENCES country(countryid)
+    countryid INT REFERENCES country(countryid),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS editorials (
     editorialid SERIAL PRIMARY KEY,
     companyname VARCHAR(250) NOT NULL,
-    countryid INT REFERENCES country(countryid)
+    countryid INT REFERENCES country(countryid),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -45,7 +55,9 @@ CREATE TABLE IF NOT EXISTS users (
     firstname VARCHAR(50) NOT NULL,
     lastname VARCHAR(50) NOT NULL,
     activemember BOOLEAN NOT NULL DEFAULT TRUE,
-    cognitosub VARCHAR(64) UNIQUE NOT NULL
+    cognitosub VARCHAR(64) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS texts (
@@ -56,7 +68,9 @@ CREATE TABLE IF NOT EXISTS texts (
     editorialid INT REFERENCES editorials(editorialid),
     typeid INT REFERENCES texttype(typeid),
     texturl VARCHAR(512),
-    coverurl VARCHAR(512)
+    coverurl VARCHAR(512),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================

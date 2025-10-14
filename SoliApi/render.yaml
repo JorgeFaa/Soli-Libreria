@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: soli-api-v2
+    runtime: docker
+    plan: free
+    region: ohio
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+      - key: JAVA_OPTS
+        value: "-Xmx512m -Xms256m"
+      # Las siguientes deben configurarse en el dashboard de Render
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MY_AWS_ACCESS_KEY_ID
+        sync: false
+      - key: MY_AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: COGNITO_REGION
+        sync: false
+      - key: COGNITO_USER_POOL_ID
+        sync: false
+      - key: COGNITO_CLIENT_ID
+        sync: false
+      - key: COGNITO_CLIENT_SECRET
+        sync: false
+      - key: JWK_SET_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+databases:
+  - name: soli-postgres
+    databaseName: soli_db
+    user: soli_user
+    plan: free
+    region: ohio
