@@ -189,7 +189,7 @@
   width: 100%;                  /* Ancho completo para overlay */
   height: 100%;                 /* Alto completo para overlay */
   z-index: 60;                  /* Por encima del header */
-  pointer-events: none;         /* Permite clicks por debajo inicialmente */
+  pointer-events: auto;         /* Permite clicks por debajo inicialmente */
 }
 
 /* Cuando se abre el menú, se desliza desde la izquierda */

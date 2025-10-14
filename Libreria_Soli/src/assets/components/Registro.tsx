@@ -127,8 +127,8 @@ export default function Registro({}: RegistroProps) {
       
       if (response.success) {
         console.log("✅ Registro exitoso:", response.user);
-        // Mostrar mensaje de éxito
-        showNotification("¡Registro exitoso! Te hemos enviado un código de verificación por correo.", "success");
+        // Mostrar mensaje de éxito que coincida con la respuesta de la API
+        showNotification("¡Registro exitoso! Revisa tu email para confirmar la cuenta.", "success");
         
         // Esperar un momento para que el usuario vea el mensaje
         setTimeout(() => {
