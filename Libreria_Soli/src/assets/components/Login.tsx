@@ -71,8 +71,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       
       if (response.success) {
         
-        // Mostrar notificación de éxito
-        showNotification("¡Bienvenido de vuelta! Login exitoso", "success");
+        // Mostrar notificación de éxito personalizada
+        const userName = response.user?.nombre || "Usuario";
+        showNotification(`¡Bienvenido de vuelta, ${userName}!`, "success");
         
         // Actualizar el estado global de autenticación
         onLoginSuccess();

@@ -123,7 +123,10 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
 
       {/* Menú lateral de usuario */}
       {userMenuOpen && (
-        <div className={`user-side-menu ${isClosing ? 'closing' : ''}`}> {/* Leemos el estado de isClosing declarado antes, si es true, le agregamos la clase closing para que entren los estilos, si no, no movemos ninguna clase */}
+        <div 
+          className={`user-side-menu ${isClosing ? 'closing' : ''}`}
+          onClick={handleCloseMenu} // Cerrar menú al hacer clic en el overlay
+        > 
           <div 
             className="user-side-menu-content"
             onClick={(e) => e.stopPropagation()} // Prevenir que el clic se propague al overlay
