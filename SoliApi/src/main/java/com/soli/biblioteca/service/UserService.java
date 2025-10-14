@@ -2,11 +2,13 @@ package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.UserCreateDTO;
 import com.soli.biblioteca.Dto.UserDTO;
+import com.soli.biblioteca.exception.BusinessLogicException;
 import com.soli.biblioteca.mapper.UserMapper;
 import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
 import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -32,9 +35,21 @@ public class UserService {
 
     // Crea usuario si no existe (desde login Cognito)
     public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
+        log.info("Creating user in DB for cognitoSub: {}", cognitoSub);
+        
+        // Verificar si el usuario ya existe
+        Optional<User> existingUser = userRepository.findByCognitoSub(cognitoSub);
+        if (existingUser.isPresent()) {
+            log.warn("User already exists for cognitoSub: {}", cognitoSub);
+            throw new BusinessLogicException("El usuario ya existe en la base de datos");
+        }
+        
         // Crear usuario vía stored procedure; si falla, usar JPA
         try {
-            boolean active = false; // mantener comportamiento actual (nota: default DB es TRUE)
+            // Usar el valor del DTO o false por defecto si es null
+            boolean active = dto.getActiveMember() != null ? dto.getActiveMember() : false;
+            log.debug("Creating user with activeMember: {}", active);
+            
             userRepository.createUserByProcedure(
                     dto.getFirstName(),
                     dto.getLastName(),
@@ -47,28 +62,48 @@ public class UserService {
                     .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
 
             // Asignar géneros preferidos mediante SP N:M si se enviaron
-            if (dto.getPreferredGenreIds() != null) {
+            if (dto.getPreferredGenreIds() != null && !dto.getPreferredGenreIds().isEmpty()) {
+                log.debug("Adding {} preferred genres for user", dto.getPreferredGenreIds().size());
                 dto.getPreferredGenreIds().forEach(gid -> {
                     // Validar que el género existe
-                    genreRepository.findById(gid).orElseThrow(() -> new RuntimeException("Género no encontrado con id: " + gid));
+                    genreRepository.findById(gid).orElseThrow(() -> {
+                        log.error("Genre not found with id: {}", gid);
+                        return new BusinessLogicException("Género no encontrado con id: " + gid);
+                    });
                     userRepository.addUserGenre(created.getId(), gid);
                 });
             }
 
             // Devolver DTO basado en la entidad actual
-            return UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
+            UserDTO result = UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
+            log.info("User created successfully with ID: {}", result.getId());
+            return result;
+        } catch (BusinessLogicException e) {
+            // Re-lanzar excepciones de negocio
+            throw e;
         } catch (Exception ex) {
+            log.warn("Stored procedure failed, falling back to JPA: {}", ex.getMessage());
             // Fallback a JPA puro si los SPs no están disponibles
             User user = new User();
             user.setCognitoSub(cognitoSub);
             user.setFirstName(dto.getFirstName());
             user.setLastName(dto.getLastName());
-            user.setActiveMember(false);
+            
+            // Usar el valor del DTO o false por defecto
+            boolean active = dto.getActiveMember() != null ? dto.getActiveMember() : false;
+            user.setActiveMember(active);
+            log.debug("JPA fallback: setting activeMember to {}", active);
 
             // Asignar géneros (entidad)
             Set<Genre> genres = new HashSet<>();
             if (dto.getPreferredGenreIds() != null) {
-                dto.getPreferredGenreIds().forEach(id -> genreRepository.findById(id).ifPresent(genres::add));
+                log.debug("JPA fallback: Adding {} preferred genres", dto.getPreferredGenreIds().size());
+                dto.getPreferredGenreIds().forEach(id -> {
+                    genreRepository.findById(id).ifPresentOrElse(
+                        genres::add,
+                        () -> log.warn("Genre with id {} not found during JPA fallback", id)
+                    );
+                });
             }
             user.setPreferredGenres(genres);
 
@@ -92,15 +127,31 @@ public class UserService {
 
     public UserDTO findUserByJwt(Jwt jwt) {
         String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
+        log.debug("Finding user by JWT with cognitoSub: {}", cognitoSub);
 
         try {
             Optional<Object[]> row = userRepository.findUserViewByCognitoSub(cognitoSub);
-            if (row.isPresent()) return mapUserViewRow(row.get());
-        } catch (Exception ignored) {}
+            if (row.isPresent()) {
+                UserDTO user = mapUserViewRow(row.get());
+                log.debug("User found in view with ID: {}", user.getId());
+                return user;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch user from view, trying JPA: {}", e.getMessage());
+        }
 
         return userRepository.findByCognitoSub(cognitoSub)
-                .map(UserMapper::toDTO)
-                .orElse(null); // o lanzar excepción si prefieres
+                .map(user -> {
+                    UserDTO userDTO = UserMapper.toDTO(user);
+                    log.debug("User found in DB with ID: {}", userDTO.getId());
+                    return userDTO;
+                })
+                .orElseThrow(() -> {
+                    log.error("User not found for cognitoSub: {}", cognitoSub);
+                    return new BusinessLogicException(
+                        "Usuario no encontrado. Debe completar el registro en la base de datos."
+                    );
+                });
     }
 
     private UserDTO mapUserViewRow(Object[] r) {

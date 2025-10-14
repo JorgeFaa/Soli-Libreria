@@ -1,6 +1,8 @@
 package com.soli.biblioteca.service;
 
+import com.soli.biblioteca.exception.BusinessLogicException;
 import com.soli.biblioteca.model.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import com.soli.biblioteca.config.calculateSecretHash;
 
+@Slf4j
 @Service
 public class CognitoService {
 
@@ -45,12 +48,15 @@ public class CognitoService {
 
     // Registro de usuario - Método limpio sin verificaciones previas
     public void registerUser(String username, String password) {
+        log.info("Attempting to register user: {}", username);
         try {
             // Validación de entrada
             if (username == null || username.trim().isEmpty()) {
+                log.warn("Registration failed - empty username");
                 throw new IllegalArgumentException("Username no puede estar vacío");
             }
             if (password == null || password.length() < 6) {
+                log.warn("Registration failed - password too short for user: {}", username);
                 throw new IllegalArgumentException("Password debe tener al menos 6 caracteres");
             }
 
@@ -65,16 +71,20 @@ public class CognitoService {
 
             // Registro directo en Cognito
             cognitoClient.signUp(signUpRequest);
+            log.info("User {} registered successfully in Cognito", username);
 
         } catch (CognitoIdentityProviderException e) {
             // Agregar más detalles del error
             String errorCode = e.awsErrorDetails().errorCode();
             String errorMessage = e.awsErrorDetails().errorMessage();
-            throw new RuntimeException("Error en registro Cognito [" + errorCode + "]: " + errorMessage, e);
+            log.error("Cognito registration failed for user {}: [{}] {}", username, errorCode, errorMessage);
+            throw new BusinessLogicException("Error en registro Cognito [" + errorCode + "]: " + errorMessage, e);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Error de validación: " + e.getMessage(), e);
+            log.warn("Validation error during registration for user {}: {}", username, e.getMessage());
+            throw new BusinessLogicException("Error de validación: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new RuntimeException("Error inesperado en registro: " + e.getMessage(), e);
+            log.error("Unexpected error during registration for user {}: {}", username, e.getMessage(), e);
+            throw new BusinessLogicException("Error inesperado en registro: " + e.getMessage(), e);
         }
     }
 
