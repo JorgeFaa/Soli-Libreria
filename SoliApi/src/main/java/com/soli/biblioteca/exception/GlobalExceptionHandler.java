@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
 
 import java.util.HashMap;
@@ -84,6 +85,25 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = new ErrorResponseDTO(
             HttpStatus.BAD_REQUEST.value(),
             "Type Mismatch",
+            message,
+            request.getRequestURI()
+        );
+        
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    // Manejar parámetros requeridos faltantes
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMissingParams(
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
+        
+        log.warn("Missing parameter on {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        String message = String.format("El parámetro requerido '%s' no fue proporcionado", ex.getParameterName());
+        
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+            HttpStatus.BAD_REQUEST.value(),
+            "Missing Parameter",
             message,
             request.getRequestURI()
         );

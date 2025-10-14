@@ -11,7 +11,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +28,7 @@ import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
 @RestController
 @RequestMapping(API_V2_PREFIX + "/user")
 @Tag(name = "User Management V2", description = "API v2 para gestión de usuarios - Con validaciones mejoradas y funcionalidades adicionales")
+@Validated
 public class UserControllerV2 {
 
     private final CognitoService cognitoService;
