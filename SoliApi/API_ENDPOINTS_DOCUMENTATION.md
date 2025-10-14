@@ -24,6 +24,7 @@
 - 📊 **Optimizada para rendimiento**
 - 🎯 **Ideal para**: Nuevas características
 
+```
 ---
 
 ## 🔐 **Tipos de Seguridad**
