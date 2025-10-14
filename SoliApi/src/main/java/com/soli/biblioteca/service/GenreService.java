@@ -28,4 +28,13 @@ public class GenreService {
     public List<Genre> findByNameContaining(String name) {
         return genreRepository.findByNameContainingIgnoreCase(name);
     }
+    
+    // Métodos avanzados para V2
+    public List<Genre> findByNameFilter(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            return findByNameContaining(name);
+        } else {
+            return findAll();
+        }
+    }
 }

@@ -14,7 +14,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
-import com.soli.biblioteca.config.calculateSecretHash;
+import com.soli.biblioteca.config.SecretHashCalculator;
 
 @Slf4j
 @Service
@@ -60,7 +60,7 @@ public class CognitoService {
                 throw new IllegalArgumentException("Password debe tener al menos 6 caracteres");
             }
 
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
 
             SignUpRequest signUpRequest = SignUpRequest.builder()
                     .clientId(clientId)
@@ -91,7 +91,7 @@ public class CognitoService {
     // Login con credenciales AWS explícitas
     public Map<String, String> login(String username, String password) {
         try {
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
 
             AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder()
                     .userPoolId(userPoolId)
@@ -122,7 +122,7 @@ public class CognitoService {
     // Reenviar código de confirmación
     public void resendConfirmationCode(String username) {
         try {
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
 
             ResendConfirmationCodeRequest request = ResendConfirmationCodeRequest.builder()
                     .clientId(clientId)
@@ -140,7 +140,7 @@ public class CognitoService {
     // Confirmar cuenta con código
     public boolean confirmSignUp(String username, String code) {
         try {
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
 
             ConfirmSignUpRequest request = ConfirmSignUpRequest.builder()
                     .clientId(clientId)
@@ -162,7 +162,7 @@ public class CognitoService {
     // Refrescar tokens usando Refresh Token
     public Map<String, String> refreshToken(String username, String refreshToken) {
         try {
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
 
             AdminInitiateAuthRequest refreshRequest = AdminInitiateAuthRequest.builder()
                     .userPoolId(userPoolId)
@@ -249,7 +249,7 @@ public class CognitoService {
     public void revokeRefreshToken(String username, String refreshToken) {
         try {
             // SECRET_HASH no es requerido por RevokeToken, pero mantenemos consistencia en el flujo
-            String secretHash = calculateSecretHash.calculateSecretHash(username, clientId, clientSecret);
+            String secretHash = SecretHashCalculator.calculateSecretHash(username, clientId, clientSecret);
             RevokeTokenRequest request = RevokeTokenRequest.builder()
                     .clientId(clientId)
                     .clientSecret(clientSecret)
