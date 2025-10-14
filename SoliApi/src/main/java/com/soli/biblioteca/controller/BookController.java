@@ -1,8 +1,10 @@
 package com.soli.biblioteca.controller;
 
 import com.soli.biblioteca.Dto.BookCreateDTO;
+import com.soli.biblioteca.Dto.BookFilterDTO;
 import com.soli.biblioteca.Dto.BookResponseDTO;
 import com.soli.biblioteca.Dto.BookUpdateDTO;
+import com.soli.biblioteca.Dto.PagedResponseDTO;
 import com.soli.biblioteca.model.*;
 import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.TextTypeRepository;
@@ -16,13 +18,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -60,7 +68,7 @@ public class BookController {
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public BookResponseDTO createBook(@RequestBody BookCreateDTO dto) {
+    public BookResponseDTO createBook(@Valid @RequestBody BookCreateDTO dto) {
 
         // Verificar título duplicado
         if (bookService.existsBookByTitle(dto.getTitle())) {
@@ -107,20 +115,66 @@ public class BookController {
         return BookMapper.toResponseDTO(savedBook);
     }
 
-    // Obtener todos los libros
+    // Obtener todos los libros sin filtros (mantenido para compatibilidad)
     @Operation(
             summary = "Obtener todos los libros",
-            description = "Devuelve una lista con todos los libros disponibles"
+            description = "Devuelve una lista simple con todos los libros disponibles (sin paginación)",
+            deprecated = true
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de libros obtenida correctamente",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = BookResponseDTO.class)))
     })
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<BookResponseDTO>> getAllBooks() {
         List<BookResponseDTO> books = bookService.getAllBooks();
         return ResponseEntity.ok(books);
+    }
+    
+    // Obtener libros con búsqueda, filtros y paginación
+    @Operation(
+            summary = "Buscar y filtrar libros",
+            description = "Busca libros con filtros opcionales y paginación. Soporta búsqueda por texto, filtrado por autor, género, editorial, fechas, etc."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Libros encontrados",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PagedResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Parámetros de búsqueda inválidos", content = @Content)
+    })
+    @GetMapping
+    public ResponseEntity<PagedResponseDTO<BookResponseDTO>> searchBooks(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String authorName,
+            @RequestParam(required = false) Set<Long> genreIds,
+            @RequestParam(required = false) Set<Long> editorialIds,
+            @RequestParam(required = false) Long typeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate publishedAfter,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate publishedBefore,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) Integer size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDirection) {
+        
+        // Crear objeto de filtros
+        BookFilterDTO filters = new BookFilterDTO();
+        filters.setSearch(search);
+        filters.setTitle(title);
+        filters.setAuthorName(authorName);
+        filters.setGenreIds(genreIds);
+        filters.setEditorialIds(editorialIds);
+        filters.setTypeId(typeId);
+        filters.setPublishedAfter(publishedAfter);
+        filters.setPublishedBefore(publishedBefore);
+        filters.setPage(page);
+        filters.setSize(size);
+        filters.setSortBy(sortBy);
+        filters.setSortDirection(sortDirection);
+        
+        PagedResponseDTO<BookResponseDTO> result = bookService.getBooksWithFilters(filters);
+        return ResponseEntity.ok(result);
     }
 
     // Obtener libro por ID
@@ -154,7 +208,7 @@ public class BookController {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookUpdateDTO dto) {
+    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @Valid @RequestBody BookUpdateDTO dto) {
         Book book = bookService.findEntityById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
 

@@ -25,4 +25,12 @@ public class AuthorService {
     public Optional<Author> findById(Long id) { return authorRepository.findById(id); }
 
     public void delete(Long id) { authorRepository.deleteById(id); }
+    
+    public List<Author> findByNameContaining(String name) {
+        return authorRepository.findByNameContainingIgnoreCase(name);
+    }
+    
+    public List<Author> findByCountryName(String countryName) {
+        return authorRepository.findByCountryNameContainingIgnoreCase(countryName);
+    }
 }

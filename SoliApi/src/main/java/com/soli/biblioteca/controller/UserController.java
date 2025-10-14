@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,16 +39,10 @@ public class UserController {
     // 1. Registrar usuario en Cognito
     @Operation(summary = "Registro de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterDTO dto) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterDTO dto) {
         try {
-            // Validación básica
-            if (dto.getUsername() == null || dto.getUsername().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Username es requerido");
-            }
-            if (dto.getPassword() == null || dto.getPassword().length() < 6) {
-                return ResponseEntity.badRequest().body("Password debe tener al menos 6 caracteres");
-            }
-
+            // Las validaciones ahora se manejan por Bean Validation y GlobalExceptionHandler
+            
             // Intentar registro directo sin verificar existencia previa
             cognitoService.registerUser(dto.getUsername(), dto.getPassword());
             return ResponseEntity.ok("Usuario registrado en Cognito. Revisa tu email para confirmar la cuenta.");
@@ -70,7 +66,7 @@ public class UserController {
     // 2. Iniciar sesión con Cognito
     @Operation(summary = "Login de usuario", security = @SecurityRequirement(name = "none"))
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest dto) {
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest dto) {
         Boolean status = cognitoService.getUserStatus(dto.getUsername());
         if (status == false) {
             // Redirigir al flujo de confirmación de correo
@@ -82,12 +78,28 @@ public class UserController {
         return ResponseEntity.ok(tokens);
     }
 
-    @Operation(summary = "Completar registro en base de datos", security = { @SecurityRequirement(name = "bearerAuth") })
+    @Operation(
+            summary = "Completar registro en base de datos",
+            description = "Crea el perfil del usuario en la base de datos local usando los datos del JWT de Cognito",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario creado exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o usuario ya existe", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Token JWT inválido o expirado", content = @Content)
+    })
     @PostMapping("/createUser")
     public ResponseEntity<UserDTO> createUser(@AuthenticationPrincipal Jwt jwt,
-                                                        @RequestBody UserCreateDTO dto) {
-        // jwt.getSubject() puede contener el sub de Cognito
-        UserDTO user = userService.createUserInDB(jwt.getSubject(), dto);
+                                                        @Valid @RequestBody UserCreateDTO dto) {
+        // Validar que el JWT contiene el subject
+        String cognitoSub = jwt.getSubject();
+        if (cognitoSub == null || cognitoSub.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        UserDTO user = userService.createUserInDB(cognitoSub, dto);
         return ResponseEntity.ok(user);
     }
 
@@ -101,10 +113,22 @@ public class UserController {
     }
 
     // 5. Obtener usuario logueado (usando JWT)
-    @Operation(summary = "Obtener usuario logueado", security = { @SecurityRequirement(name = "bearerAuth") })
+    @Operation(
+            summary = "Obtener perfil del usuario logueado",
+            description = "Obtiene la información completa del usuario actualmente autenticado usando su JWT",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Usuario no ha completado el registro en BD", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Token JWT inválido o expirado", content = @Content)
+    })
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(userService.findUserByJwt(jwt));
+        UserDTO user = userService.findUserByJwt(jwt);
+        return ResponseEntity.ok(user);
     }
 
 
@@ -119,13 +143,13 @@ public class UserController {
     }
 
     @PostMapping("/resend-verification")
-    public ResponseEntity<String> resendVerification(@RequestBody VerificationRequest dto) {
+    public ResponseEntity<String> resendVerification(@Valid @RequestBody VerificationRequest dto) {
         cognitoService.resendConfirmationCode(dto.getUsername());
         return ResponseEntity.ok("Código de verificación reenviado");
     }
 
     @PostMapping("/verify-account")
-    public ResponseEntity<Map<String, String>> verifyAccount(@RequestBody ConfirmAccountRequest dto) {
+    public ResponseEntity<Map<String, String>> verifyAccount(@Valid @RequestBody ConfirmAccountRequest dto) {
         try {
             boolean verified = cognitoService.confirmSignUp(dto.getUsername(), dto.getCode());
             if (verified) {
@@ -146,7 +170,7 @@ public class UserController {
     }
 
     @PostMapping("/auth/refresh-token")
-    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody RefreshTokenRequestDTO dto){
+    public ResponseEntity<Map<String, String>> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO dto){
         Map<String, String> tokens = cognitoService.refreshToken(dto.getUsername(), dto.getRefreshToken());
         return ResponseEntity.ok(tokens);
     }
@@ -163,7 +187,7 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Error interno", content = @Content)
     })
     @PostMapping("/auth/logout")
-    public ResponseEntity<Map<String, String>> logout(@RequestBody RefreshTokenRequestDTO dto) {
+    public ResponseEntity<Map<String, String>> logout(@Valid @RequestBody RefreshTokenRequestDTO dto) {
         try {
             cognitoService.revokeRefreshToken(dto.getUsername(), dto.getRefreshToken());
         } catch (RuntimeException e) {
@@ -201,8 +225,14 @@ public class UserController {
     }
 
 
+    @Operation(
+            summary = "Verificar estado de confirmación de usuario",
+            description = "Verifica si un usuario ha confirmado su cuenta en Cognito",
+            security = @SecurityRequirement(name = "none")
+    )
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Boolean>> getUserStatus(@RequestBody String username) {
+    public ResponseEntity<Map<String, Boolean>> getUserStatus(
+            @RequestParam("username") @Email(message = "El formato del email no es válido") String username) {
         try {
             boolean confirmed = cognitoService.getUserStatus(username);
             return ResponseEntity.ok(Map.of("isConfirmed", confirmed));
