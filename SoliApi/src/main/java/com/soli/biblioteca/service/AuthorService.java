@@ -33,4 +33,17 @@ public class AuthorService {
     public List<Author> findByCountryName(String countryName) {
         return authorRepository.findByCountryNameContainingIgnoreCase(countryName);
     }
+    
+    // Métodos avanzados para V2
+    public List<Author> findByFilters(String name, String country) {
+        if (name != null && country != null) {
+            return authorRepository.findByNameContainingIgnoreCaseAndCountryNameContainingIgnoreCase(name, country);
+        } else if (name != null) {
+            return findByNameContaining(name);
+        } else if (country != null) {
+            return findByCountryName(country);
+        } else {
+            return findAll();
+        }
+    }
 }
