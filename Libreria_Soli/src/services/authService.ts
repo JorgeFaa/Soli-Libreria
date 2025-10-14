@@ -13,6 +13,12 @@ export interface RegisterRequest {
   password: string;
 }
 
+// Tipo simplificado para el nuevo endpoint
+export interface RegisterAPIRequest {
+  username: string;
+  password: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;
@@ -23,6 +29,20 @@ export interface AuthResponse {
     apellido: string;
     email: string;
   };
+  tokens?: {
+    accessToken: string;
+    idToken: string;
+    refreshToken: string;
+    expiresIn: string;
+  };
+}
+
+// Tipo para la respuesta de login de la nueva API
+export interface LoginTokenResponse {
+  accessToken: string;
+  idToken: string;
+  refreshToken: string;
+  expiresIn: string;
 }
 
 export interface VerifyAccountRequest {
@@ -39,50 +59,30 @@ export interface ResendVerificationResponse {
   message: string;
 }
 
-// Configuración de la API - Siempre usar /api para que Netlify maneje el proxy
-const API_BASE_URL = '/api';
+// Tipo para la respuesta de verificación de la nueva API
+export interface VerifyAccountResponse {
+  status: string;
+}
 
-// Función auxiliar para manejar respuestas HTTP de la API Lambda (Login)
-const handleResponse = async (response: Response): Promise<AuthResponse> => {
+// Configuración de la API - Nuevo endpoint directo de Google Cloud Run
+const API_BASE_URL = 'https://soliapi-223325065421.northamerica-south1.run.app';
+
+// Función auxiliar para decodificar JWT (solo para extraer información básica, no para validación)
+const decodeJWT = (token: string): any => {
   try {
-    const data = await response.json();
-    
-    // La API Lambda devuelve la estructura: { headers, body, statusCode }
-    // El body es un string JSON que necesitamos parsear
-    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    
-    // Verificar si hay error en la respuesta de Lambda
-    if (data.statusCode !== 200 || parsedBody.error) {
-      return {
-        success: false,
-        message: parsedBody.error || parsedBody.message || "Error en autenticación"
-      };
-    }
-    
-    // Verificar si el login fue exitoso (tiene refreshToken)
-    if (data.statusCode === 200 && parsedBody.refreshToken) {
-      return {
-        success: true,
-        message: "Login exitoso",
-        token: parsedBody.refreshToken,
-        user: {
-          id: parsedBody.userId || "temp-id",
-          nombre: parsedBody.firstName || "Usuario",
-          apellido: parsedBody.lastName || "",
-          email: parsedBody.email || ""
-        }
-      };
-    } else {
-      return {
-        success: false,
-        message: "Credenciales incorrectas"
-      };
-    }
-    
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
   } catch (error) {
-    throw new Error('Error procesando respuesta del servidor');
+    console.error('Error decodificando JWT:', error);
+    return null;
   }
 };
+
+// Función handleResponse eliminada - ya no se usa con el nuevo sistema de tokens JWT
 
 // Función auxiliar para manejar respuestas HTTP del endpoint de registro
 const handleRegisterResponse = async (response: Response, userData: RegisterRequest): Promise<AuthResponse> => {
@@ -90,33 +90,16 @@ const handleRegisterResponse = async (response: Response, userData: RegisterRequ
     console.log("🔍 [handleRegisterResponse] Status de respuesta:", response.status);
     console.log("🔍 [handleRegisterResponse] Headers de respuesta:", Object.fromEntries(response.headers.entries()));
     
-    const data = await response.json();
-    console.log("📋 [handleRegisterResponse] Datos crudos recibidos:", data);
+    // El nuevo endpoint devuelve un string simple, no JSON
+    const responseText = await response.text();
+    console.log("📋 [handleRegisterResponse] Respuesta recibida:", responseText);
     
-    // La API Lambda devuelve la estructura: { headers, body, statusCode }
-    // El body es un string JSON que necesitamos parsear
-    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    console.log("📋 [handleRegisterResponse] Body parseado:", parsedBody);
-    console.log("📋 [handleRegisterResponse] StatusCode de Lambda:", data.statusCode);
-    
-    // Verificar si hay error en la respuesta de Lambda
-    if (data.statusCode !== 200 || parsedBody.error) {
-      console.log("❌ [handleRegisterResponse] Error detectado:", parsedBody.error || parsedBody.message);
-      return {
-        success: false,
-        message: parsedBody.error || parsedBody.message || "Error en el registro"
-      };
-    }
-    
-    // Verificar si el registro fue exitoso
-    if (data.statusCode === 200 && parsedBody.message === "Registrado en Cognito") {
+    // Verificar si el registro fue exitoso (status 200 y mensaje esperado)
+    if (response.status === 200 && responseText.includes("Usuario registrado en Cognito")) {
       console.log("✅ [handleRegisterResponse] Registro exitoso detectado");
-      // Para el registro, no tenemos token automáticamente, 
-      // pero podemos generar uno temporal o hacer login automático
       return {
         success: true,
-        message: "Registro exitoso. Ahora puedes iniciar sesión.",
-        // No guardamos token aquí, el usuario necesitará hacer login
+        message: "¡Registro exitoso! Revisa tu email para confirmar la cuenta.",
         user: {
           id: "registered-user-" + Date.now(),
           nombre: userData.nombre,
@@ -125,15 +108,15 @@ const handleRegisterResponse = async (response: Response, userData: RegisterRequ
         }
       };
     } else {
-      console.log("❌ [handleRegisterResponse] Respuesta inesperada:", { statusCode: data.statusCode, message: parsedBody.message });
+      console.log("❌ [handleRegisterResponse] Error en registro:", { status: response.status, message: responseText });
       return {
         success: false,
-        message: "Error en el registro"
+        message: responseText || "Error en el registro"
       };
     }
     
   } catch (error) {
-    console.error("🔥 [handleRegisterResponse] Error parseando respuesta:", error);
+    console.error("🔥 [handleRegisterResponse] Error procesando respuesta:", error);
     throw new Error('Error procesando respuesta del servidor');
   }
 };
@@ -141,27 +124,79 @@ const handleRegisterResponse = async (response: Response, userData: RegisterRequ
 // Función para login
 export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse> => {
   try {
-    // Llamada a la API real
+    console.log("🚀 [authService] Iniciando login para:", credentials.email);
+    
+    // Llamada a la API con el nuevo formato
+    const requestBody = {
+      username: credentials.email,
+      password: credentials.password
+    };
+    
+    console.log("📦 [authService] Enviando datos:", {
+      username: requestBody.username,
+      password: "***oculta***"
+    });
+    console.log("🌐 [authService] URL del endpoint:", `${API_BASE_URL}/user/login`);
+    
     const response = await fetch(`${API_BASE_URL}/user/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        username: credentials.email,  // La API espera 'username' en lugar de 'email'
-        password: credentials.password
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    const result = await handleResponse(response);
-    
-    // Guardar token solo si el login fue exitoso
-    if (result.success && result.token) {
-      localStorage.setItem('authToken', result.token);
-      localStorage.setItem('userData', JSON.stringify(result.user));
+    console.log("📡 [authService] Respuesta HTTP status:", response.status);
+    console.log("📡 [authService] Respuesta HTTP headers:", Object.fromEntries(response.headers.entries()));
+
+    if (response.status === 200) {
+      const tokens: LoginTokenResponse = await response.json();
+      console.log("📋 [authService] Tokens recibidos:", {
+        accessToken: tokens.accessToken ? "✅ Presente" : "❌ Faltante",
+        idToken: tokens.idToken ? "✅ Presente" : "❌ Faltante",
+        refreshToken: tokens.refreshToken ? "✅ Presente" : "❌ Faltante",
+        expiresIn: tokens.expiresIn
+      });
+      
+      // Decodificar el idToken para extraer información del usuario
+      const userInfo = decodeJWT(tokens.idToken);
+      console.log("👤 [authService] Información del usuario extraída:", userInfo);
+      
+      const user = {
+        id: userInfo?.sub || "unknown-id",
+        nombre: userInfo?.email?.split('@')[0] || "Usuario", // Usar parte del email como nombre
+        apellido: "", // No disponible en el JWT
+        email: userInfo?.email || credentials.email
+      };
+      
+      // Guardar tokens y información del usuario
+      localStorage.setItem('accessToken', tokens.accessToken);
+      localStorage.setItem('idToken', tokens.idToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      localStorage.setItem('tokenExpiry', (Date.now() + parseInt(tokens.expiresIn) * 1000).toString());
+      localStorage.setItem('userData', JSON.stringify(user));
+      
+      // Mantener compatibilidad con código anterior usando accessToken como token principal
+      localStorage.setItem('authToken', tokens.accessToken);
+      
+      console.log("✅ [authService] Login exitoso");
+      return {
+        success: true,
+        message: "¡Login exitoso! Bienvenido de vuelta",
+        token: tokens.accessToken,
+        tokens: tokens,
+        user: user
+      };
+      
+    } else {
+      const errorText = await response.text();
+      console.log("❌ [authService] Error en login:", { status: response.status, error: errorText });
+      
+      return {
+        success: false,
+        message: errorText || "Credenciales incorrectas"
+      };
     }
-    
-    return result;
     
   } catch (error) {
     // Solo hacer fallback si es un error de red real, no un error de credenciales
@@ -281,7 +316,7 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
     console.log("🚀 [authService] Iniciando verificación para:", email);
     console.log("📦 [authService] Código ingresado:", code);
     
-    // Llamada a la API real
+    // Llamada a la API real con el nuevo formato
     const requestBody = {
       username: email,
       code: code
@@ -302,44 +337,20 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
     console.log("📡 [authService] Respuesta HTTP headers:", Object.fromEntries(response.headers.entries()));
 
     const data = await response.json();
-    console.log("📋 [authService] Datos crudos recibidos:", data);
+    console.log("📋 [authService] Datos recibidos:", data);
     
-    // La API Lambda devuelve la estructura: { headers, body, statusCode }
-    // El body es un string JSON que necesitamos parsear
-    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    console.log("📋 [authService] Body parseado:", parsedBody);
-    console.log("📋 [authService] StatusCode de Lambda:", data.statusCode);
-    
-    // Verificar si hay error en la respuesta de Lambda
-    if (data.statusCode !== 200 || parsedBody.error) {
-      console.log("❌ [authService] Error detectado:", parsedBody.error || parsedBody.message);
+    // Verificar si la verificación fue exitosa con el nuevo formato
+    if (response.status === 200 && data.status === "SUCCESS") {
+      console.log("✅ [authService] Verificación exitosa");
       return {
-        success: false,
-        message: parsedBody.error || parsedBody.message || "Error en la verificación"
+        success: true,
+        message: "¡Cuenta verificada exitosamente!"
       };
-    }
-    
-    // Verificar si la verificación fue exitosa
-    if (data.statusCode === 200 && parsedBody.message) {
-      // Verificar si el mensaje indica éxito o error
-      if (parsedBody.message.includes("inválido") || parsedBody.message.includes("expirado")) {
-        console.log("❌ [authService] Código inválido:", parsedBody.message);
-        return {
-          success: false,
-          message: parsedBody.message
-        };
-      } else {
-        console.log("✅ [authService] Verificación exitosa");
-        return {
-          success: true,
-          message: "Cuenta verificada exitosamente"
-        };
-      }
     } else {
-      console.log("❌ [authService] Respuesta inesperada:", { statusCode: data.statusCode, message: parsedBody.message });
+      console.log("❌ [authService] Error en verificación:", { status: response.status, data });
       return {
         success: false,
-        message: "Error en la verificación"
+        message: data.message || "Código inválido o expirado"
       };
     }
     
@@ -368,64 +379,49 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
 
 // Función para reenviar código de verificación
 export const resendVerificationCode = async (request: ResendVerificationRequest): Promise<ResendVerificationResponse> => {
-  console.log("📧 Iniciando reenvío de código de verificación...");
-  console.log("🔍 Request:", request);
-
   try {
+    console.log("📧 [authService] Iniciando reenvío de código para:", request.username);
+    
+    // Llamada a la API con el nuevo formato
+    const requestBody = {
+      username: request.username
+    };
+    
+    console.log("� [authService] Enviando datos:", requestBody);
+    console.log("🌐 [authService] URL del endpoint:", `${API_BASE_URL}/user/resend-verification`);
+
     const response = await fetch(`${API_BASE_URL}/user/resend-verification`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(requestBody),
     });
 
-    console.log("📡 Response status:", response.status);
-    console.log("📦 Response headers:", Object.fromEntries(response.headers.entries()));
+    console.log("📡 [authService] Respuesta HTTP status:", response.status);
+    console.log("� [authService] Respuesta HTTP headers:", Object.fromEntries(response.headers.entries()));
 
-    if (!response.ok) {
-      console.log("❌ Response no OK, status:", response.status);
-      
-      const errorText = await response.text();
-      console.log("📄 Error response text:", errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        return {
-          success: false,
-          message: errorData.message || errorData.error || `Error del servidor: ${response.status}`
-        };
-      } catch {
-        return {
-          success: false,
-          message: `Error del servidor: ${response.status} - ${errorText}`
-        };
-      }
-    }
+    // El nuevo endpoint devuelve un string simple, no JSON
+    const responseText = await response.text();
+    console.log("� [authService] Respuesta recibida:", responseText);
 
-    const data = await response.json();
-    console.log("📦 Raw response data:", data);
-
-    // Parsear respuesta de Lambda
-    const parsedBody = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-    console.log("📦 Parsed body:", parsedBody);
-
-    if (data.statusCode === 200) {
-      console.log("✅ Reenvío exitoso");
+    // Verificar si el reenvío fue exitoso (status 200 y mensaje esperado)
+    if (response.status === 200 && responseText.includes("Código de verificación reenviado")) {
+      console.log("✅ [authService] Reenvío exitoso");
       return {
         success: true,
-        message: parsedBody.message || "Código de verificación reenviado exitosamente"
+        message: "Código de verificación reenviado exitosamente"
       };
     } else {
-      console.log("❌ Error en reenvío:", parsedBody);
+      console.log("❌ [authService] Error en reenvío:", { status: response.status, message: responseText });
       return {
         success: false,
-        message: parsedBody.error || parsedBody.message || "Error al reenviar el código"
+        message: responseText || "Error al reenviar el código"
       };
     }
 
   } catch (error) {
-    console.error("🔥 Error en reenvío:", error);
+    console.error("🔥 [authService] Error en resendVerificationCode:", error);
     
     if (error instanceof Error) {
       if (error.message.includes('fetch')) {
@@ -447,21 +443,58 @@ export const resendVerificationCode = async (request: ResendVerificationRequest)
   }
 };
 
-// Función para logout
+// Función para logout (actualizada para nuevos tokens)
 export const logoutUser = (): void => {
+  // Limpiar todos los tokens y datos de usuario
   localStorage.removeItem('authToken');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('idToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('tokenExpiry');
   localStorage.removeItem('userData');
+  console.log("🚪 [authService] Usuario desconectado, tokens eliminados");
 };
 
-// Función para verificar si hay una sesión activa
+// Función para verificar si hay una sesión activa (actualizada)
 export const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem('authToken');
-  return !!token;
+  const accessToken = localStorage.getItem('accessToken');
+  const tokenExpiry = localStorage.getItem('tokenExpiry');
+  
+  if (!accessToken || !tokenExpiry) {
+    return false;
+  }
+  
+  // Verificar si el token no ha expirado
+  const isNotExpired = Date.now() < parseInt(tokenExpiry);
+  
+  if (!isNotExpired) {
+    console.log("⏰ [authService] Token expirado, limpiando sesión");
+    logoutUser();
+    return false;
+  }
+  
+  return true;
 };
 
-// Función para obtener el token
+// Función para obtener el token de acceso
 export const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken');
+  return localStorage.getItem('accessToken');
+};
+
+// Función para obtener el token de identidad
+export const getIdToken = (): string | null => {
+  return localStorage.getItem('idToken');
+};
+
+// Función para obtener el refresh token
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem('refreshToken');
+};
+
+// Función para obtener información del usuario desde localStorage
+export const getCurrentUser = (): any => {
+  const userData = localStorage.getItem('userData');
+  return userData ? JSON.parse(userData) : null;
 };
 
 // Función para obtener datos del usuario

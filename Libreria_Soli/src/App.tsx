@@ -7,6 +7,7 @@ import Nosotros from './assets/components/Nosotros'
 import AppPromo from './assets/components/AppPromo'
 import Contacto from './assets/components/Contacto'
 import Libreria from './assets/components/Libreria'
+import LibroDetalle from './assets/components/LibroDetalle'
 import Login from './assets/components/Login'
 import Registro from './assets/components/Registro'
 import VerificarCodigo from './assets/components/VerificarCodigo'
@@ -101,6 +102,7 @@ function App() {
         {/* Página principal */}
         <Route path="/" element={<HomePage />} />
         <Route path="/libreria" element={<Libreria />} />
+        <Route path="/libro/:id" element={<LibroDetalle />} />
         <Route 
           path="/login" 
           element={<Login onLoginSuccess={handleLoginSuccess} />} 
