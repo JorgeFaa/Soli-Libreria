@@ -2,9 +2,7 @@
 
 ## 🌐 **URL Base de la API**
 ```
-https://your-service-url.run.app
-```
-*Reemplaza con tu URL de Cloud Run después del despliegue*
+https://soliapi-223325065421.northamerica-south1.run.app
 
 ---
 
