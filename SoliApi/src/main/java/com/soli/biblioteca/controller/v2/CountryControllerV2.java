@@ -1,4 +1,4 @@
-package com.soli.biblioteca.controller;
+package com.soli.biblioteca.controller.v2;
 
 import com.soli.biblioteca.Dto.CountryCreateDTO;
 import com.soli.biblioteca.Dto.CountryResponseDTO;
@@ -15,13 +15,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
+
 @RestController
-@RequestMapping("/countries")
-public class CountryController {
+@RequestMapping(API_V2_PREFIX +"/countries")
+public class CountryControllerV2 {
 
     private final CountryService countryService;
 
-    public CountryController(CountryService countryService) {
+    public CountryControllerV2(CountryService countryService) {
         this.countryService = countryService;
     }
 

@@ -1,4 +1,4 @@
-package com.soli.biblioteca.controller;
+package com.soli.biblioteca.controller.v2;
 
 import com.soli.biblioteca.Dto.TextTypeCreateDTO;
 import com.soli.biblioteca.Dto.TextTypeResponseDTO;
@@ -16,13 +16,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
+
+
 @RestController
-@RequestMapping("/types")
-public class TextTypeController {
+@RequestMapping(API_V2_PREFIX + "/types")
+public class TextTypeControllerV2 {
 
     private final TextTypeService textTypeService;
 
-    public TextTypeController(TextTypeService textTypeService) {
+    public TextTypeControllerV2(TextTypeService textTypeService) {
         this.textTypeService = textTypeService;
     }
 

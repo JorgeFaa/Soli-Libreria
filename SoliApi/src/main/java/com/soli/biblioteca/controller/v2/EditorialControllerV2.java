@@ -1,4 +1,4 @@
-package com.soli.biblioteca.controller;
+package com.soli.biblioteca.controller.v2;
 
 import com.soli.biblioteca.Dto.EditorialCreateDTO;
 import com.soli.biblioteca.Dto.EditorialResponseDTO;
@@ -17,14 +17,17 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.soli.biblioteca.config.ApiVersioningConfig.API_V2_PREFIX;
+
+
 @RestController
-@RequestMapping("/editorials")
-public class EditorialController {
+@RequestMapping(API_V2_PREFIX + "/editorials")
+public class EditorialControllerV2 {
 
     private final EditorialService editorialService;
     private final CountryService countryService;
 
-    public EditorialController(EditorialService editorialService, CountryService countryService) {
+    public EditorialControllerV2(EditorialService editorialService, CountryService countryService) {
         this.editorialService = editorialService;
         this.countryService = countryService;
     }
