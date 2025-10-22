@@ -63,12 +63,12 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS texts (
     textid SERIAL PRIMARY KEY,
     texttitle VARCHAR(250) NOT NULL,
-    descripcion TEXT,
+    descripcion TEXT NOT NULL,
     publisheddate DATE,
-    editorialid INT REFERENCES editorials(editorialid),
-    typeid INT REFERENCES texttype(typeid),
-    texturl VARCHAR(512),
-    coverurl VARCHAR(512),
+    editorialid INT REFERENCES editorials(editorialid) NOT NULL,
+    typeid INT REFERENCES texttype(typeid) NOT NULL,
+    texturl VARCHAR(512) NOT NULL,
+    coverurl VARCHAR(512) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -104,3 +104,16 @@ CREATE TABLE IF NOT EXISTS user_genres (
     genreid INT REFERENCES genres(genreid) ON DELETE CASCADE,
     PRIMARY KEY (userid, genreid)
 );
+
+-- Crear tabla de relación para libros favoritos
+CREATE TABLE IF NOT EXISTS user_books (
+    userid INT REFERENCES users(userid) ON DELETE CASCADE,
+    textid INT REFERENCES texts(textid) ON DELETE CASCADE,
+    PRIMARY KEY (userid, textid)
+);
+
+
+-- Modificar tabla de usuarios para eliminar tipo de miembro
+ALTER TABLE users
+DROP COLUMN IF EXISTS activemember;
+

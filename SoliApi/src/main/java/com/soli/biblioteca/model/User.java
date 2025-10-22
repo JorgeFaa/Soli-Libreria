@@ -27,9 +27,6 @@ public class User {
     @Column(name = "lastname", nullable = false)
     private String lastName;
 
-    @Column(name = "activemember", nullable = false)
-    private boolean activeMember;
-
     @ManyToMany
     @JoinTable(
             name = "user_genres",
@@ -37,6 +34,14 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "genreid")
     )
     private Set<Genre> preferredGenres = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_books",
+            joinColumns = @JoinColumn(name = "userid"),
+            inverseJoinColumns = @JoinColumn(name = "textid")
+    )
+    private Set<Book> favoriteBooks = new HashSet<>();
 
 
 }

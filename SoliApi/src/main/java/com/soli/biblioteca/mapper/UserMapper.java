@@ -1,8 +1,6 @@
 package com.soli.biblioteca.mapper;
 
 import com.soli.biblioteca.Dto.UserDTO;
-import com.soli.biblioteca.Dto.RegisterDTO;
-import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
 
 import java.util.stream.Collectors;

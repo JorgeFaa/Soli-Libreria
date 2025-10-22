@@ -12,8 +12,7 @@ public class UserDTO {
     private Long id;
     private String firstName;
     private String lastName;
-    private boolean activeMember;
-    private Set<Long> prefferedGenreIds;
-    private String roleName;
+    private Set<Long> prefferredGenreIds;
+    private Set<Long> favoriteBooks;
 
 }

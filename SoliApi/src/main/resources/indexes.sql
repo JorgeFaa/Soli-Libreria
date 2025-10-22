@@ -139,14 +139,17 @@ ON users(created_at);
 
 -- === ÍNDICES PARA USUARIOS ===
 
--- Índice único para cognitosub (ya existe en la tabla)
--- Índice para búsqueda de usuarios activos
-CREATE INDEX IF NOT EXISTS idx_users_active 
-ON users(activemember, userid) WHERE activemember = TRUE;
-
 -- Índice para géneros preferidos de usuarios
 CREATE INDEX IF NOT EXISTS idx_user_genres_user 
 ON user_genres(userid, genreid);
+
+-- Índices para N:M libros favoritos
+CREATE INDEX IF NOT EXISTS idx_user_books_user
+ON user_books(userid, textid);
+
+CREATE INDEX IF NOT EXISTS idx_user_books_book
+ON user_books(textid, userid);
+
 
 -- =====================================================
 -- EXTENSIONES NECESARIAS

@@ -11,11 +11,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -200,41 +198,7 @@ public class UserControllerV2 {
         }
     }
 
-    // ========== ENDPOINTS AVANZADOS V2 ==========
 
-    @Operation(
-            summary = "Verificar estado completo del usuario V2",
-            description = "Información detallada del estado del usuario en Cognito y BD",
-            security = @SecurityRequirement(name = "none")
-    )
-    @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> getUserStatus(
-            @RequestParam("username") @Email(message = "El formato del email no es válido") String username) {
-        try {
-            boolean confirmed = cognitoService.getUserStatus(username);
-            
-            Map<String, Object> response = Map.of(
-                "success", true,
-                "username", username,
-                "cognitoStatus", Map.of(
-                    "isConfirmed", confirmed,
-                    "status", confirmed ? "CONFIRMED" : "UNCONFIRMED"
-                ),
-                "message", confirmed ? "Usuario confirmado y listo para usar" : "Usuario pendiente de verificación"
-            );
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (CognitoIdentityProviderException e) {
-            Map<String, Object> errorResponse = Map.of(
-                "success", false,
-                "error", "USER_CHECK_FAILED",
-                "message", "Error al verificar el estado del usuario",
-                "cognitoStatus", Map.of("isConfirmed", false)
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
 
     @Operation(
             summary = "Información del perfil completo V2",
@@ -242,39 +206,38 @@ public class UserControllerV2 {
             security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @GetMapping("/profile/complete")
-    public ResponseEntity<Map<String, Object>> getCompleteProfile(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> getCompleteProfile(@AuthenticationPrincipal Jwt jwt) {
         try {
-            UserDTO user = userService.findUserByJwt(jwt);
+            // Obtenemos usuario usando el ID interno de tu DB
+            UserDTO user = userService.findUserByJwt(jwt); // Esto devuelve tu DTO con ID interno
             String userEmail = jwt.getClaim("email");
-            
+
+            UserResponseDTO responseDto = new UserResponseDTO();
+            responseDto.setId(user.getId()); // ID interno
+            responseDto.setFirstName(user.getFirstName());
+            responseDto.setLastName(user.getLastName());
+            responseDto.setEmail(userEmail != null ? userEmail : "N/A");
+            responseDto.setPreferredGenreIds(user.getPrefferredGenreIds());
+            responseDto.setFavoriteBooks(user.getFavoriteBooks());
+
             Map<String, Object> response = Map.of(
-                "success", true,
-                "profile", Map.of(
-                    "basicInfo", user,
-                    "accountDetails", Map.of(
-                        "email", userEmail != null ? userEmail : "N/A",
-                        "cognitoSub", jwt.getSubject(),
-                        "membershipStatus", user.isActiveMember() ? "ACTIVE" : "INACTIVE"
-                    ),
-                    "preferences", Map.of(
-                        "preferredGenres", user.getPrefferedGenreIds(),
-                        "genreCount", user.getPrefferedGenreIds() != null ? user.getPrefferedGenreIds().size() : 0
-                    )
-                ),
-                "message", "Perfil completo obtenido exitosamente"
+                    "success", true,
+                    "profile", responseDto,
+                    "message", "Perfil completo obtenido exitosamente"
             );
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             Map<String, Object> errorResponse = Map.of(
-                "success", false,
-                "error", "PROFILE_NOT_COMPLETE",
-                "message", e.getMessage()
+                    "success", false,
+                    "error", "PROFILE_NOT_COMPLETE",
+                    "message", e.getMessage()
             );
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
 
     // ========== ENDPOINTS DE AUTENTICACIÓN MEJORADOS ==========
 
@@ -409,15 +372,4 @@ public class UserControllerV2 {
         return ResponseEntity.ok("Código de verificación reenviado");
     }
 
-    @PatchMapping("/{id}/active")
-    public ResponseEntity<UserDTO> activateMembership(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.activateMembership(id));
-    }
-
-    @GetMapping("/{cognitoSub}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDTO> getBySub(@PathVariable String cognitoSub) {
-        UserDTO user = userService.findByCognitoSubDTO(cognitoSub);
-        return ResponseEntity.ok(user);
-    }
 }
