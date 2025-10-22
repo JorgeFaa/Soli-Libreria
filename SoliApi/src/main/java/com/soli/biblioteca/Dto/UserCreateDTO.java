@@ -20,10 +20,6 @@ public class UserCreateDTO {
     @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
     private String lastName;
     
-    // Cambiado: @NotBlank no es apropiado para boolean
-    @NotNull(message = "El estado de membresía debe ser especificado")
-    private Boolean activeMember;
-    
     // Opcional: los géneros preferidos pueden ser nulos o vacíos
     private Set<Long> preferredGenreIds;
 

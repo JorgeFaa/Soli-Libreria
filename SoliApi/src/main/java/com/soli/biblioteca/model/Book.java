@@ -31,10 +31,10 @@ public class Book {
     private LocalDate publishedDate;
 
     // URLs largas como pre-signed S3 pueden exceder 255; elevamos a 1024
-    @Column(name = "texturl", length = 1024)
+    @Column(name = "texturl", nullable = false, length = 1024)
     private String textUrl;
 
-    @Column(name = "coverurl", length = 1024)
+    @Column(name = "coverurl", nullable = false, length = 1024)
     private String coverUrl;
 
     // --------- Relaciones ---------
@@ -66,8 +66,12 @@ public class Book {
     @JsonIgnoreProperties("genres")
     private Set<Genre> genres = new HashSet<>();
 
+    @ManyToMany(mappedBy = "favoriteBooks")
+    @JsonIgnoreProperties("favoriteBooks")
+    private Set<User> usersWhoFavorited = new HashSet<>();
+
     @ManyToOne
-    @JoinColumn(name = "typeid") // minúscula
+    @JoinColumn(name = "typeid", nullable = false) // minúscula
     private TextType type;
 
 }

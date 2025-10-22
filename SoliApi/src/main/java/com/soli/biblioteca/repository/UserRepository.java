@@ -1,14 +1,17 @@
 package com.soli.biblioteca.repository;
 
+import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.cognitoidentityprovider.endpoints.internal.Value;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -18,12 +21,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Crear usuario usando stored procedure
     @Modifying
     @Transactional
-    @Query(value = "call sp_create_user(:firstname, :lastname, :activemember, :cognitosub)", nativeQuery = true)
+    @Query(value = "call sp_create_user(:firstname, :lastname, :cognitosub, :genre_ids)", nativeQuery = true)
     void createUserByProcedure(@Param("firstname") String firstName,
                                @Param("lastname") String lastName,
-                               @Param("activemember") boolean activeMember,
-                               @Param("cognitosub") String cognitoSub);
-
+                               @Param("cognitosub") String cognitoSub,
+                               @Param("genre_ids") Set<Long> genre_ids);
     // Añadir o quitar géneros preferidos (tabla N:M)
     @Modifying
     @Transactional
