@@ -56,8 +56,8 @@ public class SecurityConfiguration {
                                 "/user/verify-account",
                                 "/user/resend-verification"
                         ).permitAll()
-                        // Logout endpoints accesibles a cualquier usuario autenticado
-                        .requestMatchers("/user/auth/logout", "/user/auth/logout-all").authenticated()
+                        // Logout y createUser endpoints accesibles a cualquier usuario autenticado
+                        .requestMatchers("/user/auth/logout", "/user/auth/logout-all", "/user/createUser").authenticated()
                         // GET requieren al menos rol READER o ADMIN
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("READER", "ADMIN")
                         // POST, PUT, PATCH, DELETE requieren ADMIN (salvo excepciones arriba)

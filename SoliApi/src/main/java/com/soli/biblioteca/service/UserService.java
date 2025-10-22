@@ -46,33 +46,17 @@ public class UserService {
         
         // Crear usuario vía stored procedure; si falla, usar JPA
         try {
-            // Usar el valor del DTO o false por defecto si es null
-            boolean active = dto.getActiveMember() != null ? dto.getActiveMember() : false;
-            log.debug("Creating user with activeMember: {}", active);
             
             userRepository.createUserByProcedure(
                     dto.getFirstName(),
                     dto.getLastName(),
-                    active,
-                    cognitoSub
+                    cognitoSub,
+                    dto.getPreferredGenreIds()
             );
 
             // Recuperar el usuario creado para obtener su ID
             User created = userRepository.findByCognitoSub(cognitoSub)
                     .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
-
-            // Asignar géneros preferidos mediante SP N:M si se enviaron
-            if (dto.getPreferredGenreIds() != null && !dto.getPreferredGenreIds().isEmpty()) {
-                log.debug("Adding {} preferred genres for user", dto.getPreferredGenreIds().size());
-                dto.getPreferredGenreIds().forEach(gid -> {
-                    // Validar que el género existe
-                    genreRepository.findById(gid).orElseThrow(() -> {
-                        log.error("Genre not found with id: {}", gid);
-                        return new BusinessLogicException("Género no encontrado con id: " + gid);
-                    });
-                    userRepository.addUserGenre(created.getId(), gid);
-                });
-            }
 
             // Devolver DTO basado en la entidad actual
             UserDTO result = UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
@@ -88,11 +72,6 @@ public class UserService {
             user.setCognitoSub(cognitoSub);
             user.setFirstName(dto.getFirstName());
             user.setLastName(dto.getLastName());
-            
-            // Usar el valor del DTO o false por defecto
-            boolean active = dto.getActiveMember() != null ? dto.getActiveMember() : false;
-            user.setActiveMember(active);
-            log.debug("JPA fallback: setting activeMember to {}", active);
 
             // Asignar géneros (entidad)
             Set<Genre> genres = new HashSet<>();
@@ -155,12 +134,11 @@ public class UserService {
     }
 
     private UserDTO mapUserViewRow(Object[] r) {
-        // vw_users: userid, firstname, lastname, activemember, cognitosub, preferred_genre_ids, preferred_genres
+        // vw_users: userid, firstname, lastname, cognitosub, preferred_genre_ids, preferred_genres
         int i = 0;
         Long id = ((Number) r[i++]).longValue();
         String first = (String) r[i++];
         String last = (String) r[i++];
-        Boolean active = (Boolean) r[i++];
         String cognitoSub = (String) r[i++];
         // int[] of genre ids may come as java.sql.Array
         java.util.List<Long> genreIds = new java.util.ArrayList<>();
@@ -180,8 +158,7 @@ public class UserService {
         dto.setId(id);
         dto.setFirstName(first);
         dto.setLastName(last);
-        dto.setActiveMember(active != null ? active : false);
-        dto.setPrefferedGenreIds(new java.util.HashSet<>(genreIds));
+        dto.setPrefferredGenreIds(new java.util.HashSet<>(genreIds));
         return dto;
     }
 
@@ -204,14 +181,6 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
         Set<Genre> genres = new HashSet<>();
         newGenreIds.forEach(gid -> genreRepository.findById(gid).ifPresent(genres::add));
-        return UserMapper.toDTO(userRepository.save(user));
-    }
-
-
-    public UserDTO activateMembership(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
-        user.setActiveMember(true);
         return UserMapper.toDTO(userRepository.save(user));
     }
 

@@ -25,4 +25,7 @@ public class Genre {
     @ManyToMany(mappedBy = "genres")
     @JsonIgnoreProperties("genres") // evita recursión infinita al serializar JSON
     private Set<Book> books = new HashSet<>();
+
+    @ManyToMany(mappedBy = "preferredGenres", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }

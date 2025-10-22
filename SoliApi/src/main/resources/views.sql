@@ -84,13 +84,12 @@ SELECT
 FROM public.texts t
 LEFT JOIN public.texttype tt ON tt.typeid = t.typeid^;
 
--- Vista de usuarios con géneros preferidos agregados
+-- Vista actualizada de usuarios para incluir cambios de libros favoritos
 CREATE OR REPLACE VIEW public.vw_users AS
 SELECT
     u.userid,
     u.firstname,
     u.lastname,
-    u.activemember,
     u.cognitosub,
     COALESCE((
         SELECT array_agg(g.genreid)
@@ -103,5 +102,17 @@ SELECT
         FROM public.user_genres ug
         JOIN public.genres g ON g.genreid = ug.genreid
         WHERE ug.userid = u.userid
-    ), ARRAY[]::text[]) AS preferred_genres
-FROM public.users u^;
+    ), ARRAY[]::text[]) AS preferred_genres,
+    COALESCE((
+        SELECT array_agg(ub.textid)
+        FROM public.user_books ub
+        WHERE ub.userid = u.userid
+    ), ARRAY[]::int[]) AS favorite_book_ids,
+    COALESCE((
+        SELECT array_agg(t.texttitle)
+        FROM public.user_books ub
+        JOIN public.texts t ON t.textid = ub.textid
+        WHERE ub.userid = u.userid
+    ), ARRAY[]::text[]) AS favorite_book_titles
+FROM public.users u;
+

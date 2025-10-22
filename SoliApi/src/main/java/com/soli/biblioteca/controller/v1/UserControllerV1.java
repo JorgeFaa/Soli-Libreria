@@ -19,8 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UserStatusType;
 
 import java.util.Map;
 
@@ -95,7 +93,7 @@ public class UserControllerV1 {
     })
     @PostMapping("/createUser")
     public ResponseEntity<UserDTO> createUser(@AuthenticationPrincipal Jwt jwt,
-                                                        @Valid @RequestBody UserCreateDTO dto) {
+                                              @Valid @RequestBody UserCreateDTO dto) {
         // Validar que el JWT contiene el subject
         String cognitoSub = jwt.getSubject();
         if (cognitoSub == null || cognitoSub.trim().isEmpty()) {
@@ -134,14 +132,6 @@ public class UserControllerV1 {
         return ResponseEntity.ok(user);
     }
 
-    // =======================================
-    // Activar membresía (backend)
-    // =======================================
-    @Operation(summary = "Activar membresia V1", security = { @SecurityRequirement(name = "bearerAuth") })
-    @PatchMapping("/{id}/active")
-    public ResponseEntity<UserDTO> activateMembership(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.activateMembership(id));
-    }
 
     @PostMapping("/resend-verification")
     public ResponseEntity<String> resendVerification(@Valid @RequestBody VerificationRequest dto) {

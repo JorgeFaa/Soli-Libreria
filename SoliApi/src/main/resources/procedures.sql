@@ -1,50 +1,78 @@
 ------ USERS ------
--- CREATE (sin columnas inexistentes)
-create or replace procedure sp_create_user(
+-- Crear usuario + géneros favoritos
+create or replace procedure sp_create_user_with_genres(
     p_firstname varchar,
     p_lastname varchar,
-    p_activemember boolean,
-    p_cognitosub varchar
+    p_cognitosub varchar,
+    p_genre_ids int[] default null  -- arreglo de IDs de géneros favoritos
 )
 language plpgsql
 as $$
+declare
+    v_userid int;
+    v_genreid int;
 begin
-    insert into public.users(firstname, lastname, activemember, cognitosub)
-    values(p_firstname, p_lastname, coalesce(p_activemember, true), p_cognitosub);
-end; $$^;
+    -- 1️⃣ Insertar usuario
+    insert into public.users(firstname, lastname, cognitosub)
+    values (p_firstname, p_lastname, p_cognitosub)
+    returning userid into v_userid;
 
--- READ (consulta por ID)
-create or replace function sp_get_user(p_userid int)
+    -- 2️⃣ Insertar géneros favoritos (si vienen)
+    if p_genre_ids is not null then
+        foreach v_genreid in array p_genre_ids loop
+            insert into public.user_genres(userid, genreid)
+            values (v_userid, v_genreid)
+            on conflict do nothing;  -- evita duplicados
+        end loop;
+    end if;
+end; $$;
+
+-- READ usuario con géneros y libros favoritos
+create or replace function sp_get_user_full(p_userid int)
 returns table(
     userid int,
     firstname varchar,
     lastname varchar,
-    activemember boolean,
-    cognitosub varchar
+    cognitosub varchar,
+    favorite_genres int[],
+    favorite_books int[]
 )
 language plpgsql
 as $$
 begin
     return query
-    select u.userid, u.firstname, u.lastname, u.activemember, u.cognitosub
-    from public.users u
+    select
+        u.userid,
+        u.firstname,
+        u.lastname,
+        u.cognitosub,
+        array(
+            select genreid
+            from user_genres
+            where userid = u.userid
+        ) as favorite_genres,
+        array(
+            select textid
+            from user_books
+            where userid = u.userid
+        ) as favorite_books
+    from users u
     where u.userid = p_userid;
 end; $$;
+
 
 -- UPDATE
 create or replace procedure sp_update_user(
     p_userid int,
     p_firstname varchar,
-    p_lastname varchar,
-    p_activemember boolean
+    p_lastname varchar
 )
 language plpgsql
 as $$
 begin
     update public.users
     set firstname = coalesce(p_firstname, firstname),
-        lastname = coalesce(p_lastname, lastname),
-        activemember = coalesce(p_activemember, activemember)
+        lastname = coalesce(p_lastname, lastname)
     where userid = p_userid;
 end; $$;
 
@@ -463,3 +491,27 @@ as $$
 begin
     delete from public.texts where textid = p_textid;
 end; $$;
+
+-- Agregar texto de favorito de usuario
+create or replace procedure sp_add_favorite(
+    p_userid int,
+    p_textid int
+)
+language plpgsql
+as $$
+begin
+    insert into user_books(userid, textid) values(p_userid, p_textid)
+    on conflict do nothing;
+end; $$;
+
+-- Eliminar texto de favorito de usuario
+create or replace procedure sp_remove_favorite(
+    p_userid int,
+    p_textid int
+)
+language plpgsql
+as $$
+begin
+    delete from user_books where userid = p_userid and textid = p_textid;
+end; $$;
+
