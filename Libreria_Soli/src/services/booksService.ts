@@ -61,11 +61,9 @@ export interface Book {
 // Configuración de la API
 const API_BASE_URL = 'https://soliapi-223325065421.northamerica-south1.run.app';
 
-// Función para obtener todos los libros
-export const getBooks = async (): Promise<Book[]> => {
+// Función para obtener todos los géneros disponibles
+export const getGenres = async (): Promise<Genre[]> => {
   try {
-    console.log("📚 [booksService] Obteniendo libros de la API...");
-    
     // Obtener el token de acceso
     const accessToken = getAuthToken();
     
@@ -73,9 +71,7 @@ export const getBooks = async (): Promise<Book[]> => {
       throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
     }
     
-    console.log("🔑 [booksService] Token encontrado, haciendo petición...");
-    
-    const response = await fetch(`${API_BASE_URL}/books`, {
+    const response = await fetch(`${API_BASE_URL}/api/v2/genres`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -83,8 +79,56 @@ export const getBooks = async (): Promise<Book[]> => {
       },
     });
     
-    console.log("📡 [booksService] Respuesta HTTP status:", response.status);
-    console.log("📡 [booksService] Respuesta HTTP headers:", Object.fromEntries(response.headers.entries()));
+    if (response.status === 401) {
+      throw new Error('Token expirado. Por favor, inicia sesión nuevamente.');
+    }
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+    }
+    
+    const responseData = await response.json();
+    
+    // Intentar encontrar el array de géneros en diferentes ubicaciones
+    let genres: Genre[] = [];
+    
+    if (Array.isArray(responseData)) {
+      genres = responseData;
+    } else if (responseData.content && Array.isArray(responseData.content)) {
+      genres = responseData.content;
+    } else if (responseData.genres && Array.isArray(responseData.genres)) {
+      genres = responseData.genres;
+    } else if (responseData.data && Array.isArray(responseData.data)) {
+      genres = responseData.data;
+    } else {
+      throw new Error('Formato de respuesta inesperado del servidor');
+    }
+    
+    return genres;
+    
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Función para obtener todos los libros
+export const getBooks = async (): Promise<Book[]> => {
+  try {
+    // Obtener el token de acceso
+    const accessToken = getAuthToken();
+    
+    if (!accessToken) {
+      throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/v2/books/all`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
     
     if (response.status === 401) {
       throw new Error('Token expirado. Por favor, inicia sesión nuevamente.');
@@ -92,12 +136,27 @@ export const getBooks = async (): Promise<Book[]> => {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.log("❌ [booksService] Error en la respuesta:", errorText);
       throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
     
-    const apiBooks: ApiBook[] = await response.json();
-    console.log("📋 [booksService] Libros recibidos:", apiBooks.length);
+    const responseData = await response.json();
+    
+    // Intentar encontrar el array de libros en diferentes ubicaciones
+    let apiBooks: ApiBook[] = [];
+    
+    if (Array.isArray(responseData)) {
+      apiBooks = responseData;
+    } else if (responseData.content && Array.isArray(responseData.content)) {
+      apiBooks = responseData.content;
+    } else if (responseData.books && Array.isArray(responseData.books)) {
+      apiBooks = responseData.books;
+    } else if (responseData.data && Array.isArray(responseData.data)) {
+      apiBooks = responseData.data;
+    } else if (responseData.result && Array.isArray(responseData.result)) {
+      apiBooks = responseData.result;
+    } else {
+      throw new Error('Formato de respuesta inesperado del servidor');
+    }
     
     // Convertir formato de API a formato del componente
     const books: Book[] = apiBooks.map(apiBook => ({
@@ -116,11 +175,9 @@ export const getBooks = async (): Promise<Book[]> => {
       paginas: 0 // No viene en la API
     }));
     
-    console.log("✅ [booksService] Libros procesados exitosamente:", books.length);
     return books;
     
   } catch (error) {
-    console.error("🔥 [booksService] Error obteniendo libros:", error);
     throw error;
   }
 };
@@ -140,21 +197,56 @@ const formatAuthors = (authors: Author[]): string => {
 // Función para obtener un libro específico por ID
 export const getBookById = async (id: number): Promise<Book | null> => {
   try {
-    console.log("📖 [booksService] Obteniendo libro por ID:", id);
+    // Obtener el token de acceso
+    const accessToken = getAuthToken();
     
-    const books = await getBooks();
-    const book = books.find(b => b.id === id);
+    if (!accessToken) {
+      throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
+    }
     
-    if (!book) {
-      console.log("❌ [booksService] Libro no encontrado:", id);
+    const response = await fetch(`${API_BASE_URL}/api/v2/books/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.status === 401) {
+      throw new Error('Token expirado. Por favor, inicia sesión nuevamente.');
+    }
+    
+    if (response.status === 404) {
       return null;
     }
     
-    console.log("✅ [booksService] Libro encontrado:", book.titulo);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+    }
+    
+    const apiBook: ApiBook = await response.json();
+    
+    // Convertir formato de API a formato del componente
+    const book: Book = {
+      id: apiBook.id,
+      titulo: apiBook.title,
+      autor: formatAuthors(apiBook.authors),
+      año: new Date(apiBook.publishedDate).getFullYear(),
+      genero: apiBook.genres.map(g => g.name).join(', '),
+      descripcion: apiBook.description,
+      sinopsis: apiBook.description, // Usar description como sinopsis
+      editorial: apiBook.editorials[0]?.companyName || "Editorial desconocida",
+      portada: apiBook.coverUrl,
+      textUrl: apiBook.textUrl,
+      idioma: "Español", // Valor por defecto
+      isbn: "No disponible", // No viene en la API
+      paginas: 0 // No viene en la API
+    };
+    
     return book;
     
   } catch (error) {
-    console.error("🔥 [booksService] Error obteniendo libro por ID:", error);
     throw error;
   }
 };

@@ -66,10 +66,8 @@ export default function Libreria() {
             try {
                 setIsLoading(true);
                 setError("");
-                console.log("📚 Cargando libros de la API...");
                 
                 const librosApi = await getBooks();
-                console.log("✅ Libros cargados exitosamente:", librosApi.length);
                 
                 setLibros(librosApi);
                 
@@ -78,8 +76,6 @@ export default function Libreria() {
                 }
                 
             } catch (err) {
-                console.error("🔥 Error cargando libros:", err);
-                
                 if (err instanceof Error) {
                     if (err.message.includes('Token expirado') || err.message.includes('No hay token')) {
                         setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
