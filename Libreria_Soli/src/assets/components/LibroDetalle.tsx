@@ -12,7 +12,6 @@ import Toast from "./Toast";
 // Importar el visor de PDF
 import PDFViewer from "./PDFViewer";
 
-// Ya no necesitamos datos simulados - obtenemos todo de la API
 
 export default function LibroDetalle() {
     const { id } = useParams<{ id: string }>();
@@ -48,7 +47,6 @@ export default function LibroDetalle() {
                 
                 setIsLoading(true);
                 setError("");
-                console.log("📖 Cargando libro con ID:", id);
                 
                 const libroApi = await getBookById(parseInt(id));
                 
@@ -56,11 +54,9 @@ export default function LibroDetalle() {
                     throw new Error("Libro no encontrado");
                 }
                 
-                console.log("✅ Libro cargado exitosamente:", libroApi.titulo);
                 setLibro(libroApi);
                 
             } catch (err) {
-                console.error("🔥 Error cargando libro:", err);
                 
                 if (err instanceof Error) {
                     if (err.message.includes('Token expirado') || err.message.includes('No hay token')) {

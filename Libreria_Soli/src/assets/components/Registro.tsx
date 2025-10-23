@@ -106,7 +106,7 @@ export default function Registro({}: RegistroProps) {
 
     // Llamada a la API real
     try {
-      console.log("🚀 Iniciando registro con email:", formData.email);
+      console.log("🚀 [Registro UI] Iniciando registro con email:", formData.email);
       
       // Preparar datos para la API (solo username y password)
       const userData: RegisterRequest = {
@@ -116,46 +116,48 @@ export default function Registro({}: RegistroProps) {
         password: formData.password
       };
       
-      console.log("📦 Datos preparados para enviar:", {
+      console.log("📦 [Registro UI] Datos preparados para enviar:", {
         username: formData.email,
         password: "***oculta***"
       });
       
       const response = await registerUser(userData);
       
-      console.log("📡 Respuesta recibida del registro:", response);
+      console.log("📡 [Registro UI] Respuesta recibida del registro:", response);
       
       if (response.success) {
-        console.log("✅ Registro exitoso:", response.user);
+        console.log("✅ [Registro UI] Registro exitoso:", response.user);
         // Mostrar mensaje de éxito que coincida con la respuesta de la API
         showNotification("¡Registro exitoso! Revisa tu email para confirmar la cuenta.", "success");
         
         // Esperar un momento para que el usuario vea el mensaje
         setTimeout(() => {
+          console.log("🚪 [Registro UI] Navegando a verificación de código...");
           // Navegar a la verificación con el email como parámetro
           navigate(`/verificar-codigo?email=${encodeURIComponent(formData.email)}`);
         }, 2000);
       } else {
-        console.log("❌ Registro fallido:", response.message);
+        console.log("❌ [Registro UI] Registro fallido:", response.message);
         showNotification(response.message || "Error al crear la cuenta", "error");
       }
       
     } catch (err) {
-      console.error("🔥 Error en registro:", err);
+      console.error("🔥 [Registro UI] Error en registro:", err);
       
       // Mensaje más específico según el tipo de error
       if (err instanceof Error) {
-        console.log("🔍 Tipo de error:", err.message);
+        console.log("🔍 [Registro UI] Tipo de error:", err.message);
         if (err.message.includes('fetch')) {
           showNotification("Error de conexión. Verifica tu internet e intenta nuevamente.", "error");
         } else {
           showNotification(err.message, "error");
         }
       } else {
-        console.log("❓ Error desconocido:", err);
+        console.log("❓ [Registro UI] Error desconocido:", err);
         showNotification("Error de conexión. Verifica tu internet.", "error");
       }
     } finally {
+      console.log("🏁 [Registro UI] Finalizando proceso de registro");
       setIsLoading(false);
     }
   };

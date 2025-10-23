@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./PDFViewer.css";
 
 // Importar componente Toast
@@ -32,7 +32,6 @@ export default function PDFViewer({ pdfUrl, bookTitle, isOpen, onClose }: PDFVie
   const handlePDFLoad = () => {
     setIsLoading(false);
     setError("");
-    console.log("✅ PDF cargado exitosamente:", bookTitle);
   };
 
   // Función para manejar errores al cargar el PDF
@@ -40,7 +39,6 @@ export default function PDFViewer({ pdfUrl, bookTitle, isOpen, onClose }: PDFVie
     setIsLoading(false);
     setError("No se pudo cargar el archivo PDF");
     showNotification("Error al cargar el PDF. Intenta nuevamente.", "error");
-    console.error("❌ Error cargando PDF:", pdfUrl);
   };
 
   // Función para cerrar el visor
@@ -55,6 +53,26 @@ export default function PDFViewer({ pdfUrl, bookTitle, isOpen, onClose }: PDFVie
     window.open(pdfUrl, '_blank');
     showNotification("Abriendo PDF en nueva pestaña", "success");
   };
+
+  // Manejar tecla ESC para cerrar
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevenir scroll del body cuando el modal está abierto
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -129,7 +147,7 @@ export default function PDFViewer({ pdfUrl, bookTitle, isOpen, onClose }: PDFVie
         {/* Instrucciones */}
         <div className="pdf-viewer-footer">
           <p className="pdf-instructions">
-            💡 Usa los controles del navegador para navegar por el PDF o abrelo en una nueva pestaña para mejor experiencia
+            💡 Usa los controles del navegador para navegar por el PDF • Presiona ESC para cerrar • Abre en nueva pestaña para mejor experiencia
           </p>
         </div>
 

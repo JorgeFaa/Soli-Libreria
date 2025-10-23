@@ -1,19 +1,106 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Perfil.css";
 
+// Importar servicios de autenticación
+import { getUserCompleteProfile } from '../../services/authService';
+import type { UserCompleteProfile } from '../../services/authService';
+
+// Importar servicios de libros para obtener géneros
+import { getGenres } from '../../services/booksService';
+import type { Genre } from '../../services/booksService';
+
+// Importar sistema de Toast
+import Toast from "./Toast";
+
 export default function Perfil() {
-  // Estados para manejar la edición del perfil (falsos por ahora)
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  // Estados para manejar la edición del perfil
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  
+  // Estados para Toast
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<"success" | "error" | "warning">("success");
+  const [showToast, setShowToast] = useState<boolean>(false);
+  
+  // Datos del perfil del usuario
+  const [userProfile, setUserProfile] = useState<UserCompleteProfile | null>(null);
+  
+  // Géneros resueltos (nombres completos)
+  const [resolvedGenres, setResolvedGenres] = useState<Genre[]>([]);
+  
+  // Datos de edición local (se inicializan con los datos del servidor)
   const [userInfo, setUserInfo] = useState({
-    nombre: "Ana",
-    apellido: "García",
-    email: "ana.garcia@ejemplo.com",
-    fechaNacimiento: "1995-03-15",
-    telefono: "+57 300 123 4567",
-    ciudad: "Bogotá, Colombia",
-    biografia: "Amante de la literatura clásica y contemporánea. Me encanta descubrir nuevos autores y compartir recomendaciones con otros lectores."
+    nombre: "",
+    apellido: "",
   });
+
+  // Función para mostrar notificaciones
+  const showNotification = (message: string, type: "success" | "error" | "warning") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
+  // Función para resolver nombres de géneros a partir de IDs
+  const resolveGenreNames = async (genreIds: number[]): Promise<Genre[]> => {
+    try {
+      const allGenres = await getGenres();
+      const userGenres = allGenres.filter(genre => genreIds.includes(genre.id));
+      return userGenres;
+    } catch (error) {
+      return [];
+    }
+  };
+
+  // Cargar datos del perfil del usuario
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
+        
+        const response = await getUserCompleteProfile();
+        
+        if (response.success && response.user) {
+          
+          // El servidor puede devolver estructura envuelta o directa
+          let profileData: any = response.user;
+          if (profileData.profile) {
+            profileData = profileData.profile;
+          }
+          
+          setUserProfile(profileData);
+          
+          // Resolver géneros si hay IDs de géneros preferidos
+          if (profileData.preferredGenreIds && profileData.preferredGenreIds.length > 0) {
+            const genres = await resolveGenreNames(profileData.preferredGenreIds);
+            setResolvedGenres(genres);
+          } else {
+            setResolvedGenres([]);
+          }
+          
+          // Inicializar datos de edición con los datos del servidor
+          setUserInfo({
+            nombre: profileData.firstName || "",
+            apellido: profileData.lastName || ""
+          });
+          
+        } else {
+          setError(response.message || "Error al cargar el perfil del usuario");
+          showNotification(response.message || "Error al cargar el perfil", "error");
+        }
+        
+      } catch (error) {
+        setError("Error de conexión al cargar el perfil");
+        showNotification("Error de conexión al cargar el perfil", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   // Datos simulados de estadísticas del usuario
   const estadisticas = {
@@ -21,30 +108,38 @@ export default function Perfil() {
     librosEnLectura: 3,
     librosDeseados: 12,
     reseñasEscritas: 23,
-    miembroDesde: "Agosto 2025"
   };
+  
+  // Mostrar estado de carga
+  if (isLoading) {
+    return (
+      <section className="perfil-section">
+        <div className="perfil-container">
+          <div className="perfil-loading">
+            <div className="loading-spinner"></div>
+            <p>Cargando perfil...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  // Libros recientes (datos simulados)
-  const librosRecientes = [
-    { id: 1, titulo: "Cien años de soledad", autor: "Gabriel García Márquez", estado: "Completado", rating: 5, progreso: 100 },
-    { id: 2, titulo: "1984", autor: "George Orwell", estado: "Leyendo", progreso: 65, rating: 0 },
-    { id: 3, titulo: "El amor en los tiempos del cólera", autor: "Gabriel García Márquez", estado: "Deseado", rating: 0, progreso: 0 }
-  ];
-
-  // Función para manejar cambios en los inputs
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setUserInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Función para guardar cambios
-  const handleSaveChanges = () => {
-    // Aquí iría la lógica para guardar en el backend
-    setIsEditing(false);
-  };
+  // Mostrar error si no se pudieron cargar los datos
+  if (error && !userProfile) {
+    return (
+      <section className="perfil-section">
+        <div className="perfil-container">
+          <div className="perfil-error">
+            <h2>Error al cargar el perfil</h2>
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()} className="perfil-retry-btn">
+              Intentar nuevamente
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="perfil-section">
@@ -55,62 +150,50 @@ export default function Perfil() {
           <div className="perfil-avatar">
             <div className="perfil-avatar-circle">
               <span className="perfil-avatar-initials">
-                {userInfo.nombre[0]}{userInfo.apellido[0]}
+                {userInfo.nombre ? userInfo.nombre[0] : 'U'}{userInfo.apellido ? userInfo.apellido[0] : 'S'}
               </span>
             </div>
           </div>
           
           <div className="perfil-header-info">
             <h1 className="perfil-title">
-              {userInfo.nombre} {userInfo.apellido}
+              {userInfo.nombre || 'Usuario'} {userInfo.apellido || 'Sin Apellido'}
             </h1>
             <p className="perfil-subtitle">
-              Miembro desde {estadisticas.miembroDesde}
+              {resolvedGenres && resolvedGenres.length > 0 
+                ? `Géneros favoritos: ${resolvedGenres.slice(0, 3).map(genre => genre.name).join(', ')}${resolvedGenres.length > 3 ? '...' : ''}`
+                : 'Miembro de Soli Librería'
+              }
             </p>
             <div className="perfil-header-actions">
-              {!isEditing ? (
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  className="perfil-edit-btn"
-                >
-                  Editar perfil
-                </button>
-              ) : (
-                <div className="perfil-edit-actions">
-                  <button 
-                    onClick={handleSaveChanges}
-                    className="perfil-save-btn"
-                  >
-                    Guardar
-                  </button>
-                  <button 
-                    onClick={() => setIsEditing(false)}
-                    className="perfil-cancel-btn"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Estadísticas del usuario (placeholder)*/}
+        {/* Estadísticas del usuario */}
         <div className="perfil-stats">
           <div className="perfil-stat">
-            <span className="perfil-stat-number">{estadisticas.librosLeidos}</span>
+            <span className="perfil-stat-number">
+              {estadisticas.librosLeidos}
+            </span>
             <span className="perfil-stat-label">Libros leídos</span>
           </div>
           <div className="perfil-stat">
-            <span className="perfil-stat-number">{estadisticas.librosEnLectura}</span>
+            <span className="perfil-stat-number">
+              {estadisticas.librosEnLectura}
+            </span>
             <span className="perfil-stat-label">Leyendo ahora</span>
           </div>
           <div className="perfil-stat">
-            <span className="perfil-stat-number">{estadisticas.librosDeseados}</span>
-            <span className="perfil-stat-label">Lista de deseos</span>
+            <span className="perfil-stat-number">
+              {resolvedGenres?.length || estadisticas.librosDeseados}
+            </span>
+            <span className="perfil-stat-label">Géneros favoritos</span>
           </div>
           <div className="perfil-stat">
-            <span className="perfil-stat-number">{estadisticas.reseñasEscritas}</span>
+            <span className="perfil-stat-number">
+              {estadisticas.reseñasEscritas}
+            </span>
             <span className="perfil-stat-label">Reseñas escritas</span>
           </div>
         </div>
@@ -126,150 +209,51 @@ export default function Perfil() {
               <div className="perfil-row">
                 <div className="perfil-field">
                   <label className="perfil-label">Nombre</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="nombre"
-                      value={userInfo.nombre}
-                      onChange={handleInputChange}
-                      className="perfil-input"
-                    />
-                  ) : (
                     <p className="perfil-value">{userInfo.nombre}</p>
-                  )}
                 </div>
                 
                 <div className="perfil-field">
                   <label className="perfil-label">Apellido</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="apellido"
-                      value={userInfo.apellido}
-                      onChange={handleInputChange}
-                      className="perfil-input"
-                    />
-                  ) : (
                     <p className="perfil-value">{userInfo.apellido}</p>
-                  )}
                 </div>
               </div>
 
               <div className="perfil-field">
-                <label className="perfil-label">Correo electrónico</label>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    name="email"
-                    value={userInfo.email}
-                    onChange={handleInputChange}
-                    className="perfil-input"
-                  />
-                ) : (
-                  <p className="perfil-value">{userInfo.email}</p>
-                )}
-              </div>
-
-              <div className="perfil-row">
-                <div className="perfil-field">
-                  <label className="perfil-label">Fecha de nacimiento</label>
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      name="fechaNacimiento"
-                      value={userInfo.fechaNacimiento}
-                      onChange={handleInputChange}
-                      className="perfil-input"
-                    />
+                <label className="perfil-label">Géneros Preferidos</label>
+                <div className="perfil-value">
+                  {resolvedGenres && resolvedGenres.length > 0 ? (
+                    <div className="perfil-genres">
+                      {resolvedGenres.map((genre, index) => (
+                        <span key={index} className="perfil-genre-tag">
+                          {genre.name}
+                        </span>
+                      ))}
+                    </div>
                   ) : (
-                    <p className="perfil-value">
-                      {new Date(userInfo.fechaNacimiento).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
+                    <p className="perfil-no-data">No se han seleccionado géneros preferidos</p>
                   )}
                 </div>
-
-                <div className="perfil-field">
-                  <label className="perfil-label">Teléfono</label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="telefono"
-                      value={userInfo.telefono}
-                      onChange={handleInputChange}
-                      className="perfil-input"
-                    />
-                  ) : (
-                    <p className="perfil-value">{userInfo.telefono}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="perfil-field">
-                <label className="perfil-label">Ciudad</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="ciudad"
-                    value={userInfo.ciudad}
-                    onChange={handleInputChange}
-                    className="perfil-input"
-                  />
-                ) : (
-                  <p className="perfil-value">{userInfo.ciudad}</p>
-                )}
-              </div>
-
-              <div className="perfil-field">
-                <label className="perfil-label">Biografía</label>
-                {isEditing ? (
-                  <textarea
-                    name="biografia"
-                    value={userInfo.biografia}
-                    onChange={handleInputChange}
-                    className="perfil-textarea"
-                    rows={4}
-                    placeholder="Cuéntanos un poco sobre ti y tus gustos literarios..."
-                  />
-                ) : (
-                  <p className="perfil-value">{userInfo.biografia}</p>
-                )}
               </div>
 
             </div>
           </div>
 
-          {/* Actividad reciente */}
+          {/* Libros Favoritos */}
           <div className="perfil-card">
-            <h2 className="perfil-card-title">Actividad Reciente</h2>
+            <h2 className="perfil-card-title">Libros Favoritos</h2>
             <div className="perfil-books">
-              {librosRecientes.map((libro) => (
-                <div key={libro.id} className="perfil-book">
-                  <div className="perfil-book-info">
-                    <h3 className="perfil-book-title">{libro.titulo}</h3>
-                    <p className="perfil-book-author">por {libro.autor}</p>
-                    <span className={`perfil-book-status ${libro.estado.toLowerCase().replace(' ', '-')}`}>
-                      {libro.estado}
-                      {libro.estado === "Leyendo" && libro.progreso && (
-                        <span className="perfil-book-progress"> - {libro.progreso}%</span>
-                      )}
-                    </span>
-                  </div>
-                  {libro.rating > 0 && (
-                    <div className="perfil-book-rating">
-                      {"★".repeat(libro.rating)}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {/* Aquí irán los libros favoritos del usuario */}
+              <div className="perfil-no-favorites">
+                <p>No hay libros favoritos aún</p>
+                <p className="perfil-no-favorites-subtitle">
+                  Agrega libros a tu lista de favoritos navegando por el catálogo
+                </p>
+              </div>
             </div>
             
             <div className="perfil-actions">
               <Link to="/libreria" className="perfil-action-link">
-                Ver todos mis libros →
+                Explorar catálogo →
               </Link>
             </div>
           </div>
@@ -282,8 +266,17 @@ export default function Perfil() {
             ← Volver al inicio
           </Link>
         </div>
-
       </div>
+
+      {/* Toast de notificaciones */}
+      {showToast && (
+        <Toast 
+          message={toastMessage} 
+          type={toastType} 
+          isVisible={showToast}
+          onClose={() => setShowToast(false)} 
+        />
+      )}
     </section>
   );
 }
