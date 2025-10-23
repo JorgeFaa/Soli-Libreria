@@ -17,7 +17,7 @@ type NavLink = { href: string; label: string };
 // Tipo para las props del Header
 type HeaderProps = {
   isUserLoggedIn: boolean;
-  onLogout: () => void;
+  onLogout: () => Promise<void>;
 };
 
 // Array constante con los enlaces de navegación
@@ -210,9 +210,14 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                     <a href="#configuracion" className="user-side-menu-item">Configuración</a>
                     <hr className="user-side-menu-divider" />
                     <button 
-                      onClick={() => {
-                        onLogout();
-                        handleCloseMenu();
+                      onClick={async () => {
+                        try {
+                          await onLogout(); // Ahora onLogout es async
+                          handleCloseMenu();
+                        } catch (error) {
+                          console.error("Error during logout:", error);
+                          handleCloseMenu(); // Cerrar menú incluso si hay error
+                        }
                       }}
                       className="user-side-menu-item"
                       style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}

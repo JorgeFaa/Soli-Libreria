@@ -12,9 +12,10 @@ import Login from './assets/components/Login'
 import Registro from './assets/components/Registro'
 import VerificarCodigo from './assets/components/VerificarCodigo'
 import Perfil from './assets/components/Perfil'
+import CuestionarioPerfil from './assets/components/CuestionarioPerfil'
 
 // Importar servicios de autenticación
-import { isAuthenticated, logoutUser, verifyToken } from './services/authService'
+import { isAuthenticated, logoutUser, verifyToken, needsProfileCompletionFromServer } from './services/authService'
 
 import './App.css'
 
@@ -35,6 +36,7 @@ function App() {
   // Estado global de autenticación
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showProfileQuestionnaire, setShowProfileQuestionnaire] = useState<boolean>(false);
 
   // Verificar sesión al cargar la app
   useEffect(() => {
@@ -47,14 +49,20 @@ function App() {
           
           if (isValidToken) {
             setIsUserLoggedIn(true);
+            
+            // Verificar si necesita completar el perfil
+            const needsQuestionnaire = await needsProfileCompletionFromServer();
+            if (needsQuestionnaire) {
+              setShowProfileQuestionnaire(true);
+            }
           } else {
             // Token inválido, limpiar storage
-            logoutUser();
+            await logoutUser();
             setIsUserLoggedIn(false);
           }
         }
       } catch (error) {
-        logoutUser();
+        await logoutUser();
         setIsUserLoggedIn(false);
       } finally {
         setIsLoading(false);
@@ -65,14 +73,32 @@ function App() {
   }, []);
 
   // Función para manejar el login exitoso
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     setIsUserLoggedIn(true);
+    
+    // Verificar si necesita completar el perfil después del login
+    const needsQuestionnaire = await needsProfileCompletionFromServer();
+    if (needsQuestionnaire) {
+      setShowProfileQuestionnaire(true);
+    }
   };
 
   // Función para manejar el logout
-  const handleLogout = () => {
-    logoutUser(); // Limpiar localStorage
-    setIsUserLoggedIn(false);
+  const handleLogout = async () => {
+    try {
+      await logoutUser(); // Llamar al logout de la API
+      setIsUserLoggedIn(false);
+      setShowProfileQuestionnaire(false); // Ocultar cuestionario al hacer logout
+    } catch (error) {
+      // Incluso si falla la API, cambiar el estado local
+      setIsUserLoggedIn(false);
+      setShowProfileQuestionnaire(false);
+    }
+  };
+
+  // Función para manejar cuando el usuario completa o salta el cuestionario
+  const handleQuestionnaireComplete = () => {
+    setShowProfileQuestionnaire(false);
   };
 
   // Mostrar loading mientras verifica autenticación
@@ -93,34 +119,44 @@ function App() {
   }
 
   return (
-    <Router>
-      <Header 
-        isUserLoggedIn={isUserLoggedIn} 
-        onLogout={handleLogout}
-      />
-      <Routes>
-        {/* Página principal */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/libreria" element={<Libreria />} />
-        <Route path="/libro/:id" element={<LibroDetalle />} />
-        <Route 
-          path="/login" 
-          element={<Login onLoginSuccess={handleLoginSuccess} />} 
+    <>
+      <Router>
+        <Header 
+          isUserLoggedIn={isUserLoggedIn} 
+          onLogout={handleLogout}
         />
-        <Route 
-          path="/registro" 
-          element={<Registro />}
+        <Routes>
+          {/* Página principal */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/libreria" element={<Libreria />} />
+          <Route path="/libro/:id" element={<LibroDetalle />} />
+          <Route 
+            path="/login" 
+            element={<Login onLoginSuccess={handleLoginSuccess} />} 
+          />
+          <Route 
+            path="/registro" 
+            element={<Registro />}
+          />
+          <Route 
+            path="/verificar-codigo" 
+            element={<VerificarCodigo />}
+          />
+          <Route 
+            path="/perfil" 
+            element={<Perfil />}
+          />
+        </Routes>
+      </Router>
+      
+      {/* Cuestionario de perfil modal - se muestra sobre el contenido */}
+      {showProfileQuestionnaire && (
+        <CuestionarioPerfil 
+          onComplete={handleQuestionnaireComplete}
+          onSkip={handleQuestionnaireComplete}
         />
-        <Route 
-          path="/verificar-codigo" 
-          element={<VerificarCodigo />}
-        />
-        <Route 
-          path="/perfil" 
-          element={<Perfil />}
-        />
-      </Routes>
-    </Router>
+      )}
+    </>
   )
 }
 
