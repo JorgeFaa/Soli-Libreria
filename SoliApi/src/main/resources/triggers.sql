@@ -69,10 +69,10 @@ for each row execute function fn_format_names();
 
 -- 3️⃣ Auditoría de cambios en users y texts
 create table if not exists public.auditlog(
-    logid serial primary key,
+    logid bigserial primary key,
     tablename varchar(50),
     action varchar(10),
-    recordid int,
+    recordid bigint,
     changedat timestamp default now()
 );
 
@@ -81,7 +81,7 @@ returns trigger
 language plpgsql
 as $$
 declare
-    v_id int;
+    v_id bigint;
 begin
     if TG_TABLE_NAME = 'users' then
         if TG_OP = 'DELETE' then
@@ -121,7 +121,7 @@ returns trigger
 language plpgsql
 as $$
 declare
-    v_exists int;
+    v_exists bigint;
 begin
     if TG_TABLE_NAME = 'genres' then
         select count(*) into v_exists

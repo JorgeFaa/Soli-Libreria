@@ -19,6 +19,7 @@ public class ErrorResponseDTO {
     private String message;
     private String path;
     private Map<String, String> validationErrors;
+    private Map<String, Object> details; // Añadido para manejar información adicional
 
     public ErrorResponseDTO(int status, String error, String message, String path) {
         this.timestamp = LocalDateTime.now();

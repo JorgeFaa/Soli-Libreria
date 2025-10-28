@@ -35,5 +35,7 @@ EXPOSE 8080
 # Configuramos la variable de entorno para Cloud Run
 ENV PORT=8080
 
+ENV SPRING_PROFILES_ACTIVE=prod
+
 # Comando para ejecutar la app
 ENTRYPOINT ["java","-jar","app.jar"]
