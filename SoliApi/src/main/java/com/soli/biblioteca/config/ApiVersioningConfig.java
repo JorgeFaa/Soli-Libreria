@@ -10,12 +10,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Maneja las versiones:
  * - /api/v1/* - Versión actual (compatible con frontend existente)
  * - /api/v2/* - Nueva versión con mejoras
+ * - /api/v3/* - Versión refactorizada con separación de responsabilidades
  */
 @Configuration
 public class ApiVersioningConfig implements WebMvcConfigurer {
     
     public static final String API_V1_PREFIX = "/api/v1";
     public static final String API_V2_PREFIX = "/api/v2";
+    public static final String API_V3_PREFIX = "/api/v3";
     
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {

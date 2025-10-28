@@ -13,7 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -34,7 +33,6 @@ public class SecurityConfiguration {
         return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         CognitoLogoutHandler cognitoLogoutHandler = new CognitoLogoutHandler();
@@ -44,27 +42,31 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Docs públicas: Swagger UI y OpenAPI JSON
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
-                        // Endpoints públicos: SOLO login y registro y verificación de correo
-                        .requestMatchers(
-                                "/user/register",
-                                "/user/login",
-                                "/user/verify-account",
-                                "/user/resend-verification"
-                        ).permitAll()
-                        // Logout y createUser endpoints accesibles a cualquier usuario autenticado
-                        .requestMatchers("/user/auth/logout", "/user/auth/logout-all", "/user/createUser").authenticated()
-                        // GET requieren al menos rol READER o ADMIN
-                        .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("READER", "ADMIN")
-                        // POST, PUT, PATCH, DELETE requieren ADMIN (salvo excepciones arriba)
-                        .requestMatchers(HttpMethod.POST, "/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
+                        // Docs públicas
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        
+                        // Endpoints públicos v3
+                        .requestMatchers("/api/v3/auth/**").permitAll()
+
+                        // Endpoints de usuario v3 (crear, ver y actualizar perfil)
+                        .requestMatchers(HttpMethod.POST, "/api/v3/users").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v3/users/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v3/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v3/users/me/favorites").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v3/users/me/favorites/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v3/users/me/favorites/**").authenticated()
+
+                        // Endpoints de admin v3
+                        .requestMatchers(HttpMethod.GET, "/api/v3/admin/**").hasAnyRole("ADMIN", "READER")
+                        .requestMatchers("/api/v3/admin/**").hasRole("ADMIN")
+
+                        // Endpoints de libros (aún por definir, pero podemos adelantar)
+                        .requestMatchers(HttpMethod.GET, "/api/v3/books/**").hasAnyRole("ADMIN", "READER")
+                        .requestMatchers("/api/v3/books/**").hasRole("ADMIN")
+
+                        // Reglas para v1 y v2 (legado)
+                        .requestMatchers("/api/v1/**", "/api/v2/**").permitAll() // O ajusta según necesites
+
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 )
@@ -77,11 +79,9 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(List.of("*")); // Cambia a tus dominios en producción
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

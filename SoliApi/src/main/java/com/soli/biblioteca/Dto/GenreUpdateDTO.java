@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.Optional;
 
 @Data
-public class TextTypeUpdateDTO {
-    private Optional<String> type = Optional.empty();
+public class GenreUpdateDTO {
+    private Optional<String> genrename = Optional.empty();
 }

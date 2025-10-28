@@ -7,62 +7,6 @@ import java.util.stream.Collectors;
 
 public class BookMapper {
 
-    // DTO → Entidad
-    public static Book toEntity(BookCreateDTO dto) {
-        if (dto == null) return null;
-
-        Book book = new Book();
-        book.setTitle(dto.getTitle());
-        book.setDescription(dto.getDescription());
-        book.setPublishedDate(dto.getPublishedDate());
-        book.setTextUrl(dto.getTextUrl());
-        book.setCoverUrl(dto.getCoverUrl());
-
-        if (dto.getAuthorIds() != null) {
-            book.setAuthors(
-                    dto.getAuthorIds().stream()
-                            .map(id -> {
-                                Author author = new Author();
-                                author.setId(id);
-                                return author;
-                            })
-                            .collect(Collectors.toSet())
-            );
-        }
-
-        if (dto.getEditorialIds() != null) {
-            book.setEditorials(
-                    dto.getEditorialIds().stream()
-                            .map(id -> {
-                                Editorial editorial = new Editorial();
-                                editorial.setId(id);
-                                return editorial;
-                            })
-                            .collect(Collectors.toSet())
-            );
-        }
-
-        if (dto.getGenreIds() != null) {
-            book.setGenres(
-                    dto.getGenreIds().stream()
-                            .map(id -> {
-                                Genre genre = new Genre();
-                                genre.setId(id);
-                                return genre;
-                            })
-                            .collect(Collectors.toSet())
-            );
-        }
-
-        if (dto.getTypeId() != null) {
-            TextType type = new TextType();
-            type.setId(dto.getTypeId());
-            book.setType(type);
-        }
-
-        return book;
-    }
-
     // Entidad → ResponseDTO
     public static BookResponseDTO toResponseDTO(Book book) {
         if (book == null) return null;

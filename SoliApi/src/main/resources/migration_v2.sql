@@ -9,8 +9,8 @@ BEGIN;
 -- 1. CREAR TABLA N:M FAVORITOS (si no existe)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS user_books (
-    userid INT REFERENCES users(userid) ON DELETE CASCADE,
-    textid INT REFERENCES texts(textid) ON DELETE CASCADE,
+    userid BIGINT REFERENCES users(userid) ON DELETE CASCADE, -- Cambiado a BIGINT
+    textid BIGINT REFERENCES texts(textid) ON DELETE CASCADE, -- Cambiado a BIGINT
     PRIMARY KEY (userid, textid)
 );
 
@@ -26,6 +26,8 @@ ON user_books(textid, userid);
 -- =====================================================
 -- 3. CREAR/ACTUALIZAR FUNCIÓN DE TIMESTAMP (si no existe)
 -- =====================================================
+-- Esta función ya está definida en triggers.sql, pero si este script se ejecuta
+-- de forma independiente, es bueno tenerla aquí.
 CREATE OR REPLACE FUNCTION fn_update_timestamp()
 RETURNS TRIGGER
 LANGUAGE plpgsql

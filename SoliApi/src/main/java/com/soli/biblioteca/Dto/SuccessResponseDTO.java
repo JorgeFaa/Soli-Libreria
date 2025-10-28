@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EditorialResponseDTO {
-    private Long id;
-    private String companyName;
-    private Long countryId;
-    private String countryName;
+public class SuccessResponseDTO {
+    private boolean success;
+    private String message;
 }
