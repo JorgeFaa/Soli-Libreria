@@ -15,7 +15,7 @@ SELECT
         FROM public.text_authors ta
         JOIN public.authors a ON a.authorid = ta.authorid
         WHERE ta.textid = t.textid
-    ), ARRAY[]::int[]) AS author_ids,
+    ), ARRAY[]::bigint[]) AS author_ids,
     COALESCE((
         SELECT array_agg(a.authorname)
         FROM public.text_authors ta
@@ -47,7 +47,7 @@ SELECT
         FROM public.text_editorials te
         JOIN public.editorials e ON e.editorialid = te.editorialid
         WHERE te.textid = t.textid
-    ), ARRAY[]::int[]) AS editorial_ids,
+    ), ARRAY[]::bigint[]) AS editorial_ids,
     COALESCE((
         SELECT array_agg(e.companyname)
         FROM public.text_editorials te
@@ -60,7 +60,7 @@ SELECT
         JOIN public.editorials e ON e.editorialid = te.editorialid
         JOIN public.country c ON c.countryid = e.countryid
         WHERE te.textid = t.textid
-    ), ARRAY[]::int[]) AS editorial_country_ids,
+    ), ARRAY[]::bigint[]) AS editorial_country_ids,
     COALESCE((
         SELECT array_agg(c.countryname)
         FROM public.text_editorials te
@@ -74,7 +74,7 @@ SELECT
         FROM public.text_genres tg
         JOIN public.genres g ON g.genreid = tg.genreid
         WHERE tg.textid = t.textid
-    ), ARRAY[]::int[]) AS genre_ids,
+    ), ARRAY[]::bigint[]) AS genre_ids,
     COALESCE((
         SELECT array_agg(g.genrename)
         FROM public.text_genres tg
@@ -82,7 +82,7 @@ SELECT
         WHERE tg.textid = t.textid
     ), ARRAY[]::text[]) AS genre_names
 FROM public.texts t
-LEFT JOIN public.texttype tt ON tt.typeid = t.typeid^;
+LEFT JOIN public.texttype tt ON tt.typeid = t.typeid;
 
 -- Vista actualizada de usuarios para incluir cambios de libros favoritos
 CREATE OR REPLACE VIEW public.vw_users AS
@@ -96,7 +96,7 @@ SELECT
         FROM public.user_genres ug
         JOIN public.genres g ON g.genreid = ug.genreid
         WHERE ug.userid = u.userid
-    ), ARRAY[]::int[]) AS preferred_genre_ids,
+    ), ARRAY[]::bigint[]) AS preferred_genre_ids,
     COALESCE((
         SELECT array_agg(g.genrename)
         FROM public.user_genres ug
@@ -107,7 +107,7 @@ SELECT
         SELECT array_agg(ub.textid)
         FROM public.user_books ub
         WHERE ub.userid = u.userid
-    ), ARRAY[]::int[]) AS favorite_book_ids,
+    ), ARRAY[]::bigint[]) AS favorite_book_ids,
     COALESCE((
         SELECT array_agg(t.texttitle)
         FROM public.user_books ub
@@ -115,4 +115,3 @@ SELECT
         WHERE ub.userid = u.userid
     ), ARRAY[]::text[]) AS favorite_book_titles
 FROM public.users u;
-
