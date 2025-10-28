@@ -1,24 +1,20 @@
 package com.soli.biblioteca.Dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 public class BookUpdateDTO {
-    private String title;               // null = no cambiar
-    private String description;         // null = no cambiar
-    private LocalDate publishedDate;    // null = no cambiar
-    private String textUrl;             // null = no cambiar
-    private String coverUrl;            // null = no cambiar
-
-    // Si el set es null => no cambiar; si está presente (aunque vacío) => reemplazar por ese contenido
-    private Set<Long> authorIds;
-    private Set<Long> editorialIds;
-    private Set<Long> genreIds;
-
-    private Long typeId;                // null = no cambiar
+    private Optional<String> title = Optional.empty();
+    private Optional<String> description = Optional.empty();
+    private Optional<LocalDate> publishedDate = Optional.empty();
+    private Optional<String> textUrl = Optional.empty();
+    private Optional<String> coverUrl = Optional.empty();
+    private Optional<Set<Long>> authorIds = Optional.empty();
+    private Optional<Set<Long>> editorialIds = Optional.empty();
+    private Optional<Set<Long>> genreIds = Optional.empty();
+    private Optional<Long> typeId = Optional.empty();
 }

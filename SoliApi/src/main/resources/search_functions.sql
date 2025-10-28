@@ -7,10 +7,10 @@
 CREATE OR REPLACE FUNCTION fn_search_texts_v2(
     p_search_term TEXT DEFAULT NULL,
     p_title TEXT DEFAULT NULL,
-    p_author_ids INT[] DEFAULT NULL,
-    p_genre_ids INT[] DEFAULT NULL,
-    p_editorial_ids INT[] DEFAULT NULL,
-    p_type_id INT DEFAULT NULL,
+    p_author_ids BIGINT[] DEFAULT NULL,
+    p_genre_ids BIGINT[] DEFAULT NULL,
+    p_editorial_ids BIGINT[] DEFAULT NULL,
+    p_type_id BIGINT DEFAULT NULL,
     p_published_after DATE DEFAULT NULL,
     p_published_before DATE DEFAULT NULL,
     p_page INT DEFAULT 0,
@@ -19,15 +19,15 @@ CREATE OR REPLACE FUNCTION fn_search_texts_v2(
     p_sort_direction TEXT DEFAULT 'ASC'
 )
 RETURNS TABLE(
-    textid INT,
+    textid BIGINT,
     texttitle VARCHAR,
     descripcion TEXT,
     publisheddate DATE,
     texturl VARCHAR,
     coverurl VARCHAR,
-    typeid INT,
+    typeid BIGINT,
     total_count BIGINT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -36,22 +36,22 @@ DECLARE
     v_query TEXT;
 BEGIN
     -- Construir cláusula de ordenamiento segura
-    v_sort_clause := CASE 
+    v_sort_clause := CASE
         WHEN p_sort_by = 'texttitle' THEN 'texttitle'
         WHEN p_sort_by = 'publisheddate' THEN 'publisheddate'
         WHEN p_sort_by = 'created_at' THEN 'created_at'
         ELSE 'texttitle'
     END;
-    
+
     IF UPPER(p_sort_direction) = 'DESC' THEN
         v_sort_clause := v_sort_clause || ' DESC';
     ELSE
         v_sort_clause := v_sort_clause || ' ASC';
     END IF;
-    
+
     -- Construir consulta dinámica
     v_query := '
-        SELECT DISTINCT t.textid, t.texttitle, t.descripcion, t.publisheddate, 
+        SELECT DISTINCT t.textid, t.texttitle, t.descripcion, t.publisheddate,
                t.texturl, t.coverurl, t.typeid,
                COUNT(*) OVER() AS total_count
         FROM texts t
@@ -60,44 +60,44 @@ BEGIN
         LEFT JOIN text_genres tg ON t.textid = tg.textid
         LEFT JOIN text_editorials te ON t.textid = te.textid
         WHERE 1=1';
-    
+
     -- Agregar filtros dinámicamente
     IF p_search_term IS NOT NULL THEN
-        v_query := v_query || ' AND (t.texttitle ILIKE ''%' || p_search_term || '%'' 
-                                   OR t.descripcion ILIKE ''%' || p_search_term || '%'')';
+        v_query := v_query || ' AND (t.texttitle ILIKE ''%' || p_search_term || '%''
+                                   OR t.descripcion ILIKE ''%' || p_search_term || '%'''')';
     END IF;
-    
+
     IF p_title IS NOT NULL THEN
-        v_query := v_query || ' AND t.texttitle ILIKE ''%' || p_title || '%''';
+        v_query := v_query || ' AND t.texttitle ILIKE ''%' || p_title || '%'''';
     END IF;
-    
+
     IF p_author_ids IS NOT NULL THEN
         v_query := v_query || ' AND ta.authorid = ANY(ARRAY[' || array_to_string(p_author_ids, ',') || '])';
     END IF;
-    
+
     IF p_genre_ids IS NOT NULL THEN
         v_query := v_query || ' AND tg.genreid = ANY(ARRAY[' || array_to_string(p_genre_ids, ',') || '])';
     END IF;
-    
+
     IF p_editorial_ids IS NOT NULL THEN
         v_query := v_query || ' AND te.editorialid = ANY(ARRAY[' || array_to_string(p_editorial_ids, ',') || '])';
     END IF;
-    
+
     IF p_type_id IS NOT NULL THEN
         v_query := v_query || ' AND t.typeid = ' || p_type_id;
     END IF;
-    
+
     IF p_published_after IS NOT NULL THEN
         v_query := v_query || ' AND t.publisheddate >= ''' || p_published_after || '''';
     END IF;
-    
+
     IF p_published_before IS NOT NULL THEN
         v_query := v_query || ' AND t.publisheddate <= ''' || p_published_before || '''';
     END IF;
-    
+
     -- Agregar ordenamiento y paginación
     v_query := v_query || ' ORDER BY ' || v_sort_clause || ', t.textid LIMIT ' || p_size || ' OFFSET ' || v_offset;
-    
+
     -- Ejecutar consulta
     RETURN QUERY EXECUTE v_query;
 END;
@@ -110,22 +110,22 @@ CREATE OR REPLACE FUNCTION fn_search_authors_v2(
     p_country TEXT DEFAULT NULL
 )
 RETURNS TABLE(
-    authorid INT,
+    authorid BIGINT,
     authorname VARCHAR,
     authormiddlename VARCHAR,
     authorlastname VARCHAR,
-    countryid INT,
+    countryid BIGINT,
     countryname VARCHAR
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.authorid, a.authorname, a.authormiddlename, a.authorlastname, 
+    SELECT a.authorid, a.authorname, a.authormiddlename, a.authorlastname,
            a.countryid, c.countryname
     FROM authors a
     LEFT JOIN country c ON a.countryid = c.countryid
-    WHERE (p_name IS NULL OR 
+    WHERE (p_name IS NULL OR
            a.authorname ILIKE '%' || p_name || '%' OR
            a.authormiddlename ILIKE '%' || p_name || '%' OR
            a.authorlastname ILIKE '%' || p_name || '%')
@@ -140,15 +140,15 @@ CREATE OR REPLACE FUNCTION fn_search_genres_v2(
     p_name TEXT DEFAULT NULL
 )
 RETURNS TABLE(
-    genreid INT,
+    genreid BIGINT,
     genrename VARCHAR,
     book_count BIGINT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT g.genreid, g.genrename, 
+    SELECT g.genreid, g.genrename,
            COALESCE(stats.book_count, 0) AS book_count
     FROM genres g
     LEFT JOIN (
@@ -167,10 +167,10 @@ CREATE OR REPLACE FUNCTION fn_popular_genres_v2(
     p_limit INT DEFAULT 10
 )
 RETURNS TABLE(
-    genreid INT,
+    genreid BIGINT,
     genrename VARCHAR,
     book_count BIGINT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -196,10 +196,10 @@ RETURNS TABLE(
     books_this_year BIGINT,
     books_last_month BIGINT,
     avg_books_per_author NUMERIC,
-    most_popular_genre_id INT,
+    most_popular_genre_id BIGINT,
     most_popular_genre_name VARCHAR,
     most_popular_genre_count BIGINT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -209,18 +209,18 @@ DECLARE
 BEGIN
     RETURN QUERY
     WITH stats AS (
-        SELECT 
+        SELECT
             COUNT(DISTINCT t.textid) as total_books,
             COUNT(DISTINCT ta.authorid) as unique_authors,
             COUNT(DISTINCT tg.genreid) as unique_genres,
             COUNT(DISTINCT te.editorialid) as unique_editorials,
-            COUNT(DISTINCT CASE 
-                WHEN EXTRACT(YEAR FROM t.publisheddate) = current_year 
-                THEN t.textid 
+            COUNT(DISTINCT CASE
+                WHEN EXTRACT(YEAR FROM t.publisheddate) = current_year
+                THEN t.textid
             END) as books_this_year,
-            COUNT(DISTINCT CASE 
-                WHEN t.created_at BETWEEN last_month_start AND last_month_end 
-                THEN t.textid 
+            COUNT(DISTINCT CASE
+                WHEN t.created_at BETWEEN last_month_start AND last_month_end
+                THEN t.textid
             END) as books_last_month
         FROM texts t
         LEFT JOIN text_authors ta ON t.textid = ta.textid
@@ -235,23 +235,23 @@ BEGIN
         ORDER BY book_count DESC
         LIMIT 1
     )
-    SELECT 
+    SELECT
         s.total_books,
         s.unique_authors,
         s.unique_genres,
         s.unique_editorials,
         s.books_this_year,
         s.books_last_month,
-        CASE 
-            WHEN s.unique_authors > 0 
+        CASE
+            WHEN s.unique_authors > 0
             THEN ROUND(s.total_books::NUMERIC / s.unique_authors::NUMERIC, 2)
-            ELSE 0 
+            ELSE 0
         END as avg_books_per_author,
-        pg.genreid as most_popular_genre_id,
-        pg.genrename as most_popular_genre_name,
-        pg.book_count as most_popular_genre_count
+        COALESCE(pg.genreid, 0) as most_popular_genre_id, -- Usar COALESCE para evitar NULL si no hay géneros
+        COALESCE(pg.genrename, 'N/A') as most_popular_genre_name,
+        COALESCE(pg.book_count, 0) as most_popular_genre_count
     FROM stats s
-    CROSS JOIN popular_genre pg;
+    LEFT JOIN popular_genre pg ON TRUE; -- Cambiado a LEFT JOIN
 END;
 $$;
 
@@ -262,16 +262,16 @@ RETURNS TABLE(
     total_authors BIGINT,
     unique_countries BIGINT,
     avg_books_per_author NUMERIC,
-    most_prolific_author_id INT,
+    most_prolific_author_id BIGINT,
     most_prolific_author_name TEXT,
     most_prolific_author_book_count BIGINT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     WITH author_stats AS (
-        SELECT 
+        SELECT
             COUNT(DISTINCT a.authorid) as total_authors,
             COUNT(DISTINCT a.countryid) as unique_countries,
             AVG(author_books.book_count) as avg_books_per_author
@@ -283,7 +283,7 @@ BEGIN
         ) author_books ON a.authorid = author_books.authorid
     ),
     top_author AS (
-        SELECT 
+        SELECT
             a.authorid,
             (a.authorname || ' ' || COALESCE(a.authormiddlename, '') || ' ' || COALESCE(a.authorlastname, '')) as full_name,
             COUNT(DISTINCT ta.textid) as book_count
@@ -293,15 +293,15 @@ BEGIN
         ORDER BY book_count DESC
         LIMIT 1
     )
-    SELECT 
+    SELECT
         s.total_authors,
         s.unique_countries,
         COALESCE(ROUND(s.avg_books_per_author, 2), 0) as avg_books_per_author,
-        t.authorid as most_prolific_author_id,
-        t.full_name as most_prolific_author_name,
-        t.book_count as most_prolific_author_book_count
+        COALESCE(t.authorid, 0) as most_prolific_author_id, -- Usar COALESCE para evitar NULL
+        COALESCE(t.full_name, 'N/A') as most_prolific_author_name,
+        COALESCE(t.book_count, 0) as most_prolific_author_book_count
     FROM author_stats s
-    CROSS JOIN top_author t;
+    LEFT JOIN top_author t ON TRUE; -- Cambiado a LEFT JOIN
 END;
 $$;
 
@@ -312,10 +312,10 @@ CREATE OR REPLACE FUNCTION fn_similar_books_v2(
     p_limit INT DEFAULT 5
 )
 RETURNS TABLE(
-    textid INT,
+    textid BIGINT,
     texttitle VARCHAR,
     similarity_score REAL
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -331,23 +331,23 @@ $$;
 -- === FUNCIÓN DE RECOMENDACIONES POR GÉNERO ===
 
 CREATE OR REPLACE FUNCTION fn_recommend_books_by_genre_v2(
-    p_user_genre_ids INT[],
-    p_exclude_text_ids INT[] DEFAULT NULL,
+    p_user_genre_ids BIGINT[],
+    p_exclude_text_ids BIGINT[] DEFAULT NULL,
     p_limit INT DEFAULT 10
 )
 RETURNS TABLE(
-    textid INT,
+    textid BIGINT,
     texttitle VARCHAR,
     descripcion TEXT,
     genre_matches INT
-) 
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT DISTINCT 
-        t.textid, 
-        t.texttitle, 
+    SELECT DISTINCT
+        t.textid,
+        t.texttitle,
         t.descripcion,
         COUNT(tg.genreid)::INT as genre_matches
     FROM texts t
@@ -374,15 +374,15 @@ BEGIN
     IF p_param IS NULL OR trim(p_param) = '' THEN
         RETURN NULL;
     END IF;
-    
+
     -- Limpiar caracteres especiales peligrosos
-    p_param := regexp_replace(p_param, '[''";\\]', '', 'g');
-    
+    p_param := regexp_replace(p_param, '[\'";\\]', '', 'g');
+
     -- Truncar si es muy largo
     IF length(p_param) > 200 THEN
         p_param := left(p_param, 200);
     END IF;
-    
+
     RETURN trim(p_param);
 END;
 $$;
@@ -405,14 +405,14 @@ BEGIN
     IF p_sort_by IS NULL OR p_sort_by != ALL(p_allowed_fields) THEN
         p_sort_by := 'texttitle';
     END IF;
-    
+
     -- Validar y limpiar sort_direction
     IF p_sort_direction IS NULL OR UPPER(p_sort_direction) NOT IN ('ASC', 'DESC') THEN
         p_sort_direction := 'ASC';
     ELSE
         p_sort_direction := UPPER(p_sort_direction);
     END IF;
-    
+
     RETURN QUERY SELECT p_sort_by, p_sort_direction;
 END;
 $$;

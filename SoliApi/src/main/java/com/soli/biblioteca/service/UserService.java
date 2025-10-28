@@ -2,19 +2,25 @@ package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.UserCreateDTO;
 import com.soli.biblioteca.Dto.UserDTO;
+import com.soli.biblioteca.Dto.UserUpdateDTO;
 import com.soli.biblioteca.exception.BusinessLogicException;
 import com.soli.biblioteca.mapper.UserMapper;
+import com.soli.biblioteca.model.Book;
 import com.soli.biblioteca.model.Genre;
 import com.soli.biblioteca.model.User;
+import com.soli.biblioteca.repository.BookRepository;
 import com.soli.biblioteca.repository.GenreRepository;
 import com.soli.biblioteca.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,31 +28,54 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final GenreRepository genreRepository;
+    private final CognitoService cognitoService;
+    private final BookRepository bookRepository;
 
-    public UserService(UserRepository userRepository, GenreRepository genreRepository) {
+    public UserService(UserRepository userRepository, GenreRepository genreRepository, CognitoService cognitoService, BookRepository bookRepository) {
         this.userRepository = userRepository;
         this.genreRepository = genreRepository;
+        this.cognitoService = cognitoService;
+        this.bookRepository = bookRepository;
     }
 
+    // =============================
+    // Métodos para Admin
+    // =============================
+
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Optional<UserDTO> getUserById(Long id) {
+        return userRepository.findById(id).map(UserMapper::toDTO);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        cognitoService.adminDeleteUser(user.getCognitoSub());
+        userRepository.delete(user);
+        log.info("User with id {} and cognitoSub {} deleted successfully.", id, user.getCognitoSub());
+    }
+    
     // =============================
     // Métodos de sincronización
     // =============================
 
-
-    // Crea usuario si no existe (desde login Cognito)
     public UserDTO createUserInDB(String cognitoSub, UserCreateDTO dto) {
         log.info("Creating user in DB for cognitoSub: {}", cognitoSub);
         
-        // Verificar si el usuario ya existe
         Optional<User> existingUser = userRepository.findByCognitoSub(cognitoSub);
         if (existingUser.isPresent()) {
             log.warn("User already exists for cognitoSub: {}", cognitoSub);
             throw new BusinessLogicException("El usuario ya existe en la base de datos");
         }
         
-        // Crear usuario vía stored procedure; si falla, usar JPA
         try {
-            
             userRepository.createUserByProcedure(
                     dto.getFirstName(),
                     dto.getLastName(),
@@ -54,26 +83,21 @@ public class UserService {
                     dto.getPreferredGenreIds()
             );
 
-            // Recuperar el usuario creado para obtener su ID
             User created = userRepository.findByCognitoSub(cognitoSub)
                     .orElseThrow(() -> new RuntimeException("No se pudo recuperar el usuario recien creado"));
 
-            // Devolver DTO basado en la entidad actual
             UserDTO result = UserMapper.toDTO(userRepository.findById(created.getId()).orElse(created));
             log.info("User created successfully with ID: {}", result.getId());
             return result;
         } catch (BusinessLogicException e) {
-            // Re-lanzar excepciones de negocio
             throw e;
         } catch (Exception ex) {
             log.warn("Stored procedure failed, falling back to JPA: {}", ex.getMessage());
-            // Fallback a JPA puro si los SPs no están disponibles
             User user = new User();
             user.setCognitoSub(cognitoSub);
             user.setFirstName(dto.getFirstName());
             user.setLastName(dto.getLastName());
 
-            // Asignar géneros (entidad)
             Set<Genre> genres = new HashSet<>();
             if (dto.getPreferredGenreIds() != null) {
                 log.debug("JPA fallback: Adding {} preferred genres", dto.getPreferredGenreIds().size());
@@ -92,20 +116,18 @@ public class UserService {
     }
 
     public UserDTO findByCognitoSubDTO(String sub) {
-        // Intentar vista agregada primero
         try {
             Optional<Object[]> row = userRepository.findUserViewByCognitoSub(sub);
             if (row.isPresent()) return mapUserViewRow(row.get());
         } catch (Exception ignored) {}
 
-        // Fallback a entidad JPA si la vista no retorna
         return userRepository.findByCognitoSub(sub)
                 .map(UserMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con sub: " + sub));
     }
 
     public UserDTO findUserByJwt(Jwt jwt) {
-        String cognitoSub = jwt.getSubject(); // obtenemos el cognitoSub del JWT
+        String cognitoSub = jwt.getSubject();
         log.debug("Finding user by JWT with cognitoSub: {}", cognitoSub);
 
         try {
@@ -134,13 +156,11 @@ public class UserService {
     }
 
     private UserDTO mapUserViewRow(Object[] r) {
-        // vw_users: userid, firstname, lastname, cognitosub, preferred_genre_ids, preferred_genres
         int i = 0;
         Long id = ((Number) r[i++]).longValue();
         String first = (String) r[i++];
         String last = (String) r[i++];
         String cognitoSub = (String) r[i++];
-        // int[] of genre ids may come as java.sql.Array
         java.util.List<Long> genreIds = new java.util.ArrayList<>();
         Object idsArr = r[i++];
         if (idsArr instanceof java.sql.Array a) {
@@ -166,6 +186,26 @@ public class UserService {
     // Actualizaciones específicas
     // =============================
 
+    @Transactional
+    public UserDTO updateUserProfile(String cognitoSub, UserUpdateDTO dto) {
+        User user = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new BusinessLogicException("Usuario no encontrado."));
+
+        dto.getFirstName().ifPresent(user::setFirstName);
+        dto.getLastName().ifPresent(user::setLastName);
+        dto.getPreferredGenreIds().ifPresent(genreIds -> {
+            Set<Genre> preferredGenres = new HashSet<>(genreRepository.findAllById(genreIds));
+            if (preferredGenres.size() != genreIds.size()) {
+                throw new BusinessLogicException("Uno o más géneros preferidos no encontrados.");
+            }
+            user.setPreferredGenres(preferredGenres);
+        });
+
+        User updatedUser = userRepository.save(user);
+        log.info("User profile for {} updated successfully.", cognitoSub);
+        return UserMapper.toDTO(updatedUser);
+    }
+
     public UserDTO updateGenreById(Long id, Set<Long> newGenreIds) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
@@ -184,4 +224,38 @@ public class UserService {
         return UserMapper.toDTO(userRepository.save(user));
     }
 
+    // =============================
+    // Gestión de Libros Favoritos
+    // =============================
+
+    @Transactional(readOnly = true)
+    public Set<Book> getFavoriteBooks(String cognitoSub) {
+        User user = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new BusinessLogicException("Usuario no encontrado."));
+        return user.getFavoriteBooks();
+    }
+
+    @Transactional
+    public void addFavoriteBook(String cognitoSub, Long bookId) {
+        User user = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new BusinessLogicException("Usuario no encontrado."));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BusinessLogicException("Libro no encontrado."));
+
+        user.getFavoriteBooks().add(book);
+        userRepository.save(user);
+        log.info("Book with id {} added to favorites for user {}", bookId, cognitoSub);
+    }
+
+    @Transactional
+    public void removeFavoriteBook(String cognitoSub, Long bookId) {
+        User user = userRepository.findByCognitoSub(cognitoSub)
+                .orElseThrow(() -> new BusinessLogicException("Usuario no encontrado."));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BusinessLogicException("Libro no encontrado."));
+
+        user.getFavoriteBooks().remove(book);
+        userRepository.save(user);
+        log.info("Book with id {} removed from favorites for user {}", bookId, cognitoSub);
+    }
 }

@@ -4,13 +4,13 @@ create or replace procedure sp_create_user_with_genres(
     p_firstname varchar,
     p_lastname varchar,
     p_cognitosub varchar,
-    p_genre_ids int[] default null  -- arreglo de IDs de géneros favoritos
+    p_genre_ids bigint[] default null  -- arreglo de IDs de géneros favoritos
 )
 language plpgsql
 as $$
 declare
-    v_userid int;
-    v_genreid int;
+    v_userid bigint;
+    v_genreid bigint;
 begin
     -- 1️⃣ Insertar usuario
     insert into public.users(firstname, lastname, cognitosub)
@@ -28,14 +28,14 @@ begin
 end; $$;
 
 -- READ usuario con géneros y libros favoritos
-create or replace function sp_get_user_full(p_userid int)
+create or replace function sp_get_user_full(p_userid bigint)
 returns table(
-    userid int,
+    userid bigint,
     firstname varchar,
     lastname varchar,
     cognitosub varchar,
-    favorite_genres int[],
-    favorite_books int[]
+    favorite_genres bigint[],
+    favorite_books bigint[]
 )
 language plpgsql
 as $$
@@ -63,7 +63,7 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_user(
-    p_userid int,
+    p_userid bigint,
     p_firstname varchar,
     p_lastname varchar
 )
@@ -77,7 +77,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_user(p_userid int)
+create or replace procedure sp_delete_user(p_userid bigint)
 language plpgsql
 as $$
 begin
@@ -85,7 +85,7 @@ begin
 end; $$;
 
 -- Gestionar géneros preferidos (tabla N:M user_genres)
-create or replace procedure sp_add_user_genre(p_userid int, p_genreid int)
+create or replace procedure sp_add_user_genre(p_userid bigint, p_genreid bigint)
 language plpgsql
 as $$
 begin
@@ -94,7 +94,7 @@ begin
     on conflict (userid, genreid) do nothing;
 end; $$;
 
-create or replace procedure sp_remove_user_genre(p_userid int, p_genreid int)
+create or replace procedure sp_remove_user_genre(p_userid bigint, p_genreid bigint)
 language plpgsql
 as $$
 begin
@@ -107,7 +107,7 @@ create or replace procedure sp_create_author(
     p_authorname varchar,
     p_authormiddlename varchar,
     p_authorlastname varchar,
-    p_countryid int
+    p_countryid bigint
 )
 language plpgsql
 as $$
@@ -117,13 +117,13 @@ begin
 end; $$;
 
 -- READ (consulta por ID)
-create or replace function sp_get_author(p_authorid int)
+create or replace function sp_get_author(p_authorid bigint)
 returns table(
-    authorid int,
+    authorid bigint,
     authorname varchar,
     authormiddlename varchar,
     authorlastname varchar,
-    countryid int
+    countryid bigint
 )
 language plpgsql
 as $$
@@ -136,11 +136,11 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_author(
-    p_authorid int,
+    p_authorid bigint,
     p_authorname varchar,
     p_authormiddlename varchar,
     p_authorlastname varchar,
-    p_countryid int
+    p_countryid bigint
 )
 language plpgsql
 as $$
@@ -154,7 +154,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_author(p_authorid int)
+create or replace procedure sp_delete_author(p_authorid bigint)
 language plpgsql
 as $$
 begin
@@ -165,7 +165,7 @@ end; $$;
 -- CREATE
 create or replace procedure sp_create_editorial(
     p_companyname varchar,
-    p_countryid int
+    p_countryid bigint
 )
 language plpgsql
 as $$
@@ -175,11 +175,11 @@ begin
 end; $$;
 
 -- READ (consulta por ID)
-create or replace function sp_get_editorial(p_editorialid int)
+create or replace function sp_get_editorial(p_editorialid bigint)
 returns table(
-    editorialid int,
+    editorialid bigint,
     companyname varchar,
-    countryid int
+    countryid bigint
 )
 language plpgsql
 as $$
@@ -192,9 +192,9 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_editorial(
-    p_editorialid int,
+    p_editorialid bigint,
     p_companyname varchar,
-    p_countryid int
+    p_countryid bigint
 )
 language plpgsql
 as $$
@@ -206,7 +206,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_editorial(p_editorialid int)
+create or replace procedure sp_delete_editorial(p_editorialid bigint)
 language plpgsql
 as $$
 begin
@@ -226,9 +226,9 @@ begin
 end; $$;
 
 -- READ (consulta por ID)
-create or replace function sp_get_genre(p_genreid int)
+create or replace function sp_get_genre(p_genreid bigint)
 returns table(
-    genreid int,
+    genreid bigint,
     genrename varchar
 )
 language plpgsql
@@ -242,7 +242,7 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_genre(
-    p_genreid int,
+    p_genreid bigint,
     p_genrename varchar
 )
 language plpgsql
@@ -254,7 +254,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_genre(p_genreid int)
+create or replace procedure sp_delete_genre(p_genreid bigint)
 language plpgsql
 as $$
 begin
@@ -274,9 +274,9 @@ begin
 end; $$;
 
 -- READ (consulta por ID)
-create or replace function sp_get_country(p_countryid int)
+create or replace function sp_get_country(p_countryid bigint)
 returns table(
-    countryid int,
+    countryid bigint,
     countryname varchar
 )
 language plpgsql
@@ -290,7 +290,7 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_country(
-    p_countryid int,
+    p_countryid bigint,
     p_countryname varchar
 )
 language plpgsql
@@ -302,7 +302,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_country(p_countryid int)
+create or replace procedure sp_delete_country(p_countryid bigint)
 language plpgsql
 as $$
 begin
@@ -322,9 +322,9 @@ begin
 end; $$;
 
 -- READ (consulta por ID)
-create or replace function sp_get_texttype(p_typeid int)
+create or replace function sp_get_texttype(p_typeid bigint)
 returns table(
-    typeid int,
+    typeid bigint,
     texttype varchar
 )
 language plpgsql
@@ -338,7 +338,7 @@ end; $$;
 
 -- UPDATE
 create or replace procedure sp_update_texttype(
-    p_typeid int,
+    p_typeid bigint,
     p_texttype varchar
 )
 language plpgsql
@@ -350,7 +350,7 @@ begin
 end; $$;
 
 -- DELETE
-create or replace procedure sp_delete_texttype(p_typeid int)
+create or replace procedure sp_delete_texttype(p_typeid bigint)
 language plpgsql
 as $$
 begin
@@ -363,20 +363,20 @@ create or replace procedure sp_create_text(
     p_texttitle varchar,
     p_descripcion text,
     p_publisheddate date,
-    p_typeid int,
+    p_typeid bigint,
     p_texturl varchar,
     p_coverurl varchar,
-    p_author_ids int[],
-    p_editorial_ids int[],
-    p_genre_ids int[]
+    p_author_ids bigint[],
+    p_editorial_ids bigint[],
+    p_genre_ids bigint[]
 )
 language plpgsql
 as $$
 declare
-    v_textid int;
-    v_authorid int;
-    v_editorialid int;
-    v_genreid int;
+    v_textid bigint;
+    v_authorid bigint;
+    v_editorialid bigint;
+    v_genreid bigint;
 begin
     insert into public.texts(texttitle, descripcion, publisheddate, typeid, texturl, coverurl)
     values(p_texttitle, p_descripcion, p_publisheddate, p_typeid, p_texturl, p_coverurl)
@@ -396,7 +396,7 @@ begin
             values(v_textid, v_editorialid)
             on conflict do nothing;
         end loop;
-    end if;
+    fi;
 
     if p_genre_ids is not null then
         foreach v_genreid in array p_genre_ids loop
@@ -408,13 +408,13 @@ begin
 end; $$;
 
 -- Obtener texto básico (sin agregaciones)
-create or replace function sp_get_text(p_textid int)
+create or replace function sp_get_text(p_textid bigint)
 returns table(
-    textid int,
+    textid bigint,
     texttitle varchar,
     descripcion text,
     publisheddate date,
-    typeid int,
+    typeid bigint,
     texturl varchar,
     coverurl varchar
 )
@@ -429,23 +429,23 @@ end; $$;
 
 -- Actualizar texto y, si vienen arrays, reemplazar relaciones
 create or replace procedure sp_update_text(
-    p_textid int,
+    p_textid bigint,
     p_texttitle varchar default null,
     p_descripcion text default null,
     p_publisheddate date default null,
-    p_typeid int default null,
+    p_typeid bigint default null,
     p_texturl varchar default null,
     p_coverurl varchar default null,
-    p_author_ids int[] default null,
-    p_editorial_ids int[] default null,
-    p_genre_ids int[] default null
+    p_author_ids bigint[] default null,
+    p_editorial_ids bigint[] default null,
+    p_genre_ids bigint[] default null
 )
 language plpgsql
 as $$
 declare
-    v_authorid int;
-    v_editorialid int;
-    v_genreid int;
+    v_authorid bigint;
+    v_editorialid bigint;
+    v_genreid bigint;
 begin
     update public.texts
     set texttitle = coalesce(p_texttitle, texttitle),
@@ -485,7 +485,7 @@ begin
 end; $$;
 
 -- Eliminar texto (joins caen por ON DELETE CASCADE)
-create or replace procedure sp_delete_text(p_textid int)
+create or replace procedure sp_delete_text(p_textid bigint)
 language plpgsql
 as $$
 begin
@@ -494,8 +494,8 @@ end; $$;
 
 -- Agregar texto de favorito de usuario
 create or replace procedure sp_add_favorite(
-    p_userid int,
-    p_textid int
+    p_userid bigint,
+    p_textid bigint
 )
 language plpgsql
 as $$
@@ -506,8 +506,8 @@ end; $$;
 
 -- Eliminar texto de favorito de usuario
 create or replace procedure sp_remove_favorite(
-    p_userid int,
-    p_textid int
+    p_userid bigint,
+    p_textid bigint
 )
 language plpgsql
 as $$

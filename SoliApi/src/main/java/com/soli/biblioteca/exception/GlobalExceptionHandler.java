@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +23,26 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AccountNotVerifiedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccountNotVerifiedException(
+            AccountNotVerifiedException ex, HttpServletRequest request) {
+
+        log.warn("Account not verified on {}: {}", request.getRequestURI(), ex.getMessage());
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                HttpStatus.FORBIDDEN.value(),
+                "ACCOUNT_NOT_VERIFIED",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("nextStep", ex.getNextStep());
+        errorResponse.setDetails(details);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
 
     // Manejar errores de validación de Bean Validation en request body
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -255,8 +274,7 @@ public class GlobalExceptionHandler {
             case "UserNotFoundException" -> "Usuario no encontrado";
             case "NotAuthorizedException" -> "Credenciales incorrectas";
             case "InvalidPasswordException" -> "La contraseña no cumple con los requisitos mínimos";
-            case "CodeExpiredException" -> "El código de verificación ha expirado";
-            case "ExpiredCodeException" -> "El código de verificación ha expirado";
+            case "CodeExpiredException", "ExpiredCodeException" -> "El código de verificación ha expirado"; // Consolidado
             case "InvalidVerificationCodeException" -> "Código de verificación inválido";
             case "UserNotConfirmedException" -> "El usuario no ha confirmado su cuenta";
             case "TokenRefreshException" -> "Error al refrescar el token";

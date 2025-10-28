@@ -1,29 +1,41 @@
 package com.soli.biblioteca.service;
 
-
+import com.soli.biblioteca.Dto.CountryUpdateDTO;
 import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.repository.CountryRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CountryService {
+
     private final CountryRepository countryRepository;
 
     public CountryService(CountryRepository countryRepository) {
         this.countryRepository = countryRepository;
     }
 
-    public Country save(Country country) { return countryRepository.save(country); }
+    public List<Country> getAllCountries() {
+        return countryRepository.findAll();
+    }
 
-    public List<Country> findAll() { return countryRepository.findAll(); }
+    public Optional<Country> getCountryById(Long id) {
+        return countryRepository.findById(id);
+    }
 
-    public boolean existsByName(String name){ return countryRepository.existsByName(name); }
+    public Country createCountry(Country country) {
+        return countryRepository.save(country);
+    }
 
-    public Optional<Country> findById(Long id) { return countryRepository.findById(id); }
+    public Country updateCountry(Long id, CountryUpdateDTO countryDetails) {
+        Country country = countryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + id));
+        countryDetails.getCountryname().ifPresent(country::setName);
+        return countryRepository.save(country);
+    }
 
-    public void delete(Long id) { countryRepository.deleteById(id); }
+    public void deleteCountry(Long id) {
+        countryRepository.deleteById(id);
+    }
 }
-
