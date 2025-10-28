@@ -12,7 +12,9 @@ data class AuthUiState(
     val isLoggedIn: Boolean = false,
     val user: User? = null,
     val errorMessage: String? = null,
-    val loginSuccess: Boolean = false
+    val loginSuccess: Boolean = false,
+    val needsProfileSetup: Boolean = false,
+    val isCheckingProfile: Boolean = false
 )
 
 class AuthViewModel(
@@ -135,6 +137,32 @@ class AuthViewModel(
     
     fun hasAdminAccess(): Boolean {
         return authRepository.hasAdminAccess()
+    }
+    
+    fun checkProfileSetup() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isCheckingProfile = true)
+            
+            authRepository.needsProfileSetup()
+                .onSuccess { needsSetup ->
+                    _uiState.value = _uiState.value.copy(
+                        needsProfileSetup = needsSetup,
+                        isCheckingProfile = false
+                    )
+                }
+                .onFailure { exception ->
+                    // If we can't check, assume no setup needed and let them proceed
+                    _uiState.value = _uiState.value.copy(
+                        needsProfileSetup = false,
+                        isCheckingProfile = false,
+                        errorMessage = "Error checking profile: ${exception.message}"
+                    )
+                }
+        }
+    }
+    
+    fun clearProfileSetupFlag() {
+        _uiState.value = _uiState.value.copy(needsProfileSetup = false)
     }
     
     private fun isValidEmail(email: String): Boolean {

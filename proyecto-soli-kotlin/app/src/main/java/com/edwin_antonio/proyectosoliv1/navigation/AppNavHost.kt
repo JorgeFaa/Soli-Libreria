@@ -21,6 +21,7 @@ import com.edwin_antonio.proyectosoliv1.ui.screens.LoginScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.PdfViewerScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.RegisterScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.SplashScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.UserProfileSetupScreen
 
 @Composable
 fun AppNavHost() {
@@ -54,6 +55,11 @@ fun AppNavHost() {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
+                onGoToProfileSetup = {
+                    navController.navigate(Screen.UserProfileSetup.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
                 onGoToRegister = { navController.navigate(Screen.Register.route) },
                 authViewModel = authViewModel
             )
@@ -73,6 +79,16 @@ fun AppNavHost() {
                     }
                 },
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.UserProfileSetup.route) {
+            UserProfileSetupScreen(
+                onProfileSetupComplete = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.UserProfileSetup.route) { inclusive = true }
+                    }
+                },
+                tokenManager = tokenManager
             )
         }
         composable(Screen.Home.route) {

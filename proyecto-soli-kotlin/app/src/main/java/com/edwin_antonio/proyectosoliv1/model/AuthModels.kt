@@ -6,12 +6,19 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val idToken: String? = null,
-    val accessToken: String? = null,
-    val refreshToken: String? = null,
-    val tokenType: String? = null,
-    val expiresIn: Int? = null,
-    val status: String? = null
+    val message: String?,
+    val success: Boolean?,
+    val loginTime: String?,
+    val userEmail: String?,
+    val tokens: Tokens?,
+    val status: String?
+)
+
+data class Tokens(
+    val accessToken: String?,
+    val idToken: String?,
+    val refreshToken: String?,
+    val expiresIn: String?
 )
 
 data class User(
@@ -19,15 +26,16 @@ data class User(
     val firstName: String,
     val lastName: String,
     val activeMember: Boolean,
-    val prefferedGenreIds: List<Int>,
+    val preferredGenreIds: List<Int>,
     val roleName: String
 )
 
 data class RegisterRequest(
     val email: String,
-    val password: String,
     val firstName: String,
-    val lastName: String
+    val lastName: String,
+    val preferredGenreIds: List<Int>
+
 )
 
 data class VerificationRequest(
@@ -63,4 +71,10 @@ data class RefreshTokenResponse(
     val accessToken: String,
     val idToken: String,
     val refreshToken: String
+)
+
+data class UserProfileSetupRequest(
+    val firstName: String,
+    val lastName: String,
+    val preferredGenreIds: List<Int>
 )

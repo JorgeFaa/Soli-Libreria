@@ -44,9 +44,9 @@ class HomeViewModel(
                 kotlinx.coroutines.withTimeout(30000) {
                     println("📚 HomeViewModel: Cargando libros...")
                     val response = apiService.getAllBooks()
-                    
+
                     if (response.isSuccessful) {
-                        val books = response.body() ?: emptyList()
+                        val books = response.body()?.content ?: emptyList()
                         println("📚 HomeViewModel: ${books.size} libros cargados")
                         
                         val sections = createSections(books)
