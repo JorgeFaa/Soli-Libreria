@@ -1,27 +1,40 @@
 package com.edwin_antonio.proyectosoliv1.model
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(
     val username: String, // El email se envía como username para la API
     val password: String
 )
 
-data class LoginResponse(
-    val message: String?,
-    val success: Boolean?,
-    val loginTime: String?,
-    val userEmail: String?,
-    val tokens: Tokens?,
-    val status: String?
-)
+data class AuthTokens(
+    @SerializedName("accessToken") // Buenas práctica para evitar problemas con ofuscación de código
+    val accessToken: String,
 
-data class Tokens(
-    val accessToken: String?,
-    val idToken: String?,
-    val refreshToken: String?,
-    val expiresIn: String?
+    @SerializedName("idToken")
+    val idToken: String,
+
+    @SerializedName("refreshToken")
+    val refreshToken: String,
+
+    @SerializedName("tokenType")
+    val tokenType: String,
+
+    @SerializedName("expiresIn")
+    val expiresIn: Int
 )
 
 data class User(
+    val id: Int,
+    val firstName: String,
+    val lastName: String,
+    val activeMember: Boolean,
+    val preferredGenreIds: List<Int>,
+    val favoriteBooks: List<Int>,
+    val roleName: String
+)
+
+data class UserCreatedResponse(
     val id: Int,
     val firstName: String,
     val lastName: String,
@@ -35,7 +48,6 @@ data class RegisterRequest(
     val firstName: String,
     val lastName: String,
     val preferredGenreIds: List<Int>
-
 )
 
 data class VerificationRequest(

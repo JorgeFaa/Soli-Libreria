@@ -20,66 +20,66 @@ class AuthRepository(
     }
     
     val isLoggedIn: StateFlow<Boolean> = tokenManager.isLoggedIn
-    
+
+    // Dentro de tu clase AuthRepository
+
     suspend fun login(email: String, password: String): Result<String> {
         return try {
             println("🚀 AuthRepository: Intentando login con email: $email")
             val request = LoginRequest(username = email, password = password) // Email se envía como username
             val response = publicApiService.login(request)
-            
+
             println("📊 AuthRepository: Response code: ${response.code()}")
-            
+
             if (response.isSuccessful) {
-                val loginResponse = response.body()!!
-                println("AuthRepository: Login raw body: ${response.body()}")
-                println("AuthRepository: Login raw JSON: ${response.errorBody()?.string()}")
-                
-                // Verificar si la cuenta necesita verificación
-                if (loginResponse.status == "UNCONFIRMED") {
-                    return Result.failure(Exception("Cuenta no confirmada. Verifica tu email."))
-                }
-                
-                // Verificar que tengamos los tokens necesarios
-                if (loginResponse.tokens?.accessToken != null &&
-                    loginResponse.tokens.idToken != null &&
-                    loginResponse.tokens.refreshToken != null) {
+                val authResponse = response.body()
+                println("AuthRepository: Login raw body: $authResponse")
+
+                // Verificar que la respuesta y los tokens no sean nulos
+                if (authResponse?.accessToken != null &&
+                    authResponse.idToken != null &&
+                    authResponse.refreshToken != null) {
 
                     tokenManager.saveTokens(
-                        accessToken = loginResponse.tokens.accessToken,
-                        idToken = loginResponse.tokens.idToken,
-                        refreshToken = loginResponse.tokens.refreshToken
+                        accessToken = authResponse.accessToken,
+                        idToken = authResponse.idToken,
+                        refreshToken = authResponse.refreshToken
                     )
 
                     // Guardar info básica del usuario
                     tokenManager.saveUserInfo(
-                        userId = email,
+                        userId = email, // Puedes cambiar esto si la respuesta incluyera un ID de usuario
                         email = email,
-                        name = null,
-                        role = "USER"
+                        name = null, // La respuesta de login no incluye el nombre
+                        role = "USER" // Asumimos un rol por defecto, se puede actualizar después
                     )
-                    
+
                     println("AuthRepository: Login exitoso, tokens guardados")
-                    Result.success(loginResponse.tokens.accessToken)
+                    Result.success(authResponse.accessToken)
                 } else {
+                    // Esto ocurre si la respuesta es exitosa (200) pero el cuerpo es nulo o incompleto.
                     Result.failure(Exception("Respuesta de login incompleta del servidor"))
                 }
-            } else { //CREO QUE ESTE ES EL TRY CATCH QUE FALLA
+            } else { // Manejo de respuestas no exitosas (4xx, 5xx)
+                val errorBody = response.errorBody()?.string()
                 println("AuthRepository: Response NO exitosa. Código: ${response.code()}")
-                println("AuthRepository: Error body: ${response.errorBody()?.string()}")
+                println("AuthRepository: Error body: $errorBody")
                 val errorMsg = when (response.code()) {
                     401 -> "Email o contraseña incorrectos"
                     400 -> "Datos de login inválidos"
-                    500 -> "Error del servidor"
+                    // Aquí podrías intentar parsear 'errorBody' si la API envía un JSON con un mensaje
                     else -> "Error de conexión: ${response.code()}"
                 }
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             println("AuthRepository: Excepción durante login: ${e.message}")
+            // Esta excepción captura problemas de red, timeouts, o errores de parsing de JSON
             Result.failure(Exception("Error de conexión: ${e.message}"))
         }
     }
-    
+
+
     suspend fun logout(): Result<Unit> {
         return try {
             // Intentar hacer logout en el servidor
@@ -153,7 +153,8 @@ class AuthRepository(
                     lastName = "",
                     activeMember = true,
                     preferredGenreIds = emptyList(),
-                    roleName = roleString
+                    roleName = roleString,
+                    favoriteBooks = emptyList()
                 )
             } catch (e: Exception) {
                 null

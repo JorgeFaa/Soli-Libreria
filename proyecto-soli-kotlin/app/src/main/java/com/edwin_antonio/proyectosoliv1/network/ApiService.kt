@@ -15,50 +15,44 @@ interface ApiService {
     
     // ==== 🔐 USER ENDPOINTS ====
     
-    @POST("api/v2/user/register")
+    @POST("api/v3/auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<String>
     
-    @POST("api/v2/user/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+    @POST("api/v3/auth/login")
+    suspend fun login(@Body request: LoginRequest): Response<AuthTokens>
     
-    @POST("api/v2/user/createUser")
-    suspend fun createUser(@Body request: RegisterRequest): Response<User>
+    @POST("api/v3/users")
+    suspend fun createUser(@Body request: RegisterRequest): Response<UserCreatedResponse>
     
-    @GET("api/v2/user/me")
+    @GET("api/v3/users/me")
     suspend fun getCurrentUser(): Response<User>
     
-    @PATCH("api/v2/user/{id}/active")
-    suspend fun activateUser(@Path("id") userId: Int): Response<User>
-    
-    @POST("api/v2/user/resend-verification")
+    @POST("api/v3/auth/resend-verification")
     suspend fun resendVerification(@Body request: ResendVerificationRequest): Response<String>
     
-    @POST("api/v2/user/verify-account")
+    @POST("api/v3/auth/verify-account")
     suspend fun verifyAccount(@Body request: VerificationRequest): Response<VerificationResponse>
     
-    @POST("api/v2/user/auth/refresh-token")
+    @POST("api/v3/auth/refresh-token")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<RefreshTokenResponse>
     
-    @POST("api/v2/user/auth/logout")
+    @POST("api/v3/auth/logout")
     suspend fun logout(): Response<LogoutResponse>
     
-    @POST("api/v2/user/auth/logout-all")
+    @POST("api/v3/auth/logout-all")
     suspend fun logoutAll(): Response<LogoutResponse>
-    
-    @GET("api/v2/user/status")
-    suspend fun getUserStatus(@Query("email") email: String): Response<StatusCheckResponse>
     
     // ==== 📚 BOOK ENDPOINTS ====
     
-    @GET("api/v2/books/all")
+    @GET("api/v3/books")
     suspend fun getAllBooks(): Response<BookResponse>
     
-    @GET("api/v2/books/{id}")
+    @GET("api/v3/books/{id}")
     suspend fun getBookById(@Path("id") bookId: Int): Response<Book>
     
     // ==== 🎭 GENRE ENDPOINTS ====
     
-    @GET("api/v2/genres/all")
+    @GET("api/v3/admin/genres")
     suspend fun getAllGenres(): Response<List<Genre>>
 
     // ==== 👤 USER PROFILE UPDATE ====
