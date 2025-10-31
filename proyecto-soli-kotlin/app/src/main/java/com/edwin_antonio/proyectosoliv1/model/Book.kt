@@ -37,3 +37,15 @@ data class TextType(
     val id: Int,
     val type: String
 )
+
+data class BookResponse(
+    val content: List<Book>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Int,
+    val totalPages: Int,
+    val first: Boolean,
+    val last: Boolean,
+    val hasNext: Boolean,
+    val hasPrevious: Boolean
+)

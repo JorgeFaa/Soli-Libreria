@@ -14,8 +14,9 @@ data class RegisterUiState(
     val name: String = "",
     val lastname: String = "",
     val gender: String = "",
-    val username: String = "", // email
+    val username: String = "", // email usado como username
     val password: String = "",
+    val preferredGenreIds: List<Int> = emptyList(),
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -60,6 +61,10 @@ class RegisterViewModel(
         )
     }
     
+    fun updatePreferredGenres(genreIds: List<Int>) {
+        _uiState.value = _uiState.value.copy(preferredGenreIds = genreIds)
+    }
+    
     fun register() {
         val currentState = _uiState.value
         
@@ -79,16 +84,18 @@ class RegisterViewModel(
         
         viewModelScope.launch {
             try {
-                val response = apiService.register(
+                // Usar createUser que acepta preferredGenreIds
+                val response = apiService.createUser(
                     RegisterRequest(
                         email = currentState.username,
-                        password = currentState.password,
                         firstName = currentState.name,
-                        lastName = currentState.lastname
+                        lastName = currentState.lastname,
+                        preferredGenreIds = currentState.preferredGenreIds
                     )
                 )
                 
                 if (response.isSuccessful) {
+                    val user = response.body()
                     _uiState.value = currentState.copy(
                         isLoading = false,
                         isRegisterSuccessful = true,
@@ -96,15 +103,21 @@ class RegisterViewModel(
                     )
                 } else {
                     val errorBody = response.errorBody()?.string()
+                    val errorMessage = when (response.code()) {
+                        400 -> "Datos inválidos. Verifica la información."
+                        409 -> "Este email ya está registrado"
+                        500 -> "Error del servidor. Inténtalo más tarde."
+                        else -> "No se pudo registrar: ${response.code()}"
+                    }
                     _uiState.value = currentState.copy(
                         isLoading = false,
-                        errorMessage = "No se pudo registrar"
+                        errorMessage = errorMessage
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = currentState.copy(
                     isLoading = false,
-                    errorMessage = "Ocurrió un error al registrar"
+                    errorMessage = "Error de conexión: ${e.message}"
                 )
             }
         }
