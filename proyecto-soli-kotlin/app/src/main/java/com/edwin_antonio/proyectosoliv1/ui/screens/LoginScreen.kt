@@ -30,10 +30,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.edwin_antonio.proyectosoliv1.R
 import com.edwin_antonio.proyectosoliv1.ui.theme.*
 import com.edwin_antonio.proyectosoliv1.viewmodel.AuthViewModel
+import com.edwin_antonio.proyectosoliv1.ui.screens.UserProfileSetupScreen
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onGoToProfileSetup: () -> Unit,
     onGoToRegister: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -43,11 +45,11 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     
-    // 🏁 Navegación cuando login es exitoso
+    // 🏁 Navegación cuando login es exitoso - siempre ir a profile setup
     LaunchedEffect(uiState.loginSuccess) {
         if (uiState.loginSuccess) {
             authViewModel.clearLoginSuccess()
-            onLoginSuccess()
+            onGoToProfileSetup()
         }
     }
     

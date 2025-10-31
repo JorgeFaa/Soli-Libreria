@@ -31,7 +31,8 @@ class AuthRepository(
             
             if (response.isSuccessful) {
                 val loginResponse = response.body()!!
-                println("AuthRepository: Login Response: $loginResponse")
+                println("AuthRepository: Login raw body: ${response.body()}")
+                println("AuthRepository: Login raw JSON: ${response.errorBody()?.string()}")
                 
                 // Verificar si la cuenta necesita verificación
                 if (loginResponse.status == "UNCONFIRMED") {
@@ -39,35 +40,30 @@ class AuthRepository(
                 }
                 
                 // Verificar que tengamos los tokens necesarios
-                if (loginResponse.accessToken != null && 
-                    loginResponse.refreshToken != null &&
-                    loginResponse.idToken != null) {
-                    
-                    println("AuthRepository: Access Token: ${loginResponse.accessToken}")
-                    println("AuthRepository: ID Token: ${loginResponse.idToken}")
-                    println("AuthRepository: Refresh Token: ${loginResponse.refreshToken}")
-                    
-                    // Guardar los tokens
+                if (loginResponse.tokens?.accessToken != null &&
+                    loginResponse.tokens.idToken != null &&
+                    loginResponse.tokens.refreshToken != null) {
+
                     tokenManager.saveTokens(
-                        accessToken = loginResponse.accessToken,
-                        idToken = loginResponse.idToken,
-                        refreshToken = loginResponse.refreshToken
+                        accessToken = loginResponse.tokens.accessToken,
+                        idToken = loginResponse.tokens.idToken,
+                        refreshToken = loginResponse.tokens.refreshToken
                     )
-                    
-                    // Guardar información básica del usuario (temporal)
+
+                    // Guardar info básica del usuario
                     tokenManager.saveUserInfo(
-                        userId = email, // Usamos email como ID por ahora
+                        userId = email,
                         email = email,
                         name = null,
-                        role = "USER" // Rol por defecto
+                        role = "USER"
                     )
                     
                     println("AuthRepository: Login exitoso, tokens guardados")
-                    Result.success(loginResponse.accessToken)
+                    Result.success(loginResponse.tokens.accessToken)
                 } else {
                     Result.failure(Exception("Respuesta de login incompleta del servidor"))
                 }
-            } else {
+            } else { //CREO QUE ESTE ES EL TRY CATCH QUE FALLA
                 println("AuthRepository: Response NO exitosa. Código: ${response.code()}")
                 println("AuthRepository: Error body: ${response.errorBody()?.string()}")
                 val errorMsg = when (response.code()) {
@@ -156,7 +152,7 @@ class AuthRepository(
                     firstName = name ?: email.substringBefore("@"),
                     lastName = "",
                     activeMember = true,
-                    prefferedGenreIds = emptyList(),
+                    preferredGenreIds = emptyList(),
                     roleName = roleString
                 )
             } catch (e: Exception) {
@@ -179,5 +175,27 @@ class AuthRepository(
     
     fun hasAdminAccess(): Boolean {
         return getUserRole() == "ADMIN"
+    }
+    
+    suspend fun needsProfileSetup(): Result<Boolean> {
+        return try {
+            val response = apiService.getCurrentUser()
+            
+            if (response.isSuccessful) {
+                val user = response.body()!!
+                // Check if user has completed profile setup
+                // A user needs profile setup if firstName is empty or they have no preferred genres
+                val needsSetup = user.firstName.isBlank() || user.lastName.isBlank()
+                Result.success(needsSetup)
+            } else {
+                if (response.code() == 401) {
+                    Result.failure(Exception("Session expired"))
+                } else {
+                    Result.failure(Exception("Error checking profile: ${response.code()}"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
