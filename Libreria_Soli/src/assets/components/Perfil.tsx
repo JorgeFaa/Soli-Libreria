@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "./Perfil.css";
 
 // Importar servicios de autenticación
-import { getUserCompleteProfile, updateUserProfile } from '../../services/authService';
+import { getUserCompleteProfile, updateUserProfile, isCurrentUserAdmin } from '../../services/authService';
 import type { UserCompleteProfile } from '../../services/authService';
 
 // Importar servicios de libros para obtener géneros y favoritos
@@ -340,11 +340,85 @@ export default function Perfil() {
               {userInfo.nombre || 'Usuario'} {userInfo.apellido || 'Sin Apellido'}
             </h1>
             <p className="perfil-subtitle">Miembro de Soli Librería</p>
+            {/* Mostrar badge de administrador si aplica */}
+            {isCurrentUserAdmin() && (
+              <div style={{ 
+                marginTop: '0.5rem',
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(135deg, #3498db, #2980b9)',
+                color: 'white',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                display: 'inline-block'
+              }}>
+                🛠️ ADMINISTRADOR
+              </div>
+            )}
           </div>
         </div>
 
         {/* Contenido principal */}
         <div className="perfil-content">
+          
+          {/* Panel de administración - Solo para administradores */}
+          {isCurrentUserAdmin() && (
+            <div className="perfil-card" style={{ 
+              background: 'linear-gradient(135deg, #3498db, #2980b9)',
+              color: 'white',
+              marginBottom: '2rem'
+            }}>
+              <div className="perfil-card-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                <h2 style={{ color: 'white', margin: 0 }}>🛠️ Panel de Administración</h2>
+                <Link 
+                  to="/admin"
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.9rem',
+                    transition: 'background-color 0.2s ease',
+                    border: '1px solid rgba(255,255,255,0.3)'
+                  }}
+                >
+                  Ir al Dashboard
+                </Link>
+              </div>
+              <div style={{ padding: '1rem 0' }}>
+                <p style={{ margin: '0 0 1rem 0', opacity: 0.9 }}>
+                  Accede al panel de administración para gestionar usuarios, libros, géneros y configuraciones del sistema.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span style={{ 
+                    padding: '0.25rem 0.5rem', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    borderRadius: '12px', 
+                    fontSize: '0.8rem' 
+                  }}>
+                    👥 Gestión de usuarios
+                  </span>
+                  <span style={{ 
+                    padding: '0.25rem 0.5rem', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    borderRadius: '12px', 
+                    fontSize: '0.8rem' 
+                  }}>
+                    📚 Catálogo de libros
+                  </span>
+                  <span style={{ 
+                    padding: '0.25rem 0.5rem', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    borderRadius: '12px', 
+                    fontSize: '0.8rem' 
+                  }}>
+                    📊 Reportes y estadísticas
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Información personal */}
           <div className="perfil-card">
