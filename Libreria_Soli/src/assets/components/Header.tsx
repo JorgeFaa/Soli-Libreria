@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Header.css";
 
+// Importar función para verificar roles
+import { isCurrentUserAdmin } from "../../services/authService";
+
 // Importación de iconos SVG
 import SunIcon from "../icons/sun.svg";
 import SearchIcon from "../icons/search.svg";
@@ -205,6 +208,21 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                     >
                       Mi Perfil
                     </Link>
+                    {/* Mostrar enlace de administración solo para administradores */}
+                    {isCurrentUserAdmin() && (
+                      <Link 
+                        to="/admin" 
+                        className="user-side-menu-item"
+                        onClick={handleCloseMenu}
+                        style={{ 
+                          background: 'linear-gradient(135deg, #3498db, #2980b9)',
+                          color: 'white',
+                          fontWeight: '600'
+                        }}
+                      >
+                        🛠️ Panel de Administración
+                      </Link>
+                    )}
                     <a href="#mis-libros" className="user-side-menu-item">Mis Libros</a>
                     <a href="#favoritos" className="user-side-menu-item">Favoritos</a>
                     <a href="#configuracion" className="user-side-menu-item">Configuración</a>
