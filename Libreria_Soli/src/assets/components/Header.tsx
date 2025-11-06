@@ -212,11 +212,16 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                     <button 
                       onClick={async () => {
                         try {
-                          await onLogout(); // Ahora onLogout es async
+                          await onLogout();
                           handleCloseMenu();
+                          // Redirigir siempre al inicio después del logout
+                          navigate('/');
+                          window.scrollTo(0, 0);
                         } catch (error) {
-                          console.error("Error during logout:", error);
-                          handleCloseMenu(); // Cerrar menú incluso si hay error
+                          // Incluso si hay error, cerrar menú y redirigir al inicio
+                          handleCloseMenu();
+                          navigate('/');
+                          window.scrollTo(0, 0);
                         }
                       }}
                       className="user-side-menu-item"

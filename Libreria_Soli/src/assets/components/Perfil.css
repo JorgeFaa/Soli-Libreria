@@ -551,3 +551,314 @@
   font-size: 0.9rem !important;
   font-weight: 400 !important;
 }
+
+/* Estilos para edición de perfil */
+.perfil-edit-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.perfil-edit-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--naranja-atardecer);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.perfil-edit-button:hover {
+  background-color: #e67e00;
+}
+
+.perfil-save-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--verde-sabio);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.perfil-save-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.perfil-cancel-button {
+  padding: 0.5rem 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.perfil-cancel-button:disabled {
+  cursor: not-allowed;
+}
+
+/* Campos de entrada */
+.perfil-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Selector de géneros */
+.perfil-genres-selector {
+  margin-bottom: 1rem;
+}
+
+.perfil-genres-title {
+  color: #666;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.perfil-genres-loading {
+  padding: 2rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+}
+
+.perfil-genres-loading .loading-spinner {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto 0.5rem;
+}
+
+.perfil-genres-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.perfil-genre-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 6px;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.perfil-genre-option.selected {
+  background-color: #fff3e0;
+  border-color: var(--naranja-atardecer);
+}
+
+.perfil-genre-option:hover:not(.selected) {
+  border-color: var(--naranja-atardecer);
+  background-color: #fff8f0;
+}
+
+.perfil-genre-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--naranja-atardecer);
+}
+
+.perfil-genre-option.selected .perfil-genre-name {
+  font-weight: 600;
+}
+
+.perfil-genres-error {
+  padding: 2rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+}
+
+.perfil-selected-genres {
+  margin-top: 1rem;
+}
+
+.perfil-selected-genres-title {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.perfil-selected-genres-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.perfil-selected-genre-tag {
+  padding: 0.5rem 1rem;
+  background-color: var(--naranja-atardecer);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Libros favoritos mejorados */
+.perfil-favorite-item {
+  display: flex;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.favorite-book-cover {
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.favorite-book-cover img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+}
+
+.favorite-book-placeholder {
+  width: 60px;
+  height: 80px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.favorite-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.favorite-book-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favorite-book-author {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.favorite-book-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.favorite-book-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 80px;
+}
+
+.favorite-book-view-link {
+  padding: 0.5rem;
+  background-color: var(--naranja-atardecer);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  transition: background-color 0.2s ease;
+  min-width: 70px;
+}
+
+.favorite-book-view-link:hover {
+  background-color: #e67e00;
+}
+
+.favorite-book-remove-button {
+  padding: 0.5rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 70px;
+}
+
+.favorite-book-remove-button:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.favorite-book-remove-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Estados de carga para favoritos */
+.perfil-loading-favorites {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #666;
+}
+
+.perfil-loading-favorites .loading-spinner {
+  width: 20px;
+  height: 20px;
+}
+
+/* Header de tarjetas */
+.perfil-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Texto de carga */
+.perfil-loading-text {
+  font-size: 0.8rem;
+  color: #666;
+  margin-left: 1rem;
+}
+
+/* Icono de sin favoritos */
+.perfil-no-favorites-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.perfil-no-favorites h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
