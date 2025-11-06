@@ -148,7 +148,7 @@ class UserProfileSetupViewModel(private val tokenManager: TokenManager) : ViewMo
                         _uiState.value = _uiState.value.copy(
                             firstName = it.firstName,
                             lastName = it.lastName,
-                            selectedGenreIds = it.preferredGenreIds.toSet()
+                            selectedGenreIds = it.prefferredGenreIds.toSet()
                         )
                     }
                 }

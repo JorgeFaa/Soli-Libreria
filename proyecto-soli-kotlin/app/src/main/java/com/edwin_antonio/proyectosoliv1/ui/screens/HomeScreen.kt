@@ -41,6 +41,7 @@ import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 fun HomeScreen(
     onOpenBooks: () -> Unit, 
     onOpenFavorites: () -> Unit,
+    onOpenProfile: () -> Unit,
     onBookClick: (String) -> Unit = {},
     onLogout: () -> Unit = {},
     tokenManager: TokenManager,
@@ -233,6 +234,12 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
+
+                DrawerMenuItem("Perfil") {
+                    menuOpen = false
+                    onOpenProfile()
+                }
+
                 
                 // Solo botón de cerrar sesión por ahora
                 Spacer(modifier = Modifier.weight(1f)) // Empujar el botón hacia abajo

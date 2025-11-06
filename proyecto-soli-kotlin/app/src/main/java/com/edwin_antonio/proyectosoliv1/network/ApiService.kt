@@ -49,13 +49,21 @@ interface ApiService {
     
     @GET("api/v3/books/{id}")
     suspend fun getBookById(@Path("id") bookId: Int): Response<Book>
+
+    @GET("api/v3/books/by-ids")
+    suspend fun getBooksByIds(@Query("ids") bookIds: String): Response<List<Book>>
     
     // ==== 🎭 GENRE ENDPOINTS ====
     
     @GET("api/v3/admin/genres")
     suspend fun getAllGenres(): Response<List<Genre>>
 
-    // ==== 👤 USER PROFILE UPDATE ====
+    // ==== 👤 USER PROFILE ENDPOINTS  ====
+
+    @GET("api/v3/users/me")
+    suspend fun getCurrentUserProfile(): Response<User>
+
+
 
 //    @PUT("api/v2/user/profile")
 //    suspend fun updateUserProfile(@Body request: UserProfileSetupRequest): Response<User>

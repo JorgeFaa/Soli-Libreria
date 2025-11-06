@@ -28,8 +28,7 @@ data class User(
     val id: Int,
     val firstName: String,
     val lastName: String,
-    val activeMember: Boolean,
-    val preferredGenreIds: List<Int>,
+    val prefferredGenreIds: List<Int>,
     val favoriteBooks: List<Int>,
     val roleName: String
 )

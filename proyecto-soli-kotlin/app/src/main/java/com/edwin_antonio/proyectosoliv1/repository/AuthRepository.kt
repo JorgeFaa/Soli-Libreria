@@ -151,8 +151,7 @@ class AuthRepository(
                     id = userId.toIntOrNull() ?: 0,
                     firstName = name ?: email.substringBefore("@"),
                     lastName = "",
-                    activeMember = true,
-                    preferredGenreIds = emptyList(),
+                    prefferredGenreIds = emptyList(),
                     roleName = roleString,
                     favoriteBooks = emptyList()
                 )
