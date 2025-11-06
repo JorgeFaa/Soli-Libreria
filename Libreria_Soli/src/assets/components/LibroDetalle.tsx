@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./LibroDetalle.css";
 
 // Importar el servicio de libros
-import { getBookById } from "../../services/booksService";
+import { getBookById, addBookToFavorites, getFavoriteBooks } from "../../services/booksService";
 import type { Book } from "../../services/booksService";
 
 // Importar componente Toast
@@ -30,6 +30,21 @@ export default function LibroDetalle() {
     // Estado para el visor de PDF
     const [showPDFViewer, setShowPDFViewer] = useState<boolean>(false);
     
+    // Estado para manejar favoritos
+    const [isAddingToFavorites, setIsAddingToFavorites] = useState<boolean>(false);
+    const [isInFavorites, setIsInFavorites] = useState<boolean>(false);
+    const [checkingFavorites, setCheckingFavorites] = useState<boolean>(true);
+    const [recentlyAdded, setRecentlyAdded] = useState<boolean>(false);
+    const [showRefreshButton, setShowRefreshButton] = useState<boolean>(false);
+    
+    // Cache para evitar llamadas duplicadas
+    const [lastFavoritesCheck, setLastFavoritesCheck] = useState<number>(0);
+    const [favoritesCache, setFavoritesCache] = useState<Book[]>([]);
+    const [isFetchingFavorites, setIsFetchingFavorites] = useState<boolean>(false);
+    
+    // Ref para evitar doble ejecución del useEffect
+    const hasInitialized = useRef<boolean>(false);
+    
     // Función para mostrar notificaciones
     const showNotification = (message: string, type: "success" | "error" | "warning") => {
         setToastMessage(message);
@@ -37,13 +52,122 @@ export default function LibroDetalle() {
         setShowToast(true);
     };
     
+    // Función para verificar si el libro está en favoritos
+    const checkIfInFavorites = async (bookId: number, forceRefresh: boolean = false) => {
+        try {
+            setCheckingFavorites(true);
+            
+            const now = Date.now();
+            const timeSinceLastCheck = now - lastFavoritesCheck;
+            
+            // Si ya hay una llamada en proceso, esperar un poco y usar cache si existe
+            if (isFetchingFavorites && !forceRefresh) {
+                // Esperar un poco para que termine la otra llamada
+                await new Promise(resolve => setTimeout(resolve, 100));
+                if (favoritesCache.length > 0) {
+                    const isAlreadyFavorite = favoritesCache.some((fav: Book) => fav.id === bookId);
+                    setIsInFavorites(isAlreadyFavorite);
+                    return;
+                }
+            }
+            
+            // Si ha pasado menos de 2 segundos desde la última verificación y no es un refresh forzado, usar cache
+            if (!forceRefresh && timeSinceLastCheck < 2000 && favoritesCache.length > 0) {
+                const isAlreadyFavorite = favoritesCache.some((fav: Book) => fav.id === bookId);
+                setIsInFavorites(isAlreadyFavorite);
+                return;
+            }
+            
+            // Marcar que estamos haciendo una llamada
+            setIsFetchingFavorites(true);
+            
+            const favorites = await getFavoriteBooks();
+            
+            // Actualizar cache
+            setFavoritesCache(favorites);
+            setLastFavoritesCheck(now);
+            
+            const isAlreadyFavorite = favorites.some((fav: Book) => fav.id === bookId);
+            setIsInFavorites(isAlreadyFavorite);
+        } catch (error) {
+            // Si hay error, asumimos que no está en favoritos
+            setIsInFavorites(false);
+        } finally {
+            setCheckingFavorites(false);
+            setIsFetchingFavorites(false); // Limpiar el flag de llamada en proceso
+        }
+    };
+    
+    // Función para refrescar manualmente el estado de favoritos
+    const handleRefreshFavorites = async () => {
+        if (!libro) return;
+        await checkIfInFavorites(libro.id, true); // Forzar refresh
+        setShowRefreshButton(false);
+        showNotification("Estado de favoritos actualizado", "success");
+    };
+    
+    // Función para agregar a favoritos
+    const handleAddToFavorites = async () => {
+        if (!libro) return;
+        
+        setIsAddingToFavorites(true);
+        
+        try {
+            await addBookToFavorites(libro.id);
+            setIsInFavorites(true); // Actualizar el estado local inmediatamente
+            setRecentlyAdded(true); // Marcar como recién agregado
+            
+            // Invalidar cache de favoritos
+            setFavoritesCache([]);
+            setLastFavoritesCheck(0);
+            setIsFetchingFavorites(false);
+            
+            showNotification("¡Libro agregado a favoritos!", "success");
+            
+            // Re-verificar favoritos después de un delay para asegurar sincronización
+            setTimeout(async () => {
+                const previousState = isInFavorites;
+                await checkIfInFavorites(libro.id, true); // Forzar refresh después de agregar
+                setRecentlyAdded(false); // Limpiar el flag después de la verificación
+                
+                // Si esperábamos que estuviera en favoritos pero no está, mostrar botón de refresh
+                if (previousState && !isInFavorites) {
+                    setShowRefreshButton(true);
+                }
+            }, 1500); // Delay de 1.5 segundos para permitir que el backend procese
+            
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.message.includes('Token expirado') || error.message.includes('No hay token')) {
+                    showNotification("Sesión expirada. Por favor, inicia sesión nuevamente.", "error");
+                    setTimeout(() => {
+                        navigate("/login");
+                    }, 2000);
+                } else {
+                    showNotification(`Error: ${error.message}`, "error");
+                }
+            } else {
+                showNotification("Error desconocido al agregar a favoritos.", "error");
+            }
+        } finally {
+            setIsAddingToFavorites(false);
+        }
+    };
+    
     // Cargar libro al montar el componente
     useEffect(() => {
+        // Evitar doble ejecución en modo desarrollo (React Strict Mode)
+        if (hasInitialized.current) {
+            return;
+        }
+        
         const cargarLibro = async () => {
             try {
                 if (!id) {
                     throw new Error("ID de libro no válido");
                 }
+                
+                hasInitialized.current = true;
                 
                 setIsLoading(true);
                 setError("");
@@ -55,6 +179,9 @@ export default function LibroDetalle() {
                 }
                 
                 setLibro(libroApi);
+                
+                // Verificar si está en favoritos
+                await checkIfInFavorites(libroApi.id);
                 
             } catch (err) {
                 
@@ -81,6 +208,11 @@ export default function LibroDetalle() {
         
         cargarLibro();
     }, [id, navigate]);
+    
+    // Reset del flag cuando cambie el ID
+    useEffect(() => {
+        hasInitialized.current = false;
+    }, [id]);
     
     // Loading state
     if (isLoading) {
@@ -235,9 +367,29 @@ export default function LibroDetalle() {
                             >
                                 📖 Leer libro
                             </button>
-                            <button className="boton-favorito">
-                                ❤️ Añadir a favoritos
+                            <button 
+                                className={`boton-favorito ${(isInFavorites || recentlyAdded) ? 'favorito-activo' : ''}`}
+                                onClick={handleAddToFavorites}
+                                disabled={isAddingToFavorites || isInFavorites || checkingFavorites || recentlyAdded}
+                                title={
+                                    recentlyAdded ? "Sincronizando con el servidor..." :
+                                    isInFavorites ? "Ya está en tus favoritos" : "Añadir a favoritos"
+                                }
+                            >
+                                {checkingFavorites ? "⏳ Verificando..." : 
+                                 isAddingToFavorites ? "⏳ Agregando..." : 
+                                 recentlyAdded ? "🔄 Sincronizando..." :
+                                 isInFavorites ? "✅ En favoritos" : "❤️ Añadir a favoritos"}
                             </button>
+                            {showRefreshButton && (
+                                <button 
+                                    className="boton-refresh-favoritos"
+                                    onClick={handleRefreshFavorites}
+                                    title="Actualizar estado de favoritos"
+                                >
+                                    🔄 Actualizar
+                                </button>
+                            )}
                             <button className="boton-compartir">
                                 📤 Compartir
                             </button>

@@ -79,13 +79,15 @@ export interface CreateUserResponse {
 
 // Tipos para el perfil completo del usuario
 export interface UserCompleteProfile {
-  id: string;
-  email: string;
+  id: number; // Cambiado a number según la especificación
+  email?: string;
   firstName?: string;
   lastName?: string;
   profileCompleted?: boolean;
   preferredGenres?: any[];
-  preferredGenreIds?: number[];
+  preferredGenreIds?: number[]; // Versión con una 'f'
+  prefferredGenreIds?: number[]; // Versión con doble 'f' (typo del backend)
+  favoriteBooks?: number[];
   // Agregar otros campos según la respuesta real del API
 }
 
@@ -193,7 +195,7 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
       password: credentials.password
     };
     
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -204,17 +206,13 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
     if (response.status === 200) {
       const responseData = await response.json();
       
-      // Intentar diferentes formatos posibles
-      let tokens: any = responseData;
-      
-      // Verificar si los tokens están en un objeto anidado
-      if (responseData.tokens) {
-        tokens = responseData.tokens;
-      } else if (responseData.data) {
-        tokens = responseData.data;
-      } else if (responseData.result) {
-        tokens = responseData.result;
-      }
+      // La nueva API devuelve los tokens directamente
+      const tokens = {
+        accessToken: responseData.accessToken,
+        idToken: responseData.idToken,
+        refreshToken: responseData.refreshToken,
+        expiresIn: responseData.expiresIn
+      };
       
       // Decodificar el idToken para extraer información del usuario
       const userInfo = decodeJWT(tokens.idToken);
@@ -299,7 +297,7 @@ export const registerUser = async (userData: RegisterRequest): Promise<AuthRespo
       password: userData.password
     };
     
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -358,7 +356,7 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
       code: code
     };
     
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/verify-account`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/verify-account`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -368,18 +366,35 @@ export const verifyAccount = async (email: string, code: string): Promise<AuthRe
 
     const data = await response.json();
     
-    // Verificar si la verificación fue exitosa con el nuevo formato
-    if (response.status === 200 && data.status === "SUCCESS") {
-      return {
-        success: true,
-        message: "¡Cuenta verificada exitosamente!"
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || "Código inválido o expirado"
-      };
+    // Verificar si la verificación fue exitosa
+    // La API puede devolver diferentes formatos, verificamos múltiples condiciones
+    if (response.status === 200) {
+      // Verificar si el mensaje indica éxito (independientemente del campo success)
+      const isSuccessMessage = data.message && 
+        (data.message.toLowerCase().includes('verificada exitosamente') ||
+         data.message.toLowerCase().includes('verified successfully') ||
+         data.message.toLowerCase().includes('cuenta verificada'));
+      
+      // Verificar el campo status
+      const isSuccessStatus = data.status === "SUCCESS";
+      
+      // Verificar el campo success (aunque pueda estar mal configurado)
+      const hasSuccessField = data.success === true;
+      
+      // Considerar exitoso si cualquiera de estas condiciones se cumple
+      if (isSuccessStatus || isSuccessMessage || hasSuccessField) {
+        return {
+          success: true,
+          message: "¡Cuenta verificada exitosamente!"
+        };
+      }
     }
+    
+    // Si llegamos aquí, la verificación falló
+    return {
+      success: false,
+      message: data.message || "Código inválido o expirado"
+    };
     
   } catch (error) {
     // Solo hacer fallback si es un error de red real
@@ -408,7 +423,7 @@ export const resendVerificationCode = async (request: ResendVerificationRequest)
       username: request.username
     };
 
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/resend-verification`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/user/resend-verification`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -479,7 +494,7 @@ export const logoutUser = async (): Promise<{ success: boolean; message: string 
         refreshToken: refreshToken
       };
       
-      const response = await fetch(`${API_BASE_URL}/api/v2/user/auth/logout`, {
+      const response = await fetch(`${API_BASE_URL}/api/v3/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -602,7 +617,7 @@ export const createUser = async (userData: CreateUserRequest): Promise<CreateUse
       throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/createUser`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/users`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -653,6 +668,7 @@ export const createUser = async (userData: CreateUserRequest): Promise<CreateUse
 // Función para obtener el perfil completo del usuario desde el servidor
 export const getUserCompleteProfile = async (): Promise<UserProfileResponse> => {
   try {
+    
     // Obtener el token de acceso
     const accessToken = getAuthToken();
     
@@ -663,14 +679,14 @@ export const getUserCompleteProfile = async (): Promise<UserProfileResponse> => 
       };
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/profile/complete`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/users/me`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
     });
-
+    
     if (response.status === 401) {
       return {
         success: false,
@@ -685,8 +701,34 @@ export const getUserCompleteProfile = async (): Promise<UserProfileResponse> => 
         success: true,
         user: responseData
       };
+    } else if (response.status === 400) {
+      
+      // Error 400 - puede indicar que el usuario no existe en la BD (necesita completar perfil)
+      const errorText = await response.text();
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.message?.includes('Usuario no encontrado') || 
+            errorData.message?.includes('completar el registro')) {
+          
+          // Este es el comportamiento esperado para usuarios que necesitan completar perfil
+          return {
+            success: false,
+            message: 'PROFILE_INCOMPLETE' // Código especial para indicar perfil incompleto
+          };
+        }
+      } catch (parseError) {
+        console.log('❌ [getUserCompleteProfile] Error al parsear respuesta JSON del error 400');
+        // Si no se puede parsear, es un error real
+      }
+      
+      return {
+        success: false,
+        message: `Bad Request: ${errorText}`
+      };
     } else {
       const errorText = await response.text();
+      
       return {
         success: false,
         message: errorText || "Error al obtener el perfil del usuario"
@@ -694,6 +736,7 @@ export const getUserCompleteProfile = async (): Promise<UserProfileResponse> => 
     }
     
   } catch (error) {
+    
     if (error instanceof Error && (
       error.message.includes('Failed to fetch') || 
       error.message.includes('NetworkError') ||
@@ -718,7 +761,12 @@ export const needsProfileCompletionFromServer = async (): Promise<boolean> => {
     const profileResponse = await getUserCompleteProfile();
     
     if (!profileResponse.success) {
-      // Si no se puede verificar con el servidor, usar lógica local como fallback
+      // Si el mensaje indica perfil incompleto, definitivamente necesita completarlo
+      if (profileResponse.message === 'PROFILE_INCOMPLETE') {
+        return true;
+      }
+      
+      // Para otros errores, usar lógica local como fallback
       return needsProfileCompletion();
     }
     
@@ -776,7 +824,7 @@ export const checkProfileCompletionWithServer = async (): Promise<boolean> => {
     }
     
     // Intentar obtener información del usuario desde el servidor
-    const response = await fetch(`${API_BASE_URL}/api/v2/user/profile`, {
+    const response = await fetch(`${API_BASE_URL}/api/v3/user/profile`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -859,5 +907,64 @@ export const needsProfileCompletion = (): boolean => {
 // Función para marcar el perfil como completado
 export const markProfileAsCompleted = (): void => {
   localStorage.setItem('profileCompleted', 'true');
+};
+
+// Función para actualizar el perfil del usuario
+export const updateUserProfile = async (profileData: {
+  firstName: string;
+  lastName: string;
+  preferredGenreIds: number[];
+}): Promise<{ success: boolean; message: string; user?: any }> => {
+  try {
+    // Obtener el token de acceso
+    const accessToken = getAuthToken();
+    
+    if (!accessToken) {
+      throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/v3/users/me`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (response.status === 401) {
+      throw new Error('Token expirado. Por favor, inicia sesión nuevamente.');
+    }
+    
+    if (response.status === 200) {
+      const responseData = await response.json();
+      
+      return {
+        success: true,
+        message: "Perfil actualizado exitosamente",
+        user: responseData
+      };
+    } else {
+      const errorText = await response.text();
+      return {
+        success: false,
+        message: errorText || "Error al actualizar el perfil"
+      };
+    }
+    
+  } catch (error) {
+    if (error instanceof Error && (
+      error.message.includes('Failed to fetch') || 
+      error.message.includes('NetworkError') ||
+      error.message.includes('CORS')
+    )) {
+      return {
+        success: false,
+        message: "Error de conexión. Verifica tu internet e intenta nuevamente."
+      };
+    } else {
+      throw error;
+    }
+  }
 };
 
