@@ -1,5 +1,7 @@
 // authService.ts - Servicio de autenticación para comunicarse con la API de AWS
 
+import { decodeJWT as decodeJWTUtil, isTokenExpired, getUserRoles, hasRole, isAdmin, isReader } from '../utils/jwtUtils';
+
 // Tipos para las respuestas de la API
 export interface LoginRequest {
   email: string;
@@ -104,18 +106,35 @@ export interface UserProfileResponse {
 // Configuración de la API - Nuevo endpoint directo de Google Cloud Run
 const API_BASE_URL = 'https://soliapi-223325065421.northamerica-south1.run.app';
 
-// Función auxiliar para decodificar JWT (solo para extraer información básica, no para validación)
+// Función auxiliar para decodificar JWT - usa la utilidad centralizada
 const decodeJWT = (token: string): any => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    return null;
-  }
+  return decodeJWTUtil(token);
+};
+
+// Funciones para manejo de roles
+export const getCurrentUserRoles = (): string[] => {
+  const token = getAuthToken();
+  return token ? getUserRoles(token) : [];
+};
+
+export const currentUserHasRole = (role: string): boolean => {
+  const token = getAuthToken();
+  return token ? hasRole(token, role) : false;
+};
+
+export const isCurrentUserAdmin = (): boolean => {
+  const token = getAuthToken();
+  return token ? isAdmin(token) : false;
+};
+
+export const isCurrentUserReader = (): boolean => {
+  const token = getAuthToken();
+  return token ? isReader(token) : false;
+};
+
+export const isCurrentTokenExpired = (): boolean => {
+  const token = getAuthToken();
+  return token ? isTokenExpired(token) : true;
 };
 
 // Función auxiliar para manejar respuestas HTTP del endpoint de registro

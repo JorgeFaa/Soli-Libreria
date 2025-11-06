@@ -13,9 +13,11 @@ import Registro from './assets/components/Registro'
 import VerificarCodigo from './assets/components/VerificarCodigo'
 import Perfil from './assets/components/Perfil'
 import CuestionarioPerfil from './assets/components/CuestionarioPerfil'
+import AdminDashboard from './assets/components/AdminDashboard'
+import { ProtectedAdminRoute, ProtectedRoute } from './components/ProtectedRoute'
 
 // Importar servicios de autenticación
-import { isAuthenticated, logoutUser, verifyToken, needsProfileCompletionFromServer } from './services/authService'
+import { isAuthenticated, logoutUser, verifyToken, needsProfileCompletionFromServer, isCurrentUserAdmin } from './services/authService'
 
 import './App.css'
 
@@ -80,6 +82,13 @@ function App() {
     const needsQuestionnaire = await needsProfileCompletionFromServer();
     if (needsQuestionnaire) {
       setShowProfileQuestionnaire(true);
+    } else {
+      // Solo redireccionar a los administradores al dashboard
+      // Los lectores permanecen en la página actual
+      if (isCurrentUserAdmin()) {
+        window.location.href = '/admin'; // Redirigir a dashboard admin
+      }
+      // Los usuarios READER se quedan donde están (comportamiento original)
     }
   };
 
@@ -144,7 +153,19 @@ function App() {
           />
           <Route 
             path="/perfil" 
-            element={<Perfil />}
+            element={
+              <ProtectedRoute>
+                <Perfil />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
+            }
           />
         </Routes>
       </Router>
