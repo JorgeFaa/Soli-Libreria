@@ -69,14 +69,19 @@ fun AppNavHost() {
         }
         composable(Screen.Register.route) {
             RegisterScreen(
-                onRegistered = { navController.navigate(Screen.EmailVerification.route) },
+                onRegistered = { username -> navController.navigate(Screen.EmailVerification.createRoute(username)) },
                 onBack = { navController.popBackStack() },
                 tokenManager = tokenManager
             )
         }
-        composable(Screen.EmailVerification.route) {
+        composable(
+            route = Screen.EmailVerification.route,
+            arguments = listOf(navArgument("username") { type = NavType.StringType })
+        ) {
+            val username = it.arguments?.getString("username").orEmpty()
             EmailVerificationScreen(
-                onVerified = {
+                username = username,
+                onVerificationSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }

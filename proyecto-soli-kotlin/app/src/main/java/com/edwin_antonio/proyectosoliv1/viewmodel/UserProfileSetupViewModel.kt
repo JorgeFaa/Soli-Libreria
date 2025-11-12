@@ -3,8 +3,8 @@ package com.edwin_antonio.proyectosoliv1.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
+import com.edwin_antonio.proyectosoliv1.model.CreateUserRequest
 import com.edwin_antonio.proyectosoliv1.model.Genre
-import com.edwin_antonio.proyectosoliv1.model.RegisterRequest
 import com.edwin_antonio.proyectosoliv1.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -173,7 +173,7 @@ class UserProfileSetupViewModel(private val tokenManager: TokenManager) : ViewMo
 
             try {
                 val state = _uiState.value
-                val request = RegisterRequest(
+                val request = CreateUserRequest(
                     firstName = state.firstName.trim(),
                     lastName = state.lastName.trim(),
                     preferredGenreIds = state.selectedGenreIds.toList(),

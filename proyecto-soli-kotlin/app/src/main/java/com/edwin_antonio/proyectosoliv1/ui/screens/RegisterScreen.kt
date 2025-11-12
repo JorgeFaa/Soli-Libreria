@@ -2,7 +2,6 @@ package com.edwin_antonio.proyectosoliv1.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,21 +31,21 @@ import com.edwin_antonio.proyectosoliv1.viewmodel.RegisterViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegistered: () -> Unit,
+    onRegistered: (username: String) -> Unit,
     onBack: () -> Unit,
     tokenManager: TokenManager,
     viewModel: RegisterViewModel = viewModel { RegisterViewModel(tokenManager) }
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+
     // 🏁 Navegación cuando registro es exitoso
     LaunchedEffect(uiState.isRegisterSuccessful) {
         if (uiState.isRegisterSuccessful) {
-            onRegistered()
+            onRegistered(uiState.username)
             viewModel.resetRegisterSuccess()
         }
     }
-    
+
     // ⚠️ Mostrar errores
     uiState.errorMessage?.let { errorMsg ->
         AlertDialog(
@@ -58,7 +57,7 @@ fun RegisterScreen(
             }
         )
     }
-    
+
     // 🎨 UI idéntica a React Native
     Column(
         modifier = Modifier
@@ -82,7 +81,7 @@ fun RegisterScreen(
             Text("Soli", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = CoffeeDark)
             Text("Librería Digital", fontSize = 15.sp, color = CoffeeDark)
         }
-        
+
         // Caja del formulario
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
@@ -90,55 +89,10 @@ fun RegisterScreen(
             shape = RoundedCornerShape(10.dp)
         ) {
             Column(modifier = Modifier.padding(15.dp)) {
-                Text("Crea una cuenta", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, 
-                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), 
+                Text("Crea una cuenta", fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                      textAlign = TextAlign.Center)
-                
-                // Nombre y Apellidos
-                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), 
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(
-                        value = uiState.name, onValueChange = viewModel::updateName,
-                        placeholder = { Text("Nombre") }, modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = YellowGolden, unfocusedContainerColor = YellowGolden,
-                            focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = uiState.lastname, onValueChange = viewModel::updateLastname,
-                        placeholder = { Text("Apellidos") }, modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = YellowGolden, unfocusedContainerColor = YellowGolden,
-                            focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent),
-                        singleLine = true
-                    )
-                }
-                
-                // Label Género
-                Text("Género:", fontSize = 14.sp, modifier = Modifier.padding(bottom = 5.dp))
-                
-                // Botones de género
-                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), 
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    viewModel.genderOptions.forEach { gender ->
-                        val isSelected = uiState.gender == gender
-                        Box(
-                            modifier = Modifier.weight(1f)
-                                .background(
-                                    color = if (isSelected) Color(0xFFFFCC00) else YellowGolden,
-                                    shape = RoundedCornerShape(15.dp))
-                                .clickable { viewModel.updateGender(gender) }
-                                .padding(10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(gender, fontSize = 14.sp, color = CoffeeDark)
-                        }
-                    }
-                }
-                
+
                 // Email
                 OutlinedTextField(
                     value = uiState.username, onValueChange = viewModel::updateUsername,
@@ -149,7 +103,7 @@ fun RegisterScreen(
                         focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), singleLine = true
                 )
-                
+
                 // Contraseña
                 OutlinedTextField(
                     value = uiState.password, onValueChange = viewModel::updatePassword,
@@ -168,7 +122,7 @@ fun RegisterScreen(
                         }
                     }, singleLine = true
                 )
-                
+
                 // Botón Registrarse
                 Button(
                     onClick = viewModel::register, modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
@@ -183,7 +137,7 @@ fun RegisterScreen(
                 }
             }
         }
-        
+
         // Link a Login
         TextButton(onClick = onBack, modifier = Modifier.padding(top = 10.dp)) {
             Text("¿Ya tienes una cuenta?", color = CoffeeDark)

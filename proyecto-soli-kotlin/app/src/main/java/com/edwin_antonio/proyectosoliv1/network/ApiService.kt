@@ -16,19 +16,19 @@ interface ApiService {
     // ==== 🔐 USER ENDPOINTS ====
     
     @POST("api/v3/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<String>
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
     
     @POST("api/v3/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthTokens>
     
     @POST("api/v3/users")
-    suspend fun createUser(@Body request: RegisterRequest): Response<UserCreatedResponse>
+    suspend fun createUser(@Body request: CreateUserRequest): Response<UserCreatedResponse>
     
     @GET("api/v3/users/me")
     suspend fun getCurrentUser(): Response<User>
     
     @POST("api/v3/auth/resend-verification")
-    suspend fun resendVerification(@Body request: ResendVerificationRequest): Response<String>
+    suspend fun resendVerification(@Body request: ResendVerificationRequest): Response<ResendVerificationResponse>
     
     @POST("api/v3/auth/verify-account")
     suspend fun verifyAccount(@Body request: VerificationRequest): Response<VerificationResponse>
