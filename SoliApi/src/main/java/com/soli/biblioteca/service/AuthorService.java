@@ -1,7 +1,10 @@
 package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.AuthorCreateDTO;
+import com.soli.biblioteca.Dto.AuthorResponseDTO;
 import com.soli.biblioteca.Dto.AuthorUpdateDTO;
+import com.soli.biblioteca.exception.ResourceNotFoundException;
+import com.soli.biblioteca.mapper.AuthorMapper;
 import com.soli.biblioteca.model.Author;
 import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.repository.AuthorRepository;
@@ -11,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthorService {
@@ -23,18 +27,20 @@ public class AuthorService {
         this.countryRepository = countryRepository;
     }
 
-    public List<Author> getAllAuthors() {
-        return authorRepository.findAll();
+    public List<AuthorResponseDTO> getAllAuthors() {
+        return authorRepository.findAll().stream()
+                .map(AuthorMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Author> getAuthorById(Long id) {
-        return authorRepository.findById(id);
+    public Optional<AuthorResponseDTO> getAuthorById(Long id) {
+        return authorRepository.findById(id).map(AuthorMapper::toResponseDTO);
     }
 
     @Transactional
-    public Author createAuthor(AuthorCreateDTO authorDTO) {
+    public AuthorResponseDTO createAuthor(AuthorCreateDTO authorDTO) {
         Country country = countryRepository.findById(authorDTO.getCountryId())
-                .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + authorDTO.getCountryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("País", authorDTO.getCountryId()));
 
         Author author = new Author();
         author.setName(authorDTO.getName());
@@ -42,27 +48,32 @@ public class AuthorService {
         author.setLastName(authorDTO.getLastName());
         author.setCountry(country);
 
-        return authorRepository.save(author);
+        Author savedAuthor = authorRepository.save(author);
+        return AuthorMapper.toResponseDTO(savedAuthor);
     }
 
     @Transactional
-    public Author updateAuthor(Long id, AuthorUpdateDTO authorDTO) {
+    public AuthorResponseDTO updateAuthor(Long id, AuthorUpdateDTO authorDTO) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Autor no encontrado con id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Autor", id));
 
         authorDTO.getName().ifPresent(author::setName);
         authorDTO.getMiddleName().ifPresent(author::setMiddleName);
         authorDTO.getLastName().ifPresent(author::setLastName);
         authorDTO.getCountryId().ifPresent(countryId -> {
             Country country = countryRepository.findById(countryId)
-                    .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + countryId));
+                    .orElseThrow(() -> new ResourceNotFoundException("País", countryId));
             author.setCountry(country);
         });
 
-        return authorRepository.save(author);
+        Author updatedAuthor = authorRepository.save(author);
+        return AuthorMapper.toResponseDTO(updatedAuthor);
     }
 
     public void deleteAuthor(Long id) {
+        if (!authorRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Autor", id);
+        }
         authorRepository.deleteById(id);
     }
 }

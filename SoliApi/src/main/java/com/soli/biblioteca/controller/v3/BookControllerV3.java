@@ -8,21 +8,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static com.soli.biblioteca.config.ApiVersioningConfig.API_V3_PREFIX;
 
@@ -38,15 +33,27 @@ public class BookControllerV3 {
         this.bookService = bookService;
     }
 
-    @Operation(
-            summary = "Búsqueda avanzada de libros V3",
-            description = "Buscar libros con paginación y filtros múltiples."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Búsqueda exitosa",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = PagedResponseDTO.class)))
-    })
+    @Operation(summary = "Obtener múltiples libros por sus IDs")
+    @GetMapping("/by-ids")
+    public ResponseEntity<List<BookResponseDTO>> getBooksByIds(
+            @Parameter(description = "Lista de IDs de libros, separados por coma")
+            @RequestParam List<Long> ids
+    ) {
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(bookService.getBooksByIds(ids));
+    }
+
+    @Operation(summary = "Obtener un libro por su ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
+        return bookService.getBookById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Búsqueda avanzada de libros")
     @GetMapping
     public ResponseEntity<PagedResponseDTO<BookResponseDTO>> searchBooks(
             @Parameter(description = "Texto de búsqueda en título, descripción o ISBN")
@@ -110,21 +117,5 @@ public class BookControllerV3 {
                 .build();
 
         return ResponseEntity.ok(bookService.getBooksWithFilters(filter));
-    }
-
-    @Operation(
-            summary = "Obtener libro por ID V3",
-            description = "Obtiene los detalles completos de un libro específico",
-            security = { @SecurityRequirement(name = "bearerAuth") }
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Libro encontrado"),
-            @ApiResponse(responseCode = "404", description = "Libro no encontrado")
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<BookResponseDTO> getBookById(@PathVariable Long id) {
-        Optional<BookResponseDTO> book = bookService.getBookById(id);
-        return book.map(ResponseEntity::ok)
-                  .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -12,34 +12,37 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-@Table(name = "texts", schema = "public") // Postgres lo guarda en minúsculas
+@Table(name = "texts", schema = "public")
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "textid") // minúscula
+    @Column(name = "textid")
     private Long id;
 
-    @Column(name = "texttitle", nullable = false, length = 250) // minúscula
+    @Column(name = "texttitle")
     private String title;
 
-    // Declarar explicitamente como TEXT para evitar mapeo por defecto a varchar(255)
-    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "descripcion")
     private String description;
 
-    @Column(name = "publisheddate") // minúscula
+    @Column(name = "publisheddate")
     private LocalDate publishedDate;
 
-    // URLs largas como pre-signed S3 pueden exceder 255; elevamos a 1024
-    @Column(name = "texturl", nullable = false, length = 1024)
-    private String textUrl;
+    @Column(name = "pdf_url")
+    private String pdfUrl;
 
-    @Column(name = "coverurl", nullable = false, length = 1024)
+    @Column(name = "epub_url")
+    private String epubUrl;
+
+    @Column(name = "coverurl")
     private String coverUrl;
 
-    // --------- Relaciones ---------
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "typeid")
+    private TextType type;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "text_authors",
             joinColumns = @JoinColumn(name = "textid"),
@@ -48,30 +51,25 @@ public class Book {
     @JsonIgnoreProperties("books")
     private Set<Author> authors = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "text_editorials",
             joinColumns = @JoinColumn(name = "textid"),
             inverseJoinColumns = @JoinColumn(name = "editorialid")
     )
-    @JsonIgnoreProperties("editorials")
+    @JsonIgnoreProperties("books")
     private Set<Editorial> editorials = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "text_genres",
             joinColumns = @JoinColumn(name = "textid"),
             inverseJoinColumns = @JoinColumn(name = "genreid")
     )
-    @JsonIgnoreProperties("genres")
+    @JsonIgnoreProperties("books")
     private Set<Genre> genres = new HashSet<>();
 
     @ManyToMany(mappedBy = "favoriteBooks")
     @JsonIgnoreProperties("favoriteBooks")
-    private Set<User> usersWhoFavorited = new HashSet<>();
-
-    @ManyToOne
-    @JoinColumn(name = "typeid", nullable = false) // minúscula
-    private TextType type;
-
+    private Set<User> favoritedByUsers = new HashSet<>();
 }

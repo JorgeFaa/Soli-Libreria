@@ -1,7 +1,10 @@
 package com.soli.biblioteca.service;
 
 import com.soli.biblioteca.Dto.EditorialCreateDTO;
+import com.soli.biblioteca.Dto.EditorialResponseDTO;
 import com.soli.biblioteca.Dto.EditorialUpdateDTO;
+import com.soli.biblioteca.exception.ResourceNotFoundException;
+import com.soli.biblioteca.mapper.EditorialMapper;
 import com.soli.biblioteca.model.Country;
 import com.soli.biblioteca.model.Editorial;
 import com.soli.biblioteca.repository.CountryRepository;
@@ -11,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EditorialService {
@@ -23,42 +27,49 @@ public class EditorialService {
         this.countryRepository = countryRepository;
     }
 
-    public List<Editorial> getAllEditorials() {
-        return editorialRepository.findAll();
+    public List<EditorialResponseDTO> getAllEditorials() {
+        return editorialRepository.findAll().stream()
+                .map(EditorialMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Editorial> getEditorialById(Long id) {
-        return editorialRepository.findById(id);
+    public Optional<EditorialResponseDTO> getEditorialById(Long id) {
+        return editorialRepository.findById(id).map(EditorialMapper::toResponseDTO);
     }
 
     @Transactional
-    public Editorial createEditorial(EditorialCreateDTO editorialDTO) {
+    public EditorialResponseDTO createEditorial(EditorialCreateDTO editorialDTO) {
         Country country = countryRepository.findById(editorialDTO.getCountryId())
-                .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + editorialDTO.getCountryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("País", editorialDTO.getCountryId()));
 
         Editorial editorial = new Editorial();
         editorial.setCompanyName(editorialDTO.getCompanyName());
         editorial.setCountry(country);
 
-        return editorialRepository.save(editorial);
+        Editorial savedEditorial = editorialRepository.save(editorial);
+        return EditorialMapper.toResponseDTO(savedEditorial);
     }
 
     @Transactional
-    public Editorial updateEditorial(Long id, EditorialUpdateDTO editorialDTO) {
+    public EditorialResponseDTO updateEditorial(Long id, EditorialUpdateDTO editorialDTO) {
         Editorial editorial = editorialRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Editorial no encontrada con id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Editorial", id));
 
         editorialDTO.getCompanyName().ifPresent(editorial::setCompanyName);
         editorialDTO.getCountryId().ifPresent(countryId -> {
             Country country = countryRepository.findById(countryId)
-                    .orElseThrow(() -> new RuntimeException("País no encontrado con id: " + countryId));
+                    .orElseThrow(() -> new ResourceNotFoundException("País", countryId));
             editorial.setCountry(country);
         });
 
-        return editorialRepository.save(editorial);
+        Editorial updatedEditorial = editorialRepository.save(editorial);
+        return EditorialMapper.toResponseDTO(updatedEditorial);
     }
 
     public void deleteEditorial(Long id) {
+        if (!editorialRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Editorial", id);
+        }
         editorialRepository.deleteById(id);
     }
 }
