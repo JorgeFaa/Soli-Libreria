@@ -1,17 +1,6 @@
 package com.soli.biblioteca.controller.v3;
 
-import com.soli.biblioteca.Dto.AuthorCreateDTO;
-import com.soli.biblioteca.Dto.AuthorUpdateDTO;
-import com.soli.biblioteca.Dto.BookCreateDTO;
-import com.soli.biblioteca.Dto.BookResponseDTO;
-import com.soli.biblioteca.Dto.BookUpdateDTO;
-import com.soli.biblioteca.Dto.CountryUpdateDTO;
-import com.soli.biblioteca.Dto.EditorialCreateDTO;
-import com.soli.biblioteca.Dto.EditorialUpdateDTO;
-import com.soli.biblioteca.Dto.GenreUpdateDTO;
-import com.soli.biblioteca.Dto.TextTypeUpdateDTO;
-import com.soli.biblioteca.Dto.UserDTO;
-import com.soli.biblioteca.model.*;
+import com.soli.biblioteca.Dto.*;
 import com.soli.biblioteca.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,8 +18,8 @@ import static com.soli.biblioteca.config.ApiVersioningConfig.API_V3_PREFIX;
 @RestController
 @RequestMapping(API_V3_PREFIX + "/admin")
 @Tag(name = "Admin V3", description = "API v3 para la administración de entidades de la biblioteca")
-@SecurityRequirement(name = "bearerAuth") // Requerir JWT para todo el controlador
-@PreAuthorize("hasRole('ADMIN')") // Por defecto, solo ADMINS
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final CountryService countryService;
@@ -51,221 +40,199 @@ public class AdminController {
         this.bookService = bookService;
     }
 
-    // ========== CRUD de Países (Country) ==========
+    // ========== Books (Batch) ==========
 
-    @Operation(summary = "Obtener todos los países")
+    @Operation(summary = "Crear múltiples libros en una sola petición")
+    @PostMapping("/books/batch")
+    public ResponseEntity<List<BookResponseDTO>> createBooks(@Valid @RequestBody List<BookCreateDTO> bookCreateDTOs) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBooks(bookCreateDTOs));
+    }
+
+    // ========== Countries ==========
+
     @GetMapping("/countries")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<List<Country>> getAllCountries() {
+    public ResponseEntity<List<CountryResponseDTO>> getAllCountries() {
         return ResponseEntity.ok(countryService.getAllCountries());
     }
 
-    @Operation(summary = "Obtener un país por ID")
     @GetMapping("/countries/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<Country> getCountryById(@PathVariable Long id) {
+    public ResponseEntity<CountryResponseDTO> getCountryById(@PathVariable Long id) {
         return countryService.getCountryById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Crear un nuevo país")
     @PostMapping("/countries")
-    public ResponseEntity<Country> createCountry(@RequestBody Country country) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(countryService.createCountry(country));
+    public ResponseEntity<CountryResponseDTO> createCountry(@Valid @RequestBody CountryCreateDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(countryService.createCountry(dto));
     }
 
-    @Operation(summary = "Actualizar un país")
     @PutMapping("/countries/{id}")
-    public ResponseEntity<Country> updateCountry(@PathVariable Long id, @RequestBody CountryUpdateDTO countryDetails) {
+    public ResponseEntity<CountryResponseDTO> updateCountry(@PathVariable Long id, @Valid @RequestBody CountryUpdateDTO countryDetails) {
         return ResponseEntity.ok(countryService.updateCountry(id, countryDetails));
     }
 
-    @Operation(summary = "Eliminar un país")
     @DeleteMapping("/countries/{id}")
     public ResponseEntity<Void> deleteCountry(@PathVariable Long id) {
         countryService.deleteCountry(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== CRUD de Autores (Author) ==========
+    // ========== Authors ==========
 
-    @Operation(summary = "Obtener todos los autores")
     @GetMapping("/authors")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<List<Author>> getAllAuthors() {
+    public ResponseEntity<List<AuthorResponseDTO>> getAllAuthors() {
         return ResponseEntity.ok(authorService.getAllAuthors());
     }
 
-    @Operation(summary = "Obtener un autor por ID")
     @GetMapping("/authors/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<Author> getAuthorById(@PathVariable Long id) {
+    public ResponseEntity<AuthorResponseDTO> getAuthorById(@PathVariable Long id) {
         return authorService.getAuthorById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Crear un nuevo autor")
     @PostMapping("/authors")
-    public ResponseEntity<Author> createAuthor(@RequestBody AuthorCreateDTO authorDTO) {
+    public ResponseEntity<AuthorResponseDTO> createAuthor(@Valid @RequestBody AuthorCreateDTO authorDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authorService.createAuthor(authorDTO));
     }
 
-    @Operation(summary = "Actualizar un autor")
     @PutMapping("/authors/{id}")
-    public ResponseEntity<Author> updateAuthor(@PathVariable Long id, @RequestBody AuthorUpdateDTO authorDTO) {
+    public ResponseEntity<AuthorResponseDTO> updateAuthor(@PathVariable Long id, @Valid @RequestBody AuthorUpdateDTO authorDTO) {
         return ResponseEntity.ok(authorService.updateAuthor(id, authorDTO));
     }
 
-    @Operation(summary = "Eliminar un autor")
     @DeleteMapping("/authors/{id}")
     public ResponseEntity<Void> deleteAuthor(@PathVariable Long id) {
         authorService.deleteAuthor(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== CRUD de Géneros (Genre) ==========
+    // ========== Genres ==========
 
-    @Operation(summary = "Obtener todos los géneros")
     @GetMapping("/genres")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<List<Genre>> getAllGenres() {
+    public ResponseEntity<List<GenreResponseDTO>> getAllGenres() {
         return ResponseEntity.ok(genreService.getAllGenres());
     }
 
-    @Operation(summary = "Obtener un género por ID")
     @GetMapping("/genres/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<Genre> getGenreById(@PathVariable Long id) {
+    public ResponseEntity<GenreResponseDTO> getGenreById(@PathVariable Long id) {
         return genreService.getGenreById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Crear un nuevo género")
     @PostMapping("/genres")
-    public ResponseEntity<Genre> createGenre(@RequestBody Genre genre) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(genreService.createGenre(genre));
+    public ResponseEntity<GenreResponseDTO> createGenre(@Valid @RequestBody GenreCreateDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(genreService.createGenre(dto));
     }
 
-    @Operation(summary = "Actualizar un género")
     @PutMapping("/genres/{id}")
-    public ResponseEntity<Genre> updateGenre(@PathVariable Long id, @RequestBody GenreUpdateDTO genreDetails) {
+    public ResponseEntity<GenreResponseDTO> updateGenre(@PathVariable Long id, @Valid @RequestBody GenreUpdateDTO genreDetails) {
         return ResponseEntity.ok(genreService.updateGenre(id, genreDetails));
     }
 
-    @Operation(summary = "Eliminar un género")
     @DeleteMapping("/genres/{id}")
     public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
         genreService.deleteGenre(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== CRUD de Tipos de Texto (TextType) ==========
+    // ========== TextTypes ==========
 
-    @Operation(summary = "Obtener todos los tipos de texto")
     @GetMapping("/text-types")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<List<TextType>> getAllTextTypes() {
+    public ResponseEntity<List<TextTypeResponseDTO>> getAllTextTypes() {
         return ResponseEntity.ok(textTypeService.getAllTextTypes());
     }
 
-    @Operation(summary = "Obtener un tipo de texto por ID")
     @GetMapping("/text-types/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<TextType> getTextTypeById(@PathVariable Long id) {
+    public ResponseEntity<TextTypeResponseDTO> getTextTypeById(@PathVariable Long id) {
         return textTypeService.getTextTypeById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Crear un nuevo tipo de texto")
     @PostMapping("/text-types")
-    public ResponseEntity<TextType> createTextType(@RequestBody TextType textType) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(textTypeService.createTextType(textType));
+    public ResponseEntity<TextTypeResponseDTO> createTextType(@Valid @RequestBody TextTypeCreateDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(textTypeService.createTextType(dto));
     }
 
-    @Operation(summary = "Actualizar un tipo de texto")
     @PutMapping("/text-types/{id}")
-    public ResponseEntity<TextType> updateTextType(@PathVariable Long id, @RequestBody TextTypeUpdateDTO textTypeDetails) {
+    public ResponseEntity<TextTypeResponseDTO> updateTextType(@PathVariable Long id, @Valid @RequestBody TextTypeUpdateDTO textTypeDetails) {
         return ResponseEntity.ok(textTypeService.updateTextType(id, textTypeDetails));
     }
 
-    @Operation(summary = "Eliminar un tipo de texto")
     @DeleteMapping("/text-types/{id}")
     public ResponseEntity<Void> deleteTextType(@PathVariable Long id) {
         textTypeService.deleteTextType(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== CRUD de Editoriales (Editorial) ==========
+    // ========== Editorials ==========
 
-    @Operation(summary = "Obtener todas las editoriales")
     @GetMapping("/editorials")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<List<Editorial>> getAllEditorials() {
+    public ResponseEntity<List<EditorialResponseDTO>> getAllEditorials() {
         return ResponseEntity.ok(editorialService.getAllEditorials());
     }
 
-    @Operation(summary = "Obtener una editorial por ID")
     @GetMapping("/editorials/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'READER')")
-    public ResponseEntity<Editorial> getEditorialById(@PathVariable Long id) {
+    public ResponseEntity<EditorialResponseDTO> getEditorialById(@PathVariable Long id) {
         return editorialService.getEditorialById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Crear una nueva editorial")
     @PostMapping("/editorials")
-    public ResponseEntity<Editorial> createEditorial(@RequestBody EditorialCreateDTO editorialDTO) {
+    public ResponseEntity<EditorialResponseDTO> createEditorial(@Valid @RequestBody EditorialCreateDTO editorialDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(editorialService.createEditorial(editorialDTO));
     }
 
-    @Operation(summary = "Actualizar una editorial")
     @PutMapping("/editorials/{id}")
-    public ResponseEntity<Editorial> updateEditorial(@PathVariable Long id, @RequestBody EditorialUpdateDTO editorialDTO) {
+    public ResponseEntity<EditorialResponseDTO> updateEditorial(@PathVariable Long id, @Valid @RequestBody EditorialUpdateDTO editorialDTO) {
         return ResponseEntity.ok(editorialService.updateEditorial(id, editorialDTO));
     }
 
-    @Operation(summary = "Eliminar una editorial")
     @DeleteMapping("/editorials/{id}")
     public ResponseEntity<Void> deleteEditorial(@PathVariable Long id) {
         editorialService.deleteEditorial(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== CRUD de Libros (Book) ==========
+    // ========== Books ==========
 
-    @Operation(summary = "Crear un nuevo libro")
     @PostMapping("/books")
     public ResponseEntity<BookResponseDTO> createBook(@Valid @RequestBody BookCreateDTO bookCreateDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.createBook(bookCreateDTO));
     }
 
-    @Operation(summary = "Actualizar un libro (parcial)")
     @PutMapping("/books/{id}")
     public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @Valid @RequestBody BookUpdateDTO bookUpdateDTO) {
         return ResponseEntity.ok(bookService.updateBook(id, bookUpdateDTO));
     }
 
-    @Operation(summary = "Eliminar un libro")
     @DeleteMapping("/books/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ========== Gestión de Usuarios ==========
+    // ========== Users ==========
 
-    @Operation(summary = "Obtener todos los usuarios")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/users/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
@@ -273,7 +240,6 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Eliminar un usuario")
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

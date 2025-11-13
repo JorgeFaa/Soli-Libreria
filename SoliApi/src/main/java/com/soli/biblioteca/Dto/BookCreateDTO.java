@@ -1,53 +1,46 @@
 package com.soli.biblioteca.Dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.util.Set;
 
-@Setter
-@Getter
+@Data
 public class BookCreateDTO {
 
-    @NotBlank(message = "El título es requerido")
-    @Size(min = 1, max = 200, message = "El título debe tener entre 1 y 200 caracteres")
+    @NotBlank
+    @Size(max = 250)
     private String title;
 
-    @NotBlank(message = "La descripción es requerida")
-    @Size(min = 10, max = 2000, message = "La descripción debe tener entre 10 y 2000 caracteres")
+    @NotBlank
     private String description;
 
-    @NotNull(message = "La fecha de publicación es requerida")
     private LocalDate publishedDate;
 
-    @NotBlank(message = "La URL del texto es requerida")
-    @Pattern(regexp = "^https?://.*", message = "La URL del texto debe ser válida")
-    private String textUrl;
+    @URL
+    private String pdfUrl;
 
-    @NotBlank(message = "La URL de la portada es requerida")
-    @Pattern(regexp = "^https?://.*", message = "La URL de la portada debe ser válida")
+    @URL
+    private String epubUrl;
+
+    @NotBlank
+    @URL
     private String coverUrl;
 
-    // Foreign Keys
-    @NotNull(message = "Los autores son requeridos")
-    @Size(min = 1, message = "Debe especificar al menos un autor")
-    private Set<Long> authorIds;
-
-    @NotNull(message = "Las editoriales son requeridas")
-    @Size(min = 1, message = "Debe especificar al menos una editorial")
-    private Set<Long> editorialIds;
-
-    @NotNull(message = "Los géneros son requeridos")
-    @Size(min = 1, message = "Debe especificar al menos un género")
-    private Set<Long> genreIds;
-
-    @NotNull(message = "El tipo de texto es requerido")
+    @NotNull
     private Long typeId;
 
+    @NotEmpty
+    private Set<Long> authorIds;
 
+    @NotEmpty
+    private Set<Long> editorialIds;
+
+    @NotEmpty
+    private Set<Long> genreIds;
 }

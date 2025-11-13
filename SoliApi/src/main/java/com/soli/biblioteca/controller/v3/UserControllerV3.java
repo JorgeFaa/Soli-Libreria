@@ -1,9 +1,6 @@
 package com.soli.biblioteca.controller.v3;
 
-import com.soli.biblioteca.Dto.UserCreateDTO;
-import com.soli.biblioteca.Dto.UserDTO;
-import com.soli.biblioteca.Dto.UserUpdateDTO;
-import com.soli.biblioteca.model.Book;
+import com.soli.biblioteca.Dto.*;
 import com.soli.biblioteca.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -11,11 +8,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.soli.biblioteca.config.ApiVersioningConfig.API_V3_PREFIX;
@@ -59,7 +56,7 @@ public class UserControllerV3 {
 
     @Operation(summary = "Obtener los libros favoritos del usuario autenticado")
     @GetMapping("/me/favorites")
-    public ResponseEntity<Set<Book>> getFavoriteBooks(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<Set<BookResponseDTO>> getFavoriteBooks(@AuthenticationPrincipal Jwt jwt) {
         String cognitoSub = jwt.getSubject();
         return ResponseEntity.ok(userService.getFavoriteBooks(cognitoSub));
     }
@@ -78,5 +75,25 @@ public class UserControllerV3 {
         String cognitoSub = jwt.getSubject();
         userService.removeFavoriteBook(cognitoSub, bookId);
         return ResponseEntity.noContent().build();
+    }
+
+    // ========== Gestión de Progreso de Lectura ==========
+
+    @Operation(summary = "Obtener todo el progreso de lectura del usuario")
+    @GetMapping("/me/progress")
+    public ResponseEntity<List<ReadingProgressDTO>> getReadingProgress(@AuthenticationPrincipal Jwt jwt) {
+        String cognitoSub = jwt.getSubject();
+        return ResponseEntity.ok(userService.getReadingProgress(cognitoSub));
+    }
+
+    @Operation(summary = "Guardar o actualizar el progreso de lectura para un libro")
+    @PutMapping("/me/progress/{bookId}")
+    public ResponseEntity<ReadingProgressDTO> saveOrUpdateReadingProgress(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long bookId,
+            @Valid @RequestBody ReadingProgressUpdateDTO readingProgressUpdateDTO) {
+        String cognitoSub = jwt.getSubject();
+        ReadingProgressDTO updatedProgress = userService.saveOrUpdateReadingProgress(cognitoSub, bookId, readingProgressUpdateDTO);
+        return ResponseEntity.ok(updatedProgress);
     }
 }

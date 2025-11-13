@@ -18,13 +18,12 @@ public class BookResponseDTO {
     private String title;
     private String description;
     private LocalDate publishedDate;
-    private String textUrl;
+    private String pdfUrl;
+    private String epubUrl;
     private String coverUrl;
 
-    // Entidades embebidas en la respuesta
+    private TextTypeResponseDTO type;
     private Set<AuthorResponseDTO> authors;
     private Set<EditorialResponseDTO> editorials;
     private Set<GenreResponseDTO> genres;
-    private TextTypeResponseDTO type;
-
 }
