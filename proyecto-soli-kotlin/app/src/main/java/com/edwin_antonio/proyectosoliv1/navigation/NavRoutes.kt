@@ -4,8 +4,14 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Login : Screen("login")
     object Register : Screen("register")
-    object EmailVerification : Screen("email_verification")
+    object EmailVerification : Screen("email_verification/{username}") {
+        fun createRoute(username: String): String {
+            val encodedUsername = java.net.URLEncoder.encode(username, "UTF-8")
+            return "email_verification/$encodedUsername"
+        }
+    }
     object UserProfileSetup : Screen("user_profile_setup")
+    object Profile : Screen("profile")
     object Home : Screen("home")
     object Favorite : Screen("favorite")
     object Books : Screen("books")
