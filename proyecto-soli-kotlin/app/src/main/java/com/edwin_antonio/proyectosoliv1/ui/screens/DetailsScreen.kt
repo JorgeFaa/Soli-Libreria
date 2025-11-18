@@ -128,9 +128,9 @@ fun DetailsScreen(
                     }
                     
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (!book.textUrl.isNullOrEmpty()) {
+                        if (!book.pdfUrl.isNullOrEmpty()) {
                             Button(
-                                onClick = { onOpenPdf(book.textUrl!!, book.title) },
+                                onClick = { onOpenPdf(book.pdfUrl!!, book.title) },
                                 Modifier.weight(1f).height(48.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = YellowSolar)
