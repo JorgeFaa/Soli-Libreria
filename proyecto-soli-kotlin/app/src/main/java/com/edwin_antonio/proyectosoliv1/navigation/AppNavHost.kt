@@ -12,6 +12,13 @@ import androidx.navigation.navArgument
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 import com.edwin_antonio.proyectosoliv1.repository.AuthRepository
 import com.edwin_antonio.proyectosoliv1.ui.screens.AdminScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.AuthorManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.BookManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.CountryManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.EditorialManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.GenreManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.TextTypeManagementScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.UserManagementScreen
 import com.edwin_antonio.proyectosoliv1.viewmodel.AuthViewModel
 import com.edwin_antonio.proyectosoliv1.viewmodel.ProfileViewModel
 import com.edwin_antonio.proyectosoliv1.ui.screens.BooksScreen
@@ -117,7 +124,58 @@ fun AppNavHost() {
             )
         }
         composable(Screen.Admin.route) {
-            AdminScreen()
+            AdminScreen(
+                onNavigateToTextTypes = { navController.navigate(Screen.TextTypeManagement.route) },
+                onNavigateToGenres = { navController.navigate(Screen.GenreManagement.route) },
+                onNavigateToCountries = { navController.navigate(Screen.CountryManagement.route) },
+                onNavigateToAuthors = { navController.navigate(Screen.AuthorManagement.route) },
+                onNavigateToEditorials = { navController.navigate(Screen.EditorialManagement.route) },
+                onNavigateToUsers = { navController.navigate(Screen.UserManagement.route) },
+                onNavigateToBooks = { navController.navigate(Screen.BookManagement.route) },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.TextTypeManagement.route) {
+            TextTypeManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.GenreManagement.route) {
+            GenreManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.CountryManagement.route) {
+            CountryManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.AuthorManagement.route) {
+            AuthorManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.EditorialManagement.route) {
+            EditorialManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.UserManagement.route) {
+            UserManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.BookManagement.route) {
+            BookManagementScreen(
+                tokenManager = tokenManager,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable(Screen.Profile.route) {
             ProfileScreen(

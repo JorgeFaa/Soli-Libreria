@@ -16,6 +16,13 @@ sealed class Screen(val route: String) {
     object Favorite : Screen("favorite")
     object Books : Screen("books")
     object Admin : Screen("admin")
+    object TextTypeManagement : Screen("text_type_management")
+    object GenreManagement : Screen("genre_management")
+    object CountryManagement : Screen("country_management")
+    object AuthorManagement : Screen("author_management")
+    object EditorialManagement : Screen("editorial_management")
+    object UserManagement : Screen("user_management")
+    object BookManagement : Screen("book_management")
     object Details : Screen("details/{bookId}") {
         fun createRoute(bookId: String) = "details/$bookId"
     }
