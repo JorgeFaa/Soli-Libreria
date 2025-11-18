@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 import com.edwin_antonio.proyectosoliv1.repository.AuthRepository
 import com.edwin_antonio.proyectosoliv1.viewmodel.AuthViewModel
+import com.edwin_antonio.proyectosoliv1.viewmodel.ProfileViewModel
 import com.edwin_antonio.proyectosoliv1.ui.screens.BooksScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.DetailsScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.EmailVerificationScreen
@@ -19,6 +20,7 @@ import com.edwin_antonio.proyectosoliv1.ui.screens.FavoriteScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.HomeScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.LoginScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.PdfViewerScreen
+import com.edwin_antonio.proyectosoliv1.ui.screens.ProfileScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.RegisterScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.SplashScreen
 import com.edwin_antonio.proyectosoliv1.ui.screens.UserProfileSetupScreen
@@ -32,6 +34,7 @@ fun AppNavHost() {
     val tokenManager = remember { TokenManager(context) }
     val authRepository = remember { AuthRepository(tokenManager) }
     val authViewModel: AuthViewModel = viewModel { AuthViewModel(authRepository) }
+    val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory(tokenManager))
     
     // Observar estado de autenticación
     val authState by authViewModel.uiState.collectAsState()
@@ -66,14 +69,19 @@ fun AppNavHost() {
         }
         composable(Screen.Register.route) {
             RegisterScreen(
-                onRegistered = { navController.navigate(Screen.EmailVerification.route) },
+                onRegistered = { username -> navController.navigate(Screen.EmailVerification.createRoute(username)) },
                 onBack = { navController.popBackStack() },
                 tokenManager = tokenManager
             )
         }
-        composable(Screen.EmailVerification.route) {
+        composable(
+            route = Screen.EmailVerification.route,
+            arguments = listOf(navArgument("username") { type = NavType.StringType })
+        ) {
+            val username = it.arguments?.getString("username").orEmpty()
             EmailVerificationScreen(
-                onVerified = {
+                username = username,
+                onVerificationSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -95,6 +103,7 @@ fun AppNavHost() {
             HomeScreen(
                 onOpenBooks = { navController.navigate(Screen.Books.route) },
                 onOpenFavorites = { navController.navigate(Screen.Favorite.route) },
+                onOpenProfile = { navController.navigate(Screen.Profile.route) },
                 onBookClick = { bookId -> navController.navigate(Screen.Details.createRoute(bookId)) },
                 onLogout = { 
                     authViewModel.logout()
@@ -103,6 +112,13 @@ fun AppNavHost() {
                     }
                 },
                 tokenManager = tokenManager
+            )
+        }
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                profileViewModel = profileViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onBookClick = { bookId -> navController.navigate(Screen.Details.createRoute(bookId)) }
             )
         }
         composable(Screen.Favorite.route) {

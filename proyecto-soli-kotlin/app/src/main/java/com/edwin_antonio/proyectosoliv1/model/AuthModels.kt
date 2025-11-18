@@ -28,8 +28,7 @@ data class User(
     val id: Int,
     val firstName: String,
     val lastName: String,
-    val activeMember: Boolean,
-    val preferredGenreIds: List<Int>,
+    val prefferredGenreIds: List<Int>,
     val favoriteBooks: List<Int>,
     val roleName: String
 )
@@ -44,31 +43,15 @@ data class UserCreatedResponse(
 )
 
 data class RegisterRequest(
+    val username: String,
+    val password: String
+)
+
+data class CreateUserRequest(
     val email: String,
     val firstName: String,
     val lastName: String,
     val preferredGenreIds: List<Int>
-)
-
-data class VerificationRequest(
-    val email: String,
-    val verificationCode: String
-)
-
-data class VerificationResponse(
-    val status: String
-)
-
-data class ResendVerificationRequest(
-    val email: String
-)
-
-data class StatusCheckRequest(
-    val email: String
-)
-
-data class StatusCheckResponse(
-    val isConfirmed: Boolean
 )
 
 data class LogoutResponse(
@@ -83,10 +66,4 @@ data class RefreshTokenResponse(
     val accessToken: String,
     val idToken: String,
     val refreshToken: String
-)
-
-data class UserProfileSetupRequest(
-    val firstName: String,
-    val lastName: String,
-    val preferredGenreIds: List<Int>
 )
