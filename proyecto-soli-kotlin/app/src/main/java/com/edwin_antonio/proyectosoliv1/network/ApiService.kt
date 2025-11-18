@@ -53,16 +53,120 @@ interface ApiService {
     @GET("api/v3/books/by-ids")
     suspend fun getBooksByIds(@Query("ids") bookIds: String): Response<List<Book>>
     
-    // ==== 🎭 GENRE ENDPOINTS ====
-    
-    @GET("api/v3/admin/genres")
-    suspend fun getAllGenres(): Response<List<Genre>>
-
     // ==== 👤 USER PROFILE ENDPOINTS  ====
 
     @GET("api/v3/users/me")
     suspend fun getCurrentUserProfile(): Response<User>
+    
+    // ==== 📝 ADMIN TEXT TYPE ENDPOINTS ====
 
+    @POST("api/v3/admin/text-types")
+    suspend fun createTextType(@Body request: TextTypeRequest): Response<TextType>
+
+    @GET("api/v3/admin/text-types")
+    suspend fun getAllTextTypes(): Response<List<TextType>>
+
+    @GET("api/v3/admin/text-types/{id}")
+    suspend fun getTextTypeById(@Path("id") id: Int): Response<TextType>
+
+    @PUT("api/v3/admin/text-types/{id}")
+    suspend fun updateTextType(@Path("id") id: Int, @Body request: TextTypeRequest): Response<TextType>
+
+    @DELETE("api/v3/admin/text-types/{id}")
+    suspend fun deleteTextType(@Path("id") id: Int): Response<Unit>
+
+    // ==== 🎭 ADMIN GENRE ENDPOINTS ====
+
+    @POST("api/v3/admin/genres")
+    suspend fun createGenre(@Body request: GenreRequest): Response<Genre>
+
+    @GET("api/v3/admin/genres")
+    suspend fun getAllGenres(): Response<List<Genre>>
+
+    @GET("api/v3/admin/genres/{id}")
+    suspend fun getGenreById(@Path("id") id: Int): Response<Genre>
+
+    @PUT("api/v3/admin/genres/{id}")
+    suspend fun updateGenre(@Path("id") id: Int, @Body request: GenreRequest): Response<Genre>
+
+    @DELETE("api/v3/admin/genres/{id}")
+    suspend fun deleteGenre(@Path("id") id: Int): Response<Unit>
+
+    // ==== 🏢 ADMIN EDITORIAL ENDPOINTS ====
+
+    @POST("api/v3/admin/editorials")
+    suspend fun createEditorial(@Body request: EditorialRequest): Response<Editorial>
+
+    @GET("api/v3/admin/editorials")
+    suspend fun getAllEditorials(): Response<List<Editorial>>
+
+    @GET("api/v3/admin/editorials/{id}")
+    suspend fun getEditorialById(@Path("id") id: Int): Response<Editorial>
+
+    @PUT("api/v3/admin/editorials/{id}")
+    suspend fun updateEditorial(@Path("id") id: Int, @Body request: EditorialRequest): Response<Editorial>
+
+    @DELETE("api/v3/admin/editorials/{id}")
+    suspend fun deleteEditorial(@Path("id") id: Int): Response<Unit>
+
+    // ==== 🌍 ADMIN COUNTRY ENDPOINTS ====
+
+    @POST("api/v3/admin/countries")
+    suspend fun createCountry(@Body request: CountryRequest): Response<Country>
+
+    @GET("api/v3/admin/countries")
+    suspend fun getAllCountries(): Response<List<Country>>
+
+    @GET("api/v3/admin/countries/{id}")
+    suspend fun getCountryById(@Path("id") id: Int): Response<Country>
+
+    @PUT("api/v3/admin/countries/{id}")
+    suspend fun updateCountry(@Path("id") id: Int, @Body request: CountryRequest): Response<Country>
+
+    @DELETE("api/v3/admin/countries/{id}")
+    suspend fun deleteCountry(@Path("id") id: Int): Response<Unit>
+
+    // ==== ✍️ ADMIN AUTHOR ENDPOINTS ====
+
+    @POST("api/v3/admin/authors")
+    suspend fun createAuthor(@Body request: AuthorRequest): Response<Author>
+
+    @GET("api/v3/admin/authors")
+    suspend fun getAllAuthors(): Response<List<Author>>
+
+    @GET("api/v3/admin/authors/{id}")
+    suspend fun getAuthorById(@Path("id") id: Int): Response<Author>
+
+    @PUT("api/v3/admin/authors/{id}")
+    suspend fun updateAuthor(@Path("id") id: Int, @Body request: AuthorRequest): Response<Author>
+
+    @DELETE("api/v3/admin/authors/{id}")
+    suspend fun deleteAuthor(@Path("id") id: Int): Response<Unit>
+
+    // ==== 📚 ADMIN BOOK ENDPOINTS ====
+
+    @POST("api/v3/admin/books")
+    suspend fun createBook(@Body request: BookRequest): Response<Book>
+
+    @POST("api/v3/admin/books/batch")
+    suspend fun createBooksBatch(@Body request: List<BookRequest>): Response<List<Book>>
+
+    @PUT("api/v3/admin/books/{id}")
+    suspend fun updateBook(@Path("id") id: Int, @Body request: BookRequest): Response<Book>
+
+    @DELETE("api/v3/admin/books/{id}")
+    suspend fun deleteBook(@Path("id") id: Int): Response<Unit>
+
+    // ==== 🧑‍💻 ADMIN USER ENDPOINTS ====
+
+    @GET("api/v3/admin/users")
+    suspend fun getAllUsers(): Response<List<AdminUser>>
+
+    @GET("api/v3/admin/users/{id}")
+    suspend fun getUserById(@Path("id") id: Int): Response<AdminUser>
+
+    @DELETE("api/v3/admin/users/{id}")
+    suspend fun deleteUser(@Path("id") id: Int): Response<Unit>
 
 
 //    @PUT("api/v2/user/profile")
