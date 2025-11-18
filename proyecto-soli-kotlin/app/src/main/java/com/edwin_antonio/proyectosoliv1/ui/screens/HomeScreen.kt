@@ -1,5 +1,6 @@
 package com.edwin_antonio.proyectosoliv1.ui.screens
 
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,9 +40,10 @@ import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 
 @Composable
 fun HomeScreen(
-    onOpenBooks: () -> Unit, 
+    onOpenBooks: () -> Unit,
     onOpenFavorites: () -> Unit,
-    onOpenProfile: () -> Unit,
+    onOpenUser: () -> Unit,
+    onOpenAdmin: () -> Unit,
     onBookClick: (String) -> Unit = {},
     onLogout: () -> Unit = {},
     tokenManager: TokenManager,
@@ -49,13 +51,18 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var menuOpen by remember { mutableStateOf(false) }
-    
+    val userRole by tokenManager.userRole.collectAsState()
+
+    LaunchedEffect(userRole) {
+        Log.d("HomeScreen", "User role observed: $userRole")
+    }
+
     // 🎨 Animación del drawer
     val slideOffset by animateDpAsState(
         targetValue = if (menuOpen) 0.dp else (-240).dp,
         animationSpec = tween(300)
     )
-    
+
     Box(modifier = Modifier.fillMaxSize()) {
         // 🎨 UI principal idéntica a React Native
         Column(
@@ -91,7 +98,7 @@ fun HomeScreen(
                             tint = CoffeeDark
                         )
                     }
-                    
+
                     // Logo/Título central
                     Text(
                         text = "Soli Libreria",
@@ -99,7 +106,7 @@ fun HomeScreen(
                         fontWeight = FontWeight.Bold,
                         color = CoffeeDark
                     )
-                    
+
                     // Botón búsqueda
                     IconButton(
                         onClick = { viewModel.toggleSearch() },
@@ -114,7 +121,7 @@ fun HomeScreen(
                     }
                 }
             }
-            
+
             // 🔍 Barra de búsqueda expandible
             if (uiState.isSearchActive) {
                 Surface(
@@ -137,7 +144,7 @@ fun HomeScreen(
                     )
                 }
             }
-            
+
             // 📚 Secciones scrolleables - datos reales de la API
             Column(
                 modifier = Modifier
@@ -156,7 +163,7 @@ fun HomeScreen(
                         CircularProgressIndicator(color = YellowSolar)
                     }
                 }
-                
+
                 // Mostrar error
                 uiState.errorMessage?.let { errorMsg ->
                     Column(
@@ -175,7 +182,7 @@ fun HomeScreen(
                         }
                     }
                 }
-                
+
                 // Mostrar secciones de libros
                 uiState.sections.forEach { section ->
                     BookSectionComponent(
@@ -183,7 +190,7 @@ fun HomeScreen(
                         onBookClick = onBookClick
                     )
                 }
-                
+
                 // Mensaje cuando no hay libros
                 if (!uiState.isLoading && uiState.sections.isEmpty() && uiState.errorMessage == null) {
                     Box(
@@ -201,7 +208,7 @@ fun HomeScreen(
                 }
             }
         }
-        
+
         // 🎨 Overlay del drawer
         if (menuOpen) {
             Box(
@@ -212,7 +219,7 @@ fun HomeScreen(
                     .zIndex(1f)
             )
         }
-        
+
         // 🗺️ Drawer lateral - idéntico a React Native
         Surface(
             modifier = Modifier
@@ -237,13 +244,19 @@ fun HomeScreen(
 
                 DrawerMenuItem("Perfil") {
                     menuOpen = false
-                    onOpenProfile()
+                    onOpenUser()
                 }
 
-                
+                if (userRole == "ADMIN") {
+                    DrawerMenuItem("Admin") {
+                        menuOpen = false
+                        onOpenAdmin()
+                    }
+                }
+
                 // Solo botón de cerrar sesión por ahora
                 Spacer(modifier = Modifier.weight(1f)) // Empujar el botón hacia abajo
-                
+
                 DrawerMenuItem("Cerrar Sesión") {
                     menuOpen = false
                     onLogout()
@@ -271,7 +284,7 @@ fun BookSectionComponent(
                     .padding(horizontal = 12.dp)
                     .padding(bottom = 8.dp)
             )
-            
+
             // Lista horizontal de libros
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
@@ -366,7 +379,7 @@ fun BookCard(
                     }
                 }
             }
-            
+
             // Sección inferior: Información del libro (altura flexible)
             Column(
                 modifier = Modifier

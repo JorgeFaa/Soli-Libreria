@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 import com.edwin_antonio.proyectosoliv1.repository.AuthRepository
+import com.edwin_antonio.proyectosoliv1.ui.screens.AdminScreen
 import com.edwin_antonio.proyectosoliv1.viewmodel.AuthViewModel
 import com.edwin_antonio.proyectosoliv1.viewmodel.ProfileViewModel
 import com.edwin_antonio.proyectosoliv1.ui.screens.BooksScreen
@@ -103,7 +104,8 @@ fun AppNavHost() {
             HomeScreen(
                 onOpenBooks = { navController.navigate(Screen.Books.route) },
                 onOpenFavorites = { navController.navigate(Screen.Favorite.route) },
-                onOpenProfile = { navController.navigate(Screen.Profile.route) },
+                onOpenUser = { navController.navigate(Screen.Profile.route) },
+                onOpenAdmin = { navController.navigate(Screen.Admin.route) },
                 onBookClick = { bookId -> navController.navigate(Screen.Details.createRoute(bookId)) },
                 onLogout = { 
                     authViewModel.logout()
@@ -113,6 +115,9 @@ fun AppNavHost() {
                 },
                 tokenManager = tokenManager
             )
+        }
+        composable(Screen.Admin.route) {
+            AdminScreen()
         }
         composable(Screen.Profile.route) {
             ProfileScreen(

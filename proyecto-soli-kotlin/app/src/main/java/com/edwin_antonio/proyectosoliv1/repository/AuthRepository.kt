@@ -6,27 +6,51 @@ import com.edwin_antonio.proyectosoliv1.model.User
 import com.edwin_antonio.proyectosoliv1.network.ApiService
 import com.edwin_antonio.proyectosoliv1.network.RetrofitClient
 import kotlinx.coroutines.flow.StateFlow
+import org.json.JSONObject
+import java.util.Base64
 
 class AuthRepository(
     private val tokenManager: TokenManager
 ) {
-    
+
     private val apiService by lazy { 
         RetrofitClient.getInstance(tokenManager) 
     }
-    
+
     private val publicApiService by lazy {
         RetrofitClient.getPublicInstance()
     }
-    
+
     val isLoggedIn: StateFlow<Boolean> = tokenManager.isLoggedIn
 
-    // Dentro de tu clase AuthRepository
+    private fun decodeRoleFromToken(token: String): String {
+        return try {
+            val parts = token.split('.')
+            if (parts.size < 2) return "READER" // Rol por defecto
+
+            val payload = String(Base64.getUrlDecoder().decode(parts[1]), Charsets.UTF_8)
+            val json = JSONObject(payload)
+
+            if (json.has("cognito:groups")) {
+                val groups = json.getJSONArray("cognito:groups")
+                for (i in 0 until groups.length()) {
+                    when (groups.getString(i)) {
+                        "ADMIN" -> return "ADMIN"
+                        "EDITOR" -> return "EDITOR"
+                    }
+                }
+            }
+            "READER" // Rol por defecto si no se encuentra un grupo superior
+        } catch (e: Exception) {
+            println("AuthRepository: Error decodificando el token: ${e.message}")
+            "READER" // Rol por defecto en caso de error
+        }
+    }
 
     suspend fun login(email: String, password: String): Result<String> {
         return try {
             println("🚀 AuthRepository: Intentando login con email: $email")
-            val request = LoginRequest(username = email, password = password) // Email se envía como username
+            val request = LoginRequest(username = email, password = password)
             val response = publicApiService.login(request)
 
             println("📊 AuthRepository: Response code: ${response.code()}")
@@ -35,7 +59,6 @@ class AuthRepository(
                 val authResponse = response.body()
                 println("AuthRepository: Login raw body: $authResponse")
 
-                // Verificar que la respuesta y los tokens no sean nulos
                 if (authResponse?.accessToken != null &&
                     authResponse.idToken != null &&
                     authResponse.refreshToken != null) {
@@ -46,35 +69,33 @@ class AuthRepository(
                         refreshToken = authResponse.refreshToken
                     )
 
-                    // Guardar info básica del usuario
+                    val userRole = decodeRoleFromToken(authResponse.idToken)
+
                     tokenManager.saveUserInfo(
-                        userId = email, // Puedes cambiar esto si la respuesta incluyera un ID de usuario
+                        userId = email, 
                         email = email,
-                        name = null, // La respuesta de login no incluye el nombre
-                        role = "USER" // Asumimos un rol por defecto, se puede actualizar después
+                        name = null, 
+                        role = userRole
                     )
 
-                    println("AuthRepository: Login exitoso, tokens guardados")
+                    println("AuthRepository: Login exitoso, rol '$userRole' guardado.")
                     Result.success(authResponse.accessToken)
                 } else {
-                    // Esto ocurre si la respuesta es exitosa (200) pero el cuerpo es nulo o incompleto.
                     Result.failure(Exception("Respuesta de login incompleta del servidor"))
                 }
-            } else { // Manejo de respuestas no exitosas (4xx, 5xx)
+            } else {
                 val errorBody = response.errorBody()?.string()
                 println("AuthRepository: Response NO exitosa. Código: ${response.code()}")
                 println("AuthRepository: Error body: $errorBody")
                 val errorMsg = when (response.code()) {
                     401 -> "Email o contraseña incorrectos"
                     400 -> "Datos de login inválidos"
-                    // Aquí podrías intentar parsear 'errorBody' si la API envía un JSON con un mensaje
                     else -> "Error de conexión: ${response.code()}"
                 }
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             println("AuthRepository: Excepción durante login: ${e.message}")
-            // Esta excepción captura problemas de red, timeouts, o errores de parsing de JSON
             Result.failure(Exception("Error de conexión: ${e.message}"))
         }
     }
@@ -82,44 +103,36 @@ class AuthRepository(
 
     suspend fun logout(): Result<Unit> {
         return try {
-            // Intentar hacer logout en el servidor
             val response = apiService.logout()
-            
-            // Siempre limpiar tokens localmente, aunque falle el servidor
             tokenManager.clearTokens()
-            
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                // Aunque falle el servidor, consideramos exitoso el logout local
                 Result.success(Unit)
             }
         } catch (e: Exception) {
-            // Aún en caso de error, limpiar tokens localmente
             tokenManager.clearTokens()
             Result.success(Unit)
         }
     }
-    
+
     suspend fun getCurrentUser(): Result<User> {
         return try {
             val response = apiService.getCurrentUser()
-            
+
             if (response.isSuccessful) {
                 val user = response.body()!!
-                
-                // Actualizar información local del usuario
+
                 tokenManager.saveUserInfo(
                     user.id.toString(),
-                    "${user.firstName} ${user.lastName}", // No hay username, usar nombre completo
+                    "${user.firstName} ${user.lastName}",
                     user.firstName,
                     user.roleName
                 )
-                
+
                 Result.success(user)
             } else {
                 if (response.code() == 401) {
-                    // Token expirado, el interceptor debería manejarlo
                     Result.failure(Exception("Sesión expirada"))
                 } else {
                     Result.failure(Exception("Error al obtener usuario: ${response.code()}"))
@@ -129,24 +142,23 @@ class AuthRepository(
             Result.failure(e)
         }
     }
-    
+
     fun isUserLoggedIn(): Boolean {
         return tokenManager.hasValidTokens()
     }
-    
+
     fun getUserRole(): String? {
         return tokenManager.getUserRole()
     }
-    
+
     fun getLocalUserInfo(): User? {
         val userId = tokenManager.getUserId()
         val email = tokenManager.getUserEmail()
         val name = tokenManager.getUserName()
         val roleString = tokenManager.getUserRole()
-        
+
         return if (userId != null && email != null && roleString != null) {
             try {
-                // Crear usuario temporal con datos básicos
                 User(
                     id = userId.toIntOrNull() ?: 0,
                     firstName = name ?: email.substringBefore("@"),
@@ -162,29 +174,27 @@ class AuthRepository(
             null
         }
     }
-    
+
     fun hasReaderAccess(): Boolean {
         val userRole = getUserRole()
         return userRole == "USER" || userRole == "EDITOR" || userRole == "ADMIN"
     }
-    
+
     fun hasEditorAccess(): Boolean {
         val userRole = getUserRole()
         return userRole == "EDITOR" || userRole == "ADMIN"
     }
-    
+
     fun hasAdminAccess(): Boolean {
         return getUserRole() == "ADMIN"
     }
-    
+
     suspend fun needsProfileSetup(): Result<Boolean> {
         return try {
             val response = apiService.getCurrentUser()
-            
+
             if (response.isSuccessful) {
                 val user = response.body()!!
-                // Check if user has completed profile setup
-                // A user needs profile setup if firstName is empty or they have no preferred genres
                 val needsSetup = user.firstName.isBlank() || user.lastName.isBlank()
                 Result.success(needsSetup)
             } else {
