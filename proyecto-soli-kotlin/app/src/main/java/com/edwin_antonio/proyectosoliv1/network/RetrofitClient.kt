@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
  */
 object RetrofitClient {
     // 🌐 URL base exacta del proyecto
-    const val BASE_URL = "https://soliapi-223325065421.northamerica-south1.run.app/"
+    const val BASE_URL = "https://soli-api.gentledesert-973b7428.westus2.azurecontainerapps.io/"
     
     fun getInstance(tokenManager: TokenManager): ApiService {
         val loggingInterceptor = HttpLoggingInterceptor().apply {

@@ -24,10 +24,14 @@ class TokenManager(private val context: Context) {
     
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    private val _userRole = MutableStateFlow<String?>(null)
+    val userRole: StateFlow<String?> = _userRole.asStateFlow()
     
     init {
         // Inicializar el estado después de que las SharedPreferences estén listas
         _isLoggedIn.value = hasValidTokens()
+        _userRole.value = encryptedSharedPrefs.getString(USER_ROLE_KEY, null)
     }
     
     companion object {
@@ -57,6 +61,7 @@ class TokenManager(private val context: Context) {
             .putString(USER_NAME_KEY, name)
             .putString(USER_ROLE_KEY, role)
             .apply()
+        _userRole.value = role
     }
     
     fun getAccessToken(): String? {
@@ -103,6 +108,7 @@ class TokenManager(private val context: Context) {
             .apply()
         
         _isLoggedIn.value = false
+        _userRole.value = null
     }
     
     fun updateTokensAfterRefresh(accessToken: String, idToken: String, refreshToken: String) {
