@@ -10,6 +10,8 @@ val SandSoft = Color(0xFFF6EFD7)           // 🏖️ Arena Suave - Background p
 val HoneySoft = Color(0xFFFFEFA1)          // 🍯 Miel Suave - Contenedores de formularios
 val CoffeeDark = Color(0xFF3C2A1E)         // 🌰 Café Oscuro - Textos principales
 val TerracottaRed = Color(0xFFD94F30)      // 🌶️ Rojo Terracota - Acentos
+val GrayBrown = Color(0xFF8D6E63)          // 🗿 Marrón Grisáceo - Textos secundarios o de apoyo
+
 
 // 🌅 Colores para modo claro - Tema Soli
 val LightPrimary = YellowSolar
