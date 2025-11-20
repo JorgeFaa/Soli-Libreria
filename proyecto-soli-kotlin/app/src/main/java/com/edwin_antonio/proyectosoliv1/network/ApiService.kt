@@ -172,5 +172,7 @@ interface ApiService {
 //    @PUT("api/v2/user/profile")
 //    suspend fun updateUserProfile(@Body request: UserProfileSetupRequest): Response<User>
 
-
+    // Agregar un libro a favoritos
+    @POST("api/v3/users/me/favorites/{bookId}")
+    suspend fun addFavorite(@Path("bookId") bookId: Int): Response<Unit>
     }

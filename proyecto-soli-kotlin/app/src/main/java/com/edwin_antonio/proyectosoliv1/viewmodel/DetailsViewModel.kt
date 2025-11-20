@@ -68,20 +68,38 @@ class DetailsViewModel(
             }
         }
     }
-    
+
     fun addToFavorites() {
-        // TODO: Implementar cuando se tenga el endpoint de favoritos
+        val book = _uiState.value.book ?: return
+
         _uiState.value = _uiState.value.copy(isAddingToFavorites = true)
-        
+
         viewModelScope.launch {
             try {
-                // Simulamos una operación por ahora
-                kotlinx.coroutines.delay(1000)
-                _uiState.value = _uiState.value.copy(isAddingToFavorites = false)
+                val response = apiService.addFavorite(book.id)
+
+                if (response.isSuccessful) {
+                    _uiState.value = _uiState.value.copy(
+                        isAddingToFavorites = false,
+                        errorMessage = null
+                    )
+                } else {
+                    val msg = when (response.code()) {
+                        401 -> "Sesión expirada. Inicia sesión nuevamente."
+                        403 -> "No tienes permiso para agregar favoritos."
+                        404 -> "Libro no encontrado en el servidor."
+                        else -> "Error al agregar a favoritos (${response.code()})"
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isAddingToFavorites = false,
+                        errorMessage = msg
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isAddingToFavorites = false,
-                    errorMessage = "Error al agregar a favoritos"
+                    errorMessage = "Error de conexión: ${e.message}"
                 )
             }
         }
