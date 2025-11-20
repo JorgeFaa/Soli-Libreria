@@ -11,13 +11,18 @@ import LibroDetalle from './assets/components/LibroDetalle'
 import Login from './assets/components/Login'
 import Registro from './assets/components/Registro'
 import VerificarCodigo from './assets/components/VerificarCodigo'
+import ForgotPassword from './assets/components/ForgotPassword'
+import ResetPassword from './assets/components/ResetPassword'
 import Perfil from './assets/components/Perfil'
 import CuestionarioPerfil from './assets/components/CuestionarioPerfil'
 import AdminDashboard from './assets/components/AdminDashboard'
 import { ProtectedAdminRoute, ProtectedRoute } from './components/ProtectedRoute'
 
 // Importar servicios de autenticación
-import { isAuthenticated, logoutUser, verifyToken, needsProfileCompletionFromServer, isCurrentUserAdmin } from './services/authService'
+import { isUserAuthenticated, logoutUser, needsProfileCompletionFromServer, isCurrentUserAdmin, } from './services/authService'
+
+// Importar hook para refresh automático de tokens
+import useAuthRefresh from './hooks/useAuthRefresh'
 
 import './App.css'
 
@@ -40,30 +45,30 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showProfileQuestionnaire, setShowProfileQuestionnaire] = useState<boolean>(false);
 
+  // Inicializar refresh automático de tokens
+  useAuthRefresh();
+
   // Verificar sesión al cargar la app
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Verificar si hay token guardado
-        if (isAuthenticated()) {
-          // Verificar que el token sea válido con el servidor
-          const isValidToken = await verifyToken();
+        
+        // Verificar autenticación completa (incluye conectividad y validación server)
+        const isLoggedIn = await isUserAuthenticated();
+        
+        if (isLoggedIn) {
+          setIsUserLoggedIn(true);
           
-          if (isValidToken) {
-            setIsUserLoggedIn(true);
-            
-            // Verificar si necesita completar el perfil
-            const needsQuestionnaire = await needsProfileCompletionFromServer();
-            if (needsQuestionnaire) {
-              setShowProfileQuestionnaire(true);
-            }
-          } else {
-            // Token inválido, limpiar storage
-            await logoutUser();
-            setIsUserLoggedIn(false);
+          // Verificar si necesita completar el perfil
+          const needsQuestionnaire = await needsProfileCompletionFromServer();
+          if (needsQuestionnaire) {
+            setShowProfileQuestionnaire(true);
           }
+        } else {
+          setIsUserLoggedIn(false);
         }
       } catch (error) {
+        console.error('❌ [App] Error verificando autenticación:', error);
         await logoutUser();
         setIsUserLoggedIn(false);
       } finally {
@@ -72,6 +77,38 @@ function App() {
     };
 
     checkAuthStatus();
+    
+    // Cleanup del monitor cuando el componente se desmonte
+    return () => {
+      // cleanupMonitor(); // Se ejecutará cuando el componente se desmonte
+    };
+  }, []);
+
+  // Listeners para eventos de conectividad
+  useEffect(() => {
+    const handleServerDisconnected = (event: CustomEvent) => {
+      console.warn('🚨 [App] Servidor desconectado:', event.detail.message);
+      // Aquí puedes mostrar una notificación al usuario
+      // Por ejemplo: toast, modal, banner, etc.
+    };
+
+    const handleSessionInvalidated = (event: CustomEvent) => {
+      console.warn('🚨 [App] Sesión invalidada:', event.detail.message);
+      // TEMPORALMENTE DESHABILITADO para evitar loops de invalidación
+      // setIsUserLoggedIn(false);
+      // setShowProfileQuestionnaire(false);
+      console.log('⚠️ [App] Invalidación de sesión ignorada temporalmente para evitar loops');
+    };
+
+    // Agregar listeners
+    window.addEventListener('serverDisconnected', handleServerDisconnected as EventListener);
+    window.addEventListener('sessionInvalidated', handleSessionInvalidated as EventListener);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('serverDisconnected', handleServerDisconnected as EventListener);
+      window.removeEventListener('sessionInvalidated', handleSessionInvalidated as EventListener);
+    };
   }, []);
 
   // Función para manejar el login exitoso
@@ -137,8 +174,13 @@ function App() {
         <Routes>
           {/* Página principal */}
           <Route path="/" element={<HomePage />} />
+          {/* Rutas individuales para cada sección */}
           <Route path="/libreria" element={<Libreria />} />
+          <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/contacto" element={<Contacto />} />
+          {/* Ruta para detalles de libro */}
           <Route path="/libro/:id" element={<LibroDetalle />} />
+          {/* Rutas de autenticación */}
           <Route 
             path="/login" 
             element={<Login onLoginSuccess={handleLoginSuccess} />} 
@@ -151,6 +193,15 @@ function App() {
             path="/verificar-codigo" 
             element={<VerificarCodigo />}
           />
+          <Route 
+            path="/forgot-password" 
+            element={<ForgotPassword />}
+          />
+          <Route 
+            path="/reset-password" 
+            element={<ResetPassword />}
+          />
+          {/* Rutas protegidas */}
           <Route 
             path="/perfil" 
             element={

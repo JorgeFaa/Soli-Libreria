@@ -89,17 +89,27 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     } catch (err) {
       
       // Mensaje más específico según el tipo de error
+      let errorMessage = "Error inesperado. Intenta nuevamente.";
+      
       if (err instanceof Error) {
-        if (err.message.includes('fetch')) {
-          showNotification("Error de conexión. Verifica tu internet e intenta nuevamente.", "error");
+        if (err.message.includes('fetch') || err.message.includes('NetworkError')) {
+          errorMessage = "Error de conexión. Verifica tu internet e intenta nuevamente.";
         } else if (err.message.includes('401') || err.message.includes('403')) {
-          showNotification("Credenciales incorrectas. Verifica tu email y contraseña.", "error");
+          errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+        } else if (err.message.includes('500')) {
+          errorMessage = "Error en el servidor. Por favor, intenta más tarde.";
+        } else if (err.message.includes('timeout')) {
+          errorMessage = "La solicitud tardó demasiado. Intenta nuevamente.";
         } else {
-          showNotification(err.message, "error");
+          // Solo mostrar el mensaje si no parece ser JSON o código técnico
+          const msg = err.message;
+          if (!msg.includes('{') && !msg.includes('<!DOCTYPE') && msg.length < 150) {
+            errorMessage = msg;
+          }
         }
-      } else {
-        showNotification("Error inesperado. Intenta nuevamente.", "error");
       }
+      
+      showNotification(errorMessage, "error");
     } finally {
       setIsLoading(false);
     }
