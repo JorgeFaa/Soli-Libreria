@@ -6,39 +6,14 @@ import "./Libreria.css";
 import { getBooks } from "../../services/booksService";
 import type { Book } from "../../services/booksService";
 
+// Importar servicio de progreso de lectura
+import { getUserReadingProgress, type ReadingProgress } from "../../services/readingProgressService";
+
 // Importar componente Toast para notificaciones
 import Toast from "./Toast";
 
-// Datos de respaldo en caso de error (mantenemos algunos libros como fallback)
-const librosRespaldo: Book[] = [
-    {
-        id: 1,
-        titulo: "Don Quijote de la Mancha",
-        autor: "Miguel de Cervantes",
-        año: 1605,
-        genero: "Novela",
-        descripcion: "La obra cumbre de la literatura española que narra las aventuras de Don Quijote y Sancho Panza.",
-        portada: "https://images-na.ssl-images-amazon.com/images/I/81-ylKA1wJL.jpg"
-    },
-    {
-        id: 2,
-        titulo: "Cien Años de Soledad",
-        autor: "Gabriel García Márquez",
-        año: 1967,
-        genero: "Realismo Mágico",
-        descripcion: "La saga de la familia Buendía en el pueblo ficticio de Macondo.",
-        portada: "https://images-na.ssl-images-amazon.com/images/I/71K-3e3B69L.jpg"
-    },
-    {
-        id: 3,
-        titulo: "El Principito",
-        autor: "Antoine de Saint-Exupéry",
-        año: 1943,
-        genero: "Fábula",
-        descripcion: "Un pequeño príncipe viaja por diferentes planetas y aprende sobre la vida.",
-        portada: "https://images-na.ssl-images-amazon.com/images/I/51r72khRTwL.jpg"
-    }
-];
+// Configuración de paginación
+const LIBROS_POR_PAGINA = 8;
 
 export default function Libreria() {
     const navigate = useNavigate();
@@ -47,6 +22,13 @@ export default function Libreria() {
     const [libros, setLibros] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
+    
+    // Estados para paginación
+    const [paginaActual, setPaginaActual] = useState<number>(1);
+    const [totalPaginas, setTotalPaginas] = useState<number>(1);
+    
+    // Estados para progreso de lectura
+    const [readingProgress, setReadingProgress] = useState<ReadingProgress[]>([]);
     
     // Estados para Toast
     const [toastMessage, setToastMessage] = useState<string>("");
@@ -59,6 +41,36 @@ export default function Libreria() {
         setToastType(type);
         setShowToast(true);
     };
+
+    // Calcular libros para la página actual
+    const obtenerLibrosPaginaActual = () => {
+        const inicio = (paginaActual - 1) * LIBROS_POR_PAGINA;
+        const fin = inicio + LIBROS_POR_PAGINA;
+        return libros.slice(inicio, fin);
+    };
+
+    // Función para cambiar página
+    const cambiarPagina = (nuevaPagina: number) => {
+        setPaginaActual(nuevaPagina);
+        // Scroll suave hacia arriba
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Obtener progreso de un libro específico
+    const getBookProgress = (bookId: number): ReadingProgress | undefined => {
+        return readingProgress.find(progress => progress.bookId === bookId);
+    };
+
+    // Cargar progreso de lectura
+    const loadReadingProgress = async () => {
+        try {
+            const progress = await getUserReadingProgress();
+            setReadingProgress(progress);
+        } catch (error) {
+            console.error('Error al cargar progreso de lectura:', error);
+            // No mostrar error al usuario, es información opcional
+        }
+    };
     
     // Cargar libros al montar el componente
     useEffect(() => {
@@ -70,6 +82,12 @@ export default function Libreria() {
                 const librosApi = await getBooks();
                 
                 setLibros(librosApi);
+                
+                // Calcular total de páginas
+                setTotalPaginas(Math.ceil(librosApi.length / LIBROS_POR_PAGINA));
+                
+                // Cargar progreso de lectura
+                await loadReadingProgress();
                 
                 if (librosApi.length === 0) {
                     showNotification("No se encontraron libros en la biblioteca", "warning");
@@ -85,16 +103,8 @@ export default function Libreria() {
                         setTimeout(() => {
                             navigate("/login");
                         }, 2000);
-                    } else {
-                        setError("Error al cargar los libros. Usando datos de respaldo.");
-                        showNotification("Error de conexión. Mostrando libros de respaldo.", "warning");
-                        setLibros(librosRespaldo);
-                    }
-                } else {
-                    setError("Error desconocido al cargar libros.");
-                    showNotification("Error desconocido. Mostrando libros de respaldo.", "error");
-                    setLibros(librosRespaldo);
-                }
+                    } 
+                } 
             } finally {
                 setIsLoading(false);
             }
@@ -115,6 +125,18 @@ export default function Libreria() {
                     Descubre tu próxima gran lectura entre nuestra cuidada selección literaria
                 </p>
                 
+                {/* Advertencia sobre navegadores */}
+                <div className="browser-compatibility-notice">
+                    <div className="browser-notice-content">
+                        <span className="browser-notice-icon">ℹ️</span>
+                        <span className="browser-notice-text">
+                            <strong>Tip:</strong> Para una mejor experiencia leyendo nuestros libros, recomendamos usar 
+                            <strong> Firefox</strong> o <strong>Safari</strong>. 
+                            Algunos navegadores con configuraciones estrictas de privacidad pueden tener problemas mostrando ciertos archivos.
+                        </span>
+                    </div>
+                </div>
+                
                 {/* Loading State */}
                 {isLoading && (
                     <div className="loading-container">
@@ -132,7 +154,7 @@ export default function Libreria() {
                 
                 {/* Sección de Libros */}
                 {!isLoading && libros.length > 0 && (
-                    <div className="seccion-recomendados">
+                    <div className="seccion-biblioteca">
                         <div className="seccion-header">
                             <h2 className="seccion-titulo">📚 Biblioteca Digital</h2>
                             <p className="seccion-descripcion">
@@ -141,54 +163,96 @@ export default function Libreria() {
                             </p>
                         </div>
                         
-                        <div className="carrusel-container">
-                            <div className="carrusel-libros">
-                                {libros.map(libro => (
-                                <div 
-                                    key={libro.id}
-                                    className="libro-card"
-                                    onClick={() => handleSeleccionarLibro(libro)}
-                                >
-                                    <div className="libro-portada">
-                                        {libro.portada ? (
-                                            <img 
-                                                src={libro.portada} 
-                                                alt={`Portada de ${libro.titulo}`}
-                                                className="libro-portada-imagen"
-                                                onError={(e) => {
-                                                    // Fallback si la imagen no carga
-                                                    e.currentTarget.style.display = 'none';
-                                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                                    if (fallback) fallback.style.display = 'flex';
-                                                }}
-                                            />
-                                        ) : null}
-                                        <div 
-                                            className="libro-portada-fallback"
-                                            style={{ display: libro.portada ? 'none' : 'flex' }}
-                                        >
-                                            <div className="libro-titulo">
-                                                {libro.titulo}
+                        {/* Grilla de libros */}
+                        <div className="libros-grid">
+                            {obtenerLibrosPaginaActual().map(libro => {
+                                const progress = getBookProgress(libro.id);
+                                return (
+                                    <div 
+                                        key={libro.id}
+                                        className="libro-card"
+                                        onClick={() => handleSeleccionarLibro(libro)}
+                                    >
+                                        {/* Indicador de progreso */}
+                                        {progress && (
+                                            <div className="libro-progress-indicator">
+                                                📖 Página {progress.lastPage}
                                             </div>
-                                            <div className="libro-autor">
-                                                {libro.autor}
+                                        )}
+                                        
+                                        <div className="libro-portada">
+                                            {libro.portada ? (
+                                                <img 
+                                                    src={libro.portada} 
+                                                    alt={`Portada de ${libro.titulo}`}
+                                                    className="libro-portada-imagen"
+                                                    onError={(e) => {
+                                                        // Fallback si la imagen no carga
+                                                        e.currentTarget.style.display = 'none';
+                                                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                        if (fallback) fallback.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div 
+                                                className="libro-portada-fallback"
+                                                style={{ display: libro.portada ? 'none' : 'flex' }}
+                                            >
+                                                <div className="libro-titulo">
+                                                    {libro.titulo}
+                                                </div>
+                                                <div className="libro-autor">
+                                                    {libro.autor}
+                                                </div>
                                             </div>
                                         </div>
+                                        
+                                        {/* Información del libro debajo de la portada */}
+                                        <div className="libro-info-externa">
+                                            <h4 className="libro-titulo-externo">
+                                                {libro.titulo}
+                                            </h4>
+                                            <p className="libro-autor-externo">
+                                                {libro.autor}
+                                            </p>
+                                        </div>
                                     </div>
-                                    
-                                    {/* Información del libro debajo de la portada */}
-                                    <div className="libro-info-externa">
-                                        <h4 className="libro-titulo-externo">
-                                            {libro.titulo}
-                                        </h4>
-                                        <p className="libro-autor-externo">
-                                            {libro.autor}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
-                    </div>
+
+                        {/* Controles de paginación */}
+                        {totalPaginas > 1 && (
+                            <div className="paginacion">
+                                <button 
+                                    className="paginacion-btn" 
+                                    onClick={() => cambiarPagina(paginaActual - 1)}
+                                    disabled={paginaActual === 1}
+                                >
+                                    ← Anterior
+                                </button>
+                                
+                                <div className="paginacion-numeros">
+                                    {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(numeroPagina => (
+                                        <button
+                                            key={numeroPagina}
+                                            className={`paginacion-numero ${paginaActual === numeroPagina ? 'activa' : ''}`}
+                                            onClick={() => cambiarPagina(numeroPagina)}
+                                        >
+                                            {numeroPagina}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                <button 
+                                    className="paginacion-btn" 
+                                    onClick={() => cambiarPagina(paginaActual + 1)}
+                                    disabled={paginaActual === totalPaginas}
+                                >
+                                    Siguiente →
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
                 

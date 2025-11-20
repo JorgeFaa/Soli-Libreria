@@ -28,9 +28,9 @@ type HeaderProps = {
 // El tipo NavLink lo va a tomar como referencia para renderizarlo en la página, haciendo uso de las propiedades href y label
 const LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
-  { href: "#catalogo", label: "Catálogo" },
-  { href: "#nosotros", label: "Nosotros" },
-  { href: "#contacto", label: "Contacto" },
+  { href: "/libreria", label: "Catálogo" },
+  { href: "/nosotros", label: "Nosotros" },
+  { href: "/contacto", label: "Contacto" },
 ];
 
 // Componente funcional Header con TypeScript
@@ -223,9 +223,6 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                         🛠️ Panel de Administración
                       </Link>
                     )}
-                    <a href="#mis-libros" className="user-side-menu-item">Mis Libros</a>
-                    <a href="#favoritos" className="user-side-menu-item">Favoritos</a>
-                    <a href="#configuracion" className="user-side-menu-item">Configuración</a>
                     <hr className="user-side-menu-divider" />
                     <button 
                       onClick={async () => {
@@ -267,7 +264,6 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                       Crear Cuenta
                     </Link>
                     <hr className="user-side-menu-divider" />
-                    <a href="#ayuda" className="user-side-menu-item">Ayuda</a>
                   </>
                 )}
               </div>
