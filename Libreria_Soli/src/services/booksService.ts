@@ -33,7 +33,9 @@ export interface ApiBook {
   title: string;
   description: string;
   publishedDate: string;
-  textUrl: string;
+  pdfUrl?: string;
+  epubUrl?: string;
+  textUrl?: string;
   coverUrl: string;
   authors: Author[];
   editorials: Editorial[];
@@ -41,25 +43,37 @@ export interface ApiBook {
   type: BookType;
 }
 
-// Tipo adaptado para compatibilidad con el componente actual
+// Tipo actualizado para la nueva estructura de API
 export interface Book {
   id: number;
-  titulo: string;
-  autor: string;
-  año: number;
-  genero: string;
-  descripcion: string;
-  sinopsis?: string;
+  title: string;
+  description: string;
+  publishedDate: string;
+  pdfUrl?: string;
+  epubUrl?: string;
+  coverUrl: string;
+  authors: Author[];
+  editorials: Editorial[];
+  genres: Genre[];
+  type: BookType;
+  
+  // Campos calculados para compatibilidad
+  titulo?: string;    // derivado de title
+  autor?: string;     // derivado de authors
+  año?: number;       // derivado de publishedDate
+  genero?: string;    // derivado de genres
+  descripcion?: string; // derivado de description
+  portada?: string;   // derivado de coverUrl
+  
+  // Campos adicionales para compatibilidad con LibroDetalle
   paginas?: number;
-  isbn?: string;
-  editorial?: string;
   idioma?: string;
-  portada: string;
-  textUrl?: string;
+  sinopsis?: string;
+  isbn?: string;
 }
 
 // Configuración de la API
-const API_BASE_URL = 'https://soliapi-223325065421.northamerica-south1.run.app';
+const API_BASE_URL = 'https://soli-api.gentledesert-973b7428.westus2.azurecontainerapps.io';
 
 // Función para obtener un género individual por ID
 export const getGenreById = async (genreId: number): Promise<Genre | null> => {
@@ -250,19 +264,27 @@ export const getBooks = async (): Promise<Book[]> => {
       throw new Error('Formato de respuesta inesperado del servidor');
     }
     
-    // Convertir formato de API a formato del componente
+    // Convertir formato de API a nueva estructura Book
     const books: Book[] = apiBooks.map(apiBook => ({
       id: apiBook.id,
+      title: apiBook.title,
+      description: apiBook.description,
+      publishedDate: apiBook.publishedDate,
+      pdfUrl: apiBook.pdfUrl,
+      epubUrl: apiBook.epubUrl,
+      coverUrl: apiBook.coverUrl,
+      authors: apiBook.authors,
+      editorials: apiBook.editorials,
+      genres: apiBook.genres,
+      type: apiBook.type,
+      
+      // Campos de compatibilidad calculados
       titulo: apiBook.title,
       autor: formatAuthors(apiBook.authors),
       año: new Date(apiBook.publishedDate).getFullYear(),
       genero: apiBook.genres.map(g => g.name).join(', '),
       descripcion: apiBook.description,
-      sinopsis: apiBook.description, // Usar description como sinopsis
-      editorial: apiBook.editorials[0]?.companyName || "Editorial desconocida",
-      portada: apiBook.coverUrl,
-      textUrl: apiBook.textUrl,
-      idioma: "Español", // Valor por defect
+      portada: apiBook.coverUrl
     }));
     
     return books;
@@ -317,21 +339,27 @@ export const getBookById = async (id: number): Promise<Book | null> => {
     
     const apiBook: ApiBook = await response.json();
     
-    // Convertir formato de API a formato del componente
+    // Convertir formato de API a nueva estructura Book
     const book: Book = {
       id: apiBook.id,
+      title: apiBook.title,
+      description: apiBook.description,
+      publishedDate: apiBook.publishedDate,
+      pdfUrl: apiBook.pdfUrl,
+      epubUrl: apiBook.epubUrl,
+      coverUrl: apiBook.coverUrl,
+      authors: apiBook.authors,
+      editorials: apiBook.editorials,
+      genres: apiBook.genres,
+      type: apiBook.type,
+      
+      // Campos de compatibilidad calculados
       titulo: apiBook.title,
       autor: formatAuthors(apiBook.authors),
       año: new Date(apiBook.publishedDate).getFullYear(),
       genero: apiBook.genres.map(g => g.name).join(', '),
       descripcion: apiBook.description,
-      sinopsis: apiBook.description, // Usar description como sinopsis
-      editorial: apiBook.editorials[0]?.companyName || "Editorial desconocida",
-      portada: apiBook.coverUrl,
-      textUrl: apiBook.textUrl,
-      idioma: "Español", // Valor por defecto
-      isbn: "No disponible", // No viene en la API
-      paginas: 0 // No viene en la API
+      portada: apiBook.coverUrl
     };
     
     return book;
