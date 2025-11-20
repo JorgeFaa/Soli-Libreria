@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./PDFViewer.css";
+
+// Importar react-pdf para visor móvil
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Configurar worker de PDF.js usando unpkg CDN
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // Importar servicios
 import Toast from "./Toast";
@@ -19,15 +25,61 @@ interface PDFViewerProps {
 }
 
 export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }: PDFViewerProps) {
+  // Función para convertir URL de Google Storage a URL del proxy local
+  const getProxiedPdfUrl = (url: string): string => {
+    // Si la URL es de Google Storage, usar el proxy
+    if (url.includes('storage.googleapis.com/soli_books_pdf')) {
+      const filename = url.split('/').pop();
+      return `/pdf-proxy/${filename}`;
+    }
+    // Si es otra URL, devolverla tal cual
+    return url;
+  };
+  
+  // Detectar si es móvil
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  
   // Estados para manejar el visor
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   
+  // Estados para react-pdf (móvil)
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  
   // Estados para progreso de lectura
   const [currentProgress, setCurrentProgress] = useState<ReadingProgress | null>(null);
-  const [pdfUrlWithPage, setPdfUrlWithPage] = useState<string>(pdfUrl);
-  const [iframeKey, setIframeKey] = useState<number>(0); // Para forzar recarga del iframe
-  const [iframeRef, setIframeRef] = useState<HTMLIFrameElement | null>(null);
+  
+  // Detectar dispositivo móvil al montar el componente
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice || isSmallScreen);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Memoizar las opciones de react-pdf para evitar re-renders innecesarios
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+    cMapPacked: true,
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+  }), []);
+  
+  // Memoizar el objeto file para react-pdf
+  const pdfFile = useMemo(() => ({
+    url: getProxiedPdfUrl(pdfUrl),
+    httpHeaders: {
+      'Accept': 'application/pdf',
+    },
+    withCredentials: false,
+  }), [pdfUrl]);
   
   // Estados para Toast
   const [toastMessage, setToastMessage] = useState<string>("");
@@ -55,7 +107,6 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
       // Resetear estado al abrir
       setIsLoading(true);
       setError("");
-      setPdfUrlWithPage(pdfUrl);
       loadCurrentProgress();
     }
   }, [isOpen, bookId]);
@@ -66,62 +117,28 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
       setCurrentProgress(progress);
       if (progress && progress.lastPage > 1) {
         setManualPage(progress.lastPage.toString());
+        setPageNumber(progress.lastPage); // Establecer página actual para react-pdf
         
-        // Intentar múltiples formatos para navegación a página específica
         console.log('📖 Progreso encontrado:', formatReadingProgress(progress));
-        
-        // Formato 1: URL con fragmento #page=
-        let urlWithPage = `${pdfUrl}#page=${progress.lastPage}`;
-        
-        // Formato 2: Algunos visores PDF usan #nameddest=page
-        // urlWithPage = `${pdfUrl}#nameddest=page=${progress.lastPage}`;
-        
-        // Formato 3: Algunos usan &page=
-        if (pdfUrl.includes('?')) {
-          urlWithPage = `${pdfUrl}&page=${progress.lastPage}`;
-        }
-        
-        console.log('🔗 URL generada:', urlWithPage);
-        
-        setPdfUrlWithPage(urlWithPage);
-        setIframeKey(prev => prev + 1);
-        
         showNotification(`Abriendo en página ${progress.lastPage}...`, "success");
         
-        // Retraso adicional para asegurar que el iframe navegue correctamente
-        setTimeout(() => {
-          if (iframeRef) {
-            try {
-              // Intentar navegar programáticamente si es posible
-              const newSrc = urlWithPage;
-              if (iframeRef.src !== newSrc) {
-                iframeRef.src = newSrc;
-              }
-            } catch (error) {
-              console.log('No se pudo navegar programáticamente:', error);
-            }
-          }
-        }, 1000);
-        
       } else {
-        // Si no hay progreso o está en página 1, usar URL original
-        setPdfUrlWithPage(pdfUrl);
-        setIframeKey(prev => prev + 1);
+        // Si no hay progreso o está en página 1, iniciar en página 1
+        setPageNumber(1);
         console.log('📖 Sin progreso previo o en página 1, iniciando normalmente');
       }
     } catch (error) {
       console.error('Error al cargar progreso:', error);
-      // En caso de error, usar URL original
-      setPdfUrlWithPage(pdfUrl);
-      setIframeKey(prev => prev + 1);
+      // En caso de error, iniciar en página 1
+      setPageNumber(1);
     }
   };
 
   // Función simplificada para guardar progreso - Siempre pregunta al usuario
   const saveProgressAutomatically = () => {
     console.log('💬 Mostrando modal para confirmar página actual');
-    // Siempre mostrar el modal para que el usuario confirme la página
-    setManualPage((currentProgress?.lastPage || 1).toString());
+    // Usar pageNumber directamente ya que ahora usamos react-pdf en todas las plataformas
+    setManualPage(pageNumber.toString());
     setPageError("");
     setShowPageInput(true);
   };
@@ -177,18 +194,38 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
     onClose(); // Cerrar sin guardar
   };
 
-  // Función para manejar cuando el PDF se carga exitosamente
-  const handlePDFLoad = () => {
+
+
+  // Funciones para react-pdf (móvil)
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
     setIsLoading(false);
     setError("");
+    console.log(`📄 PDF cargado: ${numPages} páginas`);
   };
 
-  // Función para manejar errores al cargar el PDF
-  const handlePDFError = () => {
+  const onDocumentLoadError = (error: Error) => {
+    console.error('Error al cargar PDF:', error);
     setIsLoading(false);
-    setError("No se pudo cargar el archivo PDF");
-    showNotification("Error al cargar el PDF. Intenta nuevamente.", "error");
+    
+    // Si es error de CORS, ofrecer abrir en nueva pestaña
+    if (error.message.includes('fetch') || error.message.includes('CORS')) {
+      setError("CORS");
+    } else {
+      setError("No se pudo cargar el archivo PDF");
+    }
+    showNotification("Error al cargar el PDF. Intenta abrirlo en una nueva pestaña.", "error");
   };
+
+  const goToPrevPage = () => {
+    setPageNumber((prev) => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setPageNumber((prev) => Math.min(prev + 1, numPages || prev));
+  };
+
+
 
   // Función mejorada para cerrar el visor
   const handleClose = () => {
@@ -233,24 +270,6 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
           </div>
 
           <div className="pdf-header-actions">
-            {/* Botón para ir a página guardada si hay progreso */}
-            {currentProgress && currentProgress.lastPage > 1 && (
-              <button 
-                className="goto-saved-page-btn"
-                onClick={() => {
-                  const urlWithPage = `${pdfUrl}#page=${currentProgress.lastPage}`;
-                  if (iframeRef) {
-                    iframeRef.src = urlWithPage;
-                    setIframeKey(prev => prev + 1);
-                  }
-                  showNotification(`Navegando a página ${currentProgress.lastPage}`, "success");
-                }}
-                title={`Ir a página ${currentProgress.lastPage}`}
-              >
-                📄 Página {currentProgress.lastPage}
-              </button>
-            )}
-
             <button 
               className="pdf-button-close"
               onClick={handleClose}
@@ -260,6 +279,33 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
             </button>
           </div>
         </div>
+
+        {/* Controles de navegación - Justo debajo del header */}
+        {!error && numPages && (
+          <div className="pdf-mobile-controls">
+            <button 
+              onClick={goToPrevPage} 
+              disabled={pageNumber <= 1}
+              className="pdf-mobile-btn prev"
+            >
+              ◀ Anterior
+            </button>
+            
+            <div className="pdf-mobile-page-info">
+              <span className="current-page">{pageNumber}</span>
+              <span className="page-separator">/</span>
+              <span className="total-pages">{numPages}</span>
+            </div>
+            
+            <button 
+              onClick={goToNextPage} 
+              disabled={pageNumber >= numPages}
+              className="pdf-mobile-btn next"
+            >
+              Siguiente ▶
+            </button>
+          </div>
+        )}
 
         {/* Contenido del visor */}
         <div className="pdf-viewer-content">
@@ -276,28 +322,71 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
           {error && !isLoading && (
             <div className="pdf-error">
               <div className="pdf-error-icon">📄</div>
-              <h4>Error al cargar el PDF</h4>
-              <p>{error}</p>
-              <div className="pdf-error-actions">
-                <button onClick={handleClose} className="pdf-button-cancel">
-                  Cerrar
-                </button>
-              </div>
+              {error === "CORS" ? (
+                <>
+                  <h4>No se puede mostrar el PDF aquí</h4>
+                  <p>Por restricciones de seguridad (CORS), el PDF no se puede cargar directamente en esta vista.</p>
+                  <div className="pdf-error-actions">
+                    <button 
+                      onClick={() => window.open(pdfUrl, '_blank')}
+                      className="pdf-button-primary"
+                      style={{ marginRight: '10px' }}
+                    >
+                      📖 Abrir PDF en Nueva Pestaña
+                    </button>
+                    <button onClick={() => { setError(""); onClose(); }} className="pdf-button-cancel">
+                      Cerrar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h4>Error al cargar el PDF</h4>
+                  <p>{error}</p>
+                  <div className="pdf-error-actions">
+                    <button onClick={handleClose} className="pdf-button-cancel">
+                      Cerrar
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
           
-          {/* PDF Iframe */}
+          {/* PDF Viewer - Diferente para móvil y desktop */}
           {!error && (
-            <iframe
-              key={iframeKey}
-              ref={setIframeRef}
-              src={pdfUrlWithPage}
-              title={`PDF: ${bookTitle}`}
-              className="pdf-iframe"
-              onLoad={handlePDFLoad}
-              onError={handlePDFError}
-              allowFullScreen
-            />
+            <>
+              {/* Visor unificado - Usa react-pdf con URL proxiada */}
+              <div className={isMobile ? "pdf-mobile-container" : "pdf-desktop-container"}>
+                <Document
+                  file={pdfFile}
+                  options={pdfOptions}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
+                  loading={
+                    <div className="pdf-loading">
+                      <div className="pdf-loading-spinner"></div>
+                      <p>Cargando PDF...</p>
+                    </div>
+                  }
+                  className={isMobile ? "pdf-mobile-document" : "pdf-desktop-document"}
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    width={isMobile ? window.innerWidth - 16 : Math.min(window.innerWidth * 0.85, 1400)}
+                    className={isMobile ? "pdf-mobile-page" : "pdf-desktop-page"}
+                    loading={
+                      <div className="pdf-loading">
+                        <div className="pdf-loading-spinner"></div>
+                        <p>Cargando página {pageNumber}...</p>
+                      </div>
+                    }
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
+                </Document>
+              </div>
+            </>
           )}
         </div>
 
@@ -306,7 +395,7 @@ export default function PDFViewer({ pdfUrl, bookTitle, bookId, isOpen, onClose }
           <div className="pdf-viewer-footer">
             <div className="pdf-instructions-content">
               <p className="pdf-instructions">
-                💡 Usa los controles del navegador para navegar • <strong>Al cerrar te preguntaremos en qué página te quedaste</strong> • 
+                💡 Usa los botones de Anterior/Siguiente para navegar • <strong>Al cerrar te preguntaremos en qué página te quedaste</strong> • 
                 Presiona ESC para cerrar
               </p>
               <button 

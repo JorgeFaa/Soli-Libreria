@@ -47,6 +47,42 @@ export interface LoginTokenResponse {
   expiresIn: string;
 }
 
+// Tipo para el request de refresh token
+export interface RefreshTokenRequest {
+  username: string;
+  refreshToken: string;
+}
+
+// Tipo para la respuesta de refresh token (igual que login)
+export interface RefreshTokenResponse {
+  accessToken: string;
+  idToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+}
+
+// Tipos para recuperación de contraseña
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ConfirmForgotPasswordRequest {
+  email: string;
+  confirmationCode: string;
+  newPassword: string;
+}
+
+export interface ConfirmForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface VerifyAccountRequest {
   username: string;
   code: string;
@@ -104,7 +140,89 @@ export interface UserProfileResponse {
 }
 
 // Configuración de la API - Nuevo endpoint directo de Google Cloud Run
-const API_BASE_URL = 'https://soliapi-223325065421.northamerica-south1.run.app';
+const API_BASE_URL = 'https://soli-api.gentledesert-973b7428.westus2.azurecontainerapps.io';
+
+// ==========================================
+// VERIFICACIÓN DE CONECTIVIDAD DEL SERVIDOR
+// ==========================================
+
+/**
+ * Verifica si el servidor está disponible y accesible
+ * @returns Promise<boolean> true si el servidor responde, false si no
+ */
+export const checkServerConnectivity = async (): Promise<boolean> => {
+  try {
+    console.log('🔍 [AuthService] Verificando conectividad del servidor...');
+    
+    // Intentar un endpoint simple y rápido
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Timeout corto para verificación rápida
+      signal: AbortSignal.timeout(5000) // 5 segundos
+    });
+    
+    const isConnected = response.ok || response.status < 500;
+    console.log(`${isConnected ? '✅' : '❌'} [AuthService] Servidor ${isConnected ? 'disponible' : 'no disponible'} - Status: ${response.status}`);
+    return isConnected;
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Error de conectividad del servidor:', error);
+    return false;
+  }
+};
+
+/**
+ * Verifica la validez del token actual contra el servidor
+ * Solo valida si hay conectividad
+ * @returns Promise<boolean> true si el token es válido, false si no
+ */
+export const validateTokenWithServer = async (): Promise<boolean> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      console.log('⚠️ [AuthService] No hay token para validar');
+      return false;
+    }
+
+    // Primero verificar conectividad
+    const serverAvailable = await checkServerConnectivity();
+    if (!serverAvailable) {
+      console.log('⚠️ [AuthService] Servidor no disponible - no se puede validar token');
+      return false;
+    }
+
+    // Intentar una operación que requiera autenticación
+    const response = await fetch(`${API_BASE_URL}/api/v3/users/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(5000) // 5 segundos
+    });
+
+    const isValid = response.ok;
+    console.log(`${isValid ? '✅' : '❌'} [AuthService] Token ${isValid ? 'válido' : 'inválido'} - Status: ${response.status}`);
+    
+    // SOLO limpiar localStorage si es un error definitivo (401, 403)
+    // NO hacer logout por errores 404 que pueden ser temporales
+    if (!isValid && (response.status === 401 || response.status === 403)) {
+      console.log('🧹 [AuthService] Limpiando tokens inválidos por error de autenticación...');
+      logoutUser();
+    } else if (!isValid) {
+      console.log('⚠️ [AuthService] Error temporal del servidor, manteniendo sesión activa');
+    }
+    
+    return isValid;
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Error validando token:', error);
+    return false;
+  }
+};
 
 // Función auxiliar para decodificar JWT - usa la utilidad centralizada
 const decodeJWT = (token: string): any => {
@@ -208,6 +326,20 @@ const handleRegisterResponse = async (response: Response, userData: RegisterRequ
 // Función para login
 export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse> => {
   try {
+    // VERIFICAR CONECTIVIDAD PRIMERO
+    console.log('🔍 [AuthService] Verificando conectividad antes del login...');
+    const serverAvailable = await checkServerConnectivity();
+    
+    if (!serverAvailable) {
+      console.error('❌ [AuthService] Servidor no disponible - login cancelado');
+      return {
+        success: false,
+        message: "No se puede conectar al servidor. Verifica tu conexión a internet e inténtalo nuevamente."
+      };
+    }
+    
+    console.log('✅ [AuthService] Servidor disponible - procediendo con login');
+    
     // Llamada a la API con el nuevo formato
     const requestBody = {
       username: credentials.email,
@@ -253,6 +385,7 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
       // Mantener compatibilidad con código anterior usando accessToken como token principal
       localStorage.setItem('authToken', tokens.accessToken);
       
+      console.log('✅ [AuthService] Login exitoso con servidor');
       return {
         success: true,
         message: "¡Login exitoso! Bienvenido de vuelta",
@@ -262,48 +395,85 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
       };
       
     } else {
-      const errorText = await response.text();
+      // Intentar parsear la respuesta de error
+      let errorMessage = "Credenciales incorrectas";
+      
+      try {
+        const errorText = await response.text();
+        console.log('🔍 [AuthService] Respuesta de error del servidor:', errorText);
+        console.log('🔍 [AuthService] Status code:', response.status);
+        
+        // Intentar parsear como JSON
+        try {
+          const errorData = JSON.parse(errorText);
+          console.log('🔍 [AuthService] Error parseado:', errorData);
+          
+          // Extraer el mensaje de error del JSON
+          if (errorData.error) {
+            const errorLower = errorData.error.toLowerCase();
+            
+            // Mapear errores comunes a mensajes amigables
+            if (errorLower.includes("incorrect") || errorLower.includes("password") || errorLower.includes("contraseña")) {
+              errorMessage = "Contraseña incorrecta. Por favor, verifica tu contraseña e intenta nuevamente.";
+            } else if (errorLower.includes("not found") || errorLower.includes("no encontrado") || errorLower.includes("user") || errorLower.includes("usuario")) {
+              errorMessage = "Usuario no encontrado. Verifica tu email e intenta nuevamente.";
+            } else if (response.status === 500) {
+              // Error 500 específico
+              errorMessage = "Error en el servidor. Por favor, intenta nuevamente más tarde.";
+            } else {
+              errorMessage = "Error al iniciar sesión. Verifica tus credenciales.";
+            }
+          } else if (errorData.message) {
+            const messageLower = errorData.message.toLowerCase();
+            
+            if (messageLower.includes("incorrect") || messageLower.includes("password") || messageLower.includes("contraseña")) {
+              errorMessage = "Contraseña incorrecta. Por favor, verifica tu contraseña e intenta nuevamente.";
+            } else if (messageLower.includes("not found") || messageLower.includes("usuario")) {
+              errorMessage = "Usuario no encontrado. Verifica tu email e intenta nuevamente.";
+            } else {
+              errorMessage = errorData.message;
+            }
+          }
+        } catch (parseError) {
+          console.log('⚠️ [AuthService] No se pudo parsear como JSON');
+          
+          // Si no es JSON válido, usar el texto directamente si es legible
+          if (errorText && errorText.length < 100 && !errorText.includes('{')) {
+            errorMessage = errorText;
+          } else if (response.status === 500) {
+            errorMessage = "Error en el servidor. Por favor, intenta nuevamente más tarde.";
+          } else if (response.status === 401 || response.status === 403) {
+            errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+          }
+        }
+      } catch (textError) {
+        console.error('Error al leer respuesta de error:', textError);
+        
+        // Basarse en el código de estado HTTP
+        if (response.status === 401 || response.status === 403) {
+          errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+        } else if (response.status === 500) {
+          errorMessage = "Error en el servidor. Por favor, intenta nuevamente más tarde.";
+        }
+      }
+      
+      console.error('❌ [AuthService] Error de credenciales:', errorMessage);
       
       return {
         success: false,
-        message: errorText || "Credenciales incorrectas"
+        message: errorMessage
       };
     }
     
   } catch (error) {
-    // Solo hacer fallback si es un error de red real, no un error de credenciales
-    if (error instanceof Error && (
-      error.message.includes('Failed to fetch') || 
-      error.message.includes('NetworkError') ||
-      error.message.includes('CORS')
-    )) {
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simular respuesta exitosa como fallback
-      const mockResponse: AuthResponse = {
-        success: true,
-        message: "Login exitoso (modo simulación por error de red)",
-        token: "mock-jwt-token-" + Date.now(),
-        user: {
-          id: "mock-user-id",
-          nombre: "Usuario",
-          apellido: "Demo",
-          email: credentials.email
-        }
-      };
-      
-      // Guardar token simulado
-      if (mockResponse.success && mockResponse.token) {
-        localStorage.setItem('authToken', mockResponse.token);
-        localStorage.setItem('userData', JSON.stringify(mockResponse.user));
-      }
-      
-      return mockResponse;
-    } else {
-      // Re-lanzar otros errores (como credenciales incorrectas)
-      throw error;
-    }
+    console.error('❌ [AuthService] Error durante login:', error);
+    
+    // IMPORTANTE: NO hacer fallback automático a modo simulación
+    // El servidor debe estar disponible para hacer login
+    return {
+      success: false,
+      message: "Error de conexión. No se pudo conectar al servidor para validar las credenciales."
+    };
   }
 };
 
@@ -547,6 +717,213 @@ export const logoutUser = async (): Promise<{ success: boolean; message: string 
   };
 };
 
+// Función para solicitar recuperación de contraseña
+export const forgotPassword = async (email: string): Promise<ForgotPasswordResponse> => {
+  try {
+    console.log('🔍 [AuthService] Solicitando recuperación de contraseña...');
+    
+    // Verificar conectividad del servidor
+    const serverAvailable = await checkServerConnectivity();
+    if (!serverAvailable) {
+      console.error('❌ [AuthService] Servidor no disponible - recuperación cancelada');
+      return {
+        success: false,
+        message: "No se puede conectar al servidor. Verifica tu conexión a internet e inténtalo nuevamente."
+      };
+    }
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return {
+        success: false,
+        message: "Por favor, ingresa un email válido."
+      };
+    }
+
+    console.log('🌐 [AuthService] Enviando solicitud de recuperación de contraseña...');
+
+    // Preparar request
+    const requestBody: ForgotPasswordRequest = {
+      email: email
+    };
+
+    // Llamada a la API
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 200) {
+      console.log('✅ [AuthService] Solicitud de recuperación enviada exitosamente');
+      
+      return {
+        success: true,
+        message: "Se ha enviado un código de verificación a tu correo electrónico."
+      };
+      
+    } else {
+      const errorText = await response.text();
+      console.error('❌ [AuthService] Error en forgot-password:', response.status, errorText);
+      
+      if (response.status === 404) {
+        return {
+          success: false,
+          message: "No existe una cuenta con ese correo electrónico."
+        };
+      } else if (response.status === 429) {
+        return {
+          success: false,
+          message: "Demasiadas solicitudes. Intenta nuevamente en unos minutos."
+        };
+      } else {
+        return {
+          success: false,
+          message: "Error del servidor. Intenta nuevamente más tarde."
+        };
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Excepción durante forgot-password:', error);
+    
+    if (error instanceof Error && (
+      error.message.includes('Failed to fetch') || 
+      error.message.includes('NetworkError') ||
+      error.message.includes('CORS')
+    )) {
+      return {
+        success: false,
+        message: "Error de conexión. Verifica tu internet e intenta nuevamente."
+      };
+    }
+    
+    return {
+      success: false,
+      message: "Error interno. Intenta nuevamente más tarde."
+    };
+  }
+};
+
+// Función para confirmar recuperación de contraseña con código
+export const confirmForgotPassword = async (
+  email: string, 
+  confirmationCode: string, 
+  newPassword: string
+): Promise<ConfirmForgotPasswordResponse> => {
+  try {
+    console.log('🔍 [AuthService] Confirmando nueva contraseña...');
+    
+    // Verificar conectividad del servidor
+    const serverAvailable = await checkServerConnectivity();
+    if (!serverAvailable) {
+      console.error('❌ [AuthService] Servidor no disponible - confirmación cancelada');
+      return {
+        success: false,
+        message: "No se puede conectar al servidor. Verifica tu conexión a internet e inténtalo nuevamente."
+      };
+    }
+
+    // Validaciones
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return {
+        success: false,
+        message: "Por favor, ingresa un email válido."
+      };
+    }
+
+    if (!confirmationCode || confirmationCode.trim().length === 0) {
+      return {
+        success: false,
+        message: "Por favor, ingresa el código de verificación."
+      };
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return {
+        success: false,
+        message: "La contraseña debe tener al menos 8 caracteres."
+      };
+    }
+
+    console.log('🌐 [AuthService] Enviando confirmación de nueva contraseña...');
+
+    // Preparar request
+    const requestBody: ConfirmForgotPasswordRequest = {
+      email: email,
+      confirmationCode: confirmationCode.trim(),
+      newPassword: newPassword
+    };
+
+    // Llamada a la API
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/confirm-forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 200) {
+      console.log('✅ [AuthService] Contraseña actualizada exitosamente');
+      
+      return {
+        success: true,
+        message: "Tu contraseña ha sido actualizada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña."
+      };
+      
+    } else {
+      const errorText = await response.text();
+      console.error('❌ [AuthService] Error en confirm-forgot-password:', response.status, errorText);
+      
+      if (response.status === 400) {
+        return {
+          success: false,
+          message: "Código de verificación inválido o expirado."
+        };
+      } else if (response.status === 404) {
+        return {
+          success: false,
+          message: "No existe una cuenta con ese correo electrónico."
+        };
+      } else if (response.status === 429) {
+        return {
+          success: false,
+          message: "Demasiados intentos. Intenta nuevamente en unos minutos."
+        };
+      } else {
+        return {
+          success: false,
+          message: "Error del servidor. Intenta nuevamente más tarde."
+        };
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Excepción durante confirm-forgot-password:', error);
+    
+    if (error instanceof Error && (
+      error.message.includes('Failed to fetch') || 
+      error.message.includes('NetworkError') ||
+      error.message.includes('CORS')
+    )) {
+      return {
+        success: false,
+        message: "Error de conexión. Verifica tu internet e intenta nuevamente."
+      };
+    }
+    
+    return {
+      success: false,
+      message: "Error interno. Intenta nuevamente más tarde."
+    };
+  }
+};
+
 // Función para verificar si hay una sesión activa (actualizada)
 export const isAuthenticated = (): boolean => {
   const accessToken = localStorage.getItem('accessToken');
@@ -570,6 +947,139 @@ export const isAuthenticated = (): boolean => {
 // Función para obtener el token de acceso
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('accessToken');
+};
+
+/**
+ * Obtiene el token de autenticación con verificación de validez
+ * Esta versión verifica que el token sea válido y el servidor esté disponible
+ * @param validateWithServer Si debe validar contra el servidor (por defecto false para evitar llamadas innecesarias)
+ * @returns Promise<string | null> El token si es válido, null si no
+ */
+export const getValidAuthToken = async (validateWithServer: boolean = false): Promise<string | null> => {
+  const token = localStorage.getItem('accessToken');
+  
+  if (!token) {
+    console.log('⚠️ [AuthService] No hay token disponible');
+    return null;
+  }
+
+  // Verificación básica de expiración local
+  if (isTokenExpired(token)) {
+    console.log('⚠️ [AuthService] Token expirado localmente');
+    logoutUser();
+    return null;
+  }
+
+  // Si se solicita validación con servidor
+  if (validateWithServer) {
+    const isValid = await validateTokenWithServer();
+    if (!isValid) {
+      console.log('⚠️ [AuthService] Token inválido según servidor');
+      return null;
+    }
+  }
+
+  return token;
+};
+
+/**
+ * Verifica si el usuario está realmente autenticado (SIMPLIFICADA)
+ * @returns boolean true si tiene token válido localmente
+ */
+export const isUserAuthenticated = async (): Promise<boolean> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      console.log('⚠️ [AuthService] No hay token almacenado');
+      return false;
+    }
+
+    // Verificar si el token es un mock (modo offline)
+    if (token.startsWith('mock-jwt-token-')) {
+      console.log('⚠️ [AuthService] Token mock detectado - removiendo');
+      // Limpiar datos de sesión simulada
+      logoutUser();
+      return false;
+    }
+
+    // SIMPLIFICADO - Solo verificar que tengamos token, sin validaciones de servidor
+    console.log('✅ [AuthService] Token encontrado - usuario autenticado localmente');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Error verificando autenticación:', error);
+    // En caso de error, no forzar logout - puede ser temporal
+    return getAuthToken() !== null;
+  }
+};
+
+/**
+ * Inicia un monitor de conectividad que verifica periódicamente el estado del servidor
+ * Se ejecuta en intervalos para detectar cuando el servidor se desconecta/reconecta
+ */
+export const startConnectivityMonitor = () => {
+  console.log('🔄 [AuthService] Iniciando monitor de conectividad...');
+  
+  // Verificación inicial
+  checkServerConnectivity();
+  
+  // Verificación periódica cada 30 segundos
+  const interval = setInterval(async () => {
+    const isConnected = await checkServerConnectivity();
+    
+    if (!isConnected) {
+      console.warn('⚠️ [AuthService] Servidor desconectado - las operaciones pueden fallar');
+      
+      // Opcional: Mostrar notificación al usuario
+      const event = new CustomEvent('serverDisconnected', { 
+        detail: { message: 'El servidor no está disponible. Algunas funcionalidades pueden no funcionar.' }
+      });
+      window.dispatchEvent(event);
+    } else {
+      // Servidor conectado - validar token si hay uno
+      const token = getAuthToken();
+      if (token) {
+        const isValid = await validateTokenWithServer();
+        if (!isValid) {
+          console.warn('⚠️ [AuthService] Sesión invalidada por el servidor');
+          
+          const event = new CustomEvent('sessionInvalidated', { 
+            detail: { message: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' }
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    }
+  }, 30000); // 30 segundos
+  
+  // Limpiar intervalo en caso de que se necesite
+  return () => {
+    clearInterval(interval);
+    console.log('🛑 [AuthService] Monitor de conectividad detenido');
+  };
+};
+
+/**
+ * Función utilitaria para verificar si las operaciones de API están disponibles
+ * Debe usarse antes de operaciones críticas
+ * @returns Promise<boolean> true si se pueden realizar operaciones de API
+ */
+export const canPerformAPIOperations = async (): Promise<boolean> => {
+  const serverAvailable = await checkServerConnectivity();
+  
+  if (!serverAvailable) {
+    console.log('❌ [AuthService] Servidor no disponible para operaciones API');
+    return false;
+  }
+  
+  // Solo verificar autenticación básica (sin validación servidor para evitar bucle)
+  const token = getAuthToken();
+  if (!token || token.startsWith('mock-jwt-token-')) {
+    console.log('❌ [AuthService] No hay token válido para operaciones API');
+    return false;
+  }
+  
+  return true;
 };
 
 // Función para obtener el token de identidad
@@ -771,6 +1281,42 @@ export const getUserCompleteProfile = async (): Promise<UserProfileResponse> => 
         message: "Error al obtener el perfil del usuario."
       };
     }
+  }
+};
+
+/**
+ * Obtener solo el ID del usuario actual desde el servidor
+ * @returns Promise<number | null> - ID del usuario o null si hay error
+ */
+export const getCurrentUserId = async (): Promise<number | null> => {
+  try {
+    console.log('👤 [AuthService] Obteniendo ID del usuario actual...');
+    
+    const profileResponse = await getUserCompleteProfile();
+    
+    if (!profileResponse.success || !profileResponse.user) {
+      console.log('❌ [AuthService] No se pudo obtener perfil de usuario');
+      return null;
+    }
+    
+    // El servidor puede devolver diferentes estructuras
+    let actualProfile: any = profileResponse.user;
+    if (actualProfile && typeof actualProfile === 'object' && 'profile' in actualProfile) {
+      actualProfile = actualProfile.profile;
+    }
+    
+    const userId = actualProfile?.id;
+    if (userId && typeof userId === 'number') {
+      console.log('✅ [AuthService] ID de usuario obtenido:', userId);
+      return userId;
+    }
+    
+    console.log('❌ [AuthService] ID de usuario no encontrado en la respuesta');
+    return null;
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Error al obtener ID de usuario:', error);
+    return null;
   }
 };
 
@@ -984,6 +1530,142 @@ export const updateUserProfile = async (profileData: {
     } else {
       throw error;
     }
+  }
+};
+
+// Función para refrescar tokens automáticamente
+export const refreshAuthToken = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    console.log('🔄 [AuthService] Iniciando refresh de token...');
+    
+    // Verificar conectividad del servidor
+    const serverAvailable = await checkServerConnectivity();
+    if (!serverAvailable) {
+      console.error('❌ [AuthService] Servidor no disponible - refresh cancelado');
+      return {
+        success: false,
+        message: "No se puede conectar al servidor para refrescar la sesión."
+      };
+    }
+
+    // Obtener datos necesarios para refresh
+    const refreshToken = getRefreshToken();
+    const userData = getCurrentUser();
+    
+    if (!refreshToken || !userData?.email) {
+      console.error('❌ [AuthService] No hay refresh token o datos de usuario');
+      return {
+        success: false,
+        message: "No hay información de sesión válida para refrescar."
+      };
+    }
+
+    // Preparar request
+    const requestBody: RefreshTokenRequest = {
+      username: userData.email,
+      refreshToken: refreshToken
+    };
+
+    console.log('🌐 [AuthService] Enviando request de refresh token...');
+    
+    // Llamada a la API
+    const response = await fetch(`${API_BASE_URL}/api/v3/auth/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 200) {
+      const responseData: RefreshTokenResponse = await response.json();
+      
+      console.log('✅ [AuthService] Refresh token exitoso');
+      
+      // Actualizar todos los tokens en localStorage
+      localStorage.setItem('accessToken', responseData.accessToken);
+      localStorage.setItem('idToken', responseData.idToken);
+      localStorage.setItem('refreshToken', responseData.refreshToken);
+      localStorage.setItem('tokenExpiry', (Date.now() + responseData.expiresIn * 1000).toString());
+      
+      // Mantener compatibilidad con código anterior
+      localStorage.setItem('authToken', responseData.accessToken);
+      
+      return {
+        success: true,
+        message: "Sesión refrescada exitosamente"
+      };
+      
+    } else if (response.status === 401 || response.status === 403) {
+      console.error('❌ [AuthService] Refresh token inválido o expirado');
+      
+      // Limpiar localStorage si el refresh token no es válido
+      logoutUser();
+      
+      return {
+        success: false,
+        message: "La sesión ha expirado. Por favor, inicia sesión nuevamente."
+      };
+      
+    } else {
+      const errorText = await response.text();
+      console.error('❌ [AuthService] Error en refresh:', response.status, errorText);
+      
+      return {
+        success: false,
+        message: `Error del servidor: ${response.status}`
+      };
+    }
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Excepción durante refresh token:', error);
+    
+    if (error instanceof Error && (
+      error.message.includes('Failed to fetch') || 
+      error.message.includes('NetworkError') ||
+      error.message.includes('CORS')
+    )) {
+      return {
+        success: false,
+        message: "Error de conexión durante el refresh de sesión."
+      };
+    }
+    
+    return {
+      success: false,
+      message: "Error interno durante el refresh de sesión."
+    };
+  }
+};
+
+// Función para verificar si el token está próximo a expirar (5 minutos antes)
+export const isTokenNearExpiry = (): boolean => {
+  const tokenExpiry = localStorage.getItem('tokenExpiry');
+  if (!tokenExpiry) return true;
+  
+  const expiryTime = parseInt(tokenExpiry);
+  const currentTime = Date.now();
+  const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutos
+  
+  return (expiryTime - currentTime) <= fiveMinutesInMs;
+};
+
+// Función para manejar refresh automático de tokens (SIMPLIFICADA)
+export const handleAutoTokenRefresh = async (): Promise<boolean> => {
+  try {
+    // TEMPORALMENTE SIMPLIFICADA - Solo verificar si está autenticado sin validar con servidor
+    if (!isAuthenticated()) {
+      console.log('🔍 [AuthService] Usuario no autenticado, no se requiere refresh');
+      return false;
+    }
+    
+    // NO verificar expiración ni hacer refresh automático por ahora
+    console.log('🔍 [AuthService] Función de refresh simplificada - manteniendo sesión actual');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ [AuthService] Error en handleAutoTokenRefresh:', error);
+    return false;
   }
 };
 

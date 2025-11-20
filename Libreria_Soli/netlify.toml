@@ -17,6 +17,16 @@
   force = true
 
 [[redirects]]
+  # PDF proxy for CORS bypass
+  from = "/pdf-proxy/*"
+  to = "https://storage.googleapis.com/soli_books_pdf/:splat"
+  status = 200
+  force = true
+  
+  [redirects.headers]
+    Access-Control-Allow-Origin = "*"
+
+[[redirects]]
   # SPA fallback
   from = "/*"
   to = "/index.html"
