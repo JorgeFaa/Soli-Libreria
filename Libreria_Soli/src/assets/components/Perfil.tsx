@@ -10,6 +10,13 @@ import type { UserCompleteProfile } from '../../services/authService';
 import { getFavoriteBooks, removeBookFromFavorites, getAllGenres } from '../../services/booksService';
 import type { Genre, Book } from '../../services/booksService';
 
+// Importar servicios y componentes de estanterías
+import { getUserBookshelves, deleteBookshelf } from '../../services/shelvesService';
+import type { Bookshelf } from '../../services/shelvesService';
+import CreateShelfModal from './CreateShelfModal';
+import EditShelfModal from './EditShelfModal';
+import ViewShelfModal from './ViewShelfModal';
+
 // Importar sistema de Toast
 import Toast from "./Toast";
 
@@ -39,6 +46,18 @@ export default function Perfil() {
   const [favoriteBooks, setFavoriteBooks] = useState<Book[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState<boolean>(false);
   const [removingFavoriteId, setRemovingFavoriteId] = useState<number | null>(null);
+  
+  // Estados para estanterías
+  const [userShelves, setUserShelves] = useState<Bookshelf[]>([]);
+  const [loadingShelves, setLoadingShelves] = useState<boolean>(false);
+  const [showCreateShelfModal, setShowCreateShelfModal] = useState<boolean>(false);
+  const [showEditShelfModal, setShowEditShelfModal] = useState<boolean>(false);
+  const [showViewShelfModal, setShowViewShelfModal] = useState<boolean>(false);
+  const [shelfToEdit, setShelfToEdit] = useState<Bookshelf | null>(null);
+  const [shelfToView, setShelfToView] = useState<{ id: number; name: string } | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [shelfToDelete, setShelfToDelete] = useState<Bookshelf | null>(null);
+  const [deletingShelf, setDeletingShelf] = useState<boolean>(false);
   
   // Información básica del usuario extraída del perfil
   const [userInfo, setUserInfo] = useState({
@@ -194,6 +213,100 @@ export default function Perfil() {
     }
   };
 
+  // ===== FUNCIONES PARA ESTANTERÍAS =====
+  
+  // Función para manejar creación exitosa de estantería
+  const handleShelfCreated = () => {
+    // Recargar estanterías desde el servidor después de crear
+    loadUserShelves();
+    setShowCreateShelfModal(false);
+  };
+
+  // Cargar estanterías del usuario desde el servidor
+  const loadUserShelves = async () => {
+    try {
+      setLoadingShelves(true);
+      const shelves = await getUserBookshelves();
+      setUserShelves(shelves);
+      console.log(`✅ [Perfil] Cargadas ${shelves.length} estanterías del usuario`);
+    } catch (error) {
+      console.error('❌ [Perfil] Error al cargar estanterías:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('Token expirado') || error.message.includes('No hay token')) {
+          showNotification("Sesión expirada. Por favor, inicia sesión nuevamente.", "error");
+        } else {
+          showNotification(`Error al cargar estanterías: ${error.message}`, "error");
+        }
+      } else {
+        showNotification("Error desconocido al cargar estanterías.", "error");
+      }
+      // En caso de error, mantener array vacío
+      setUserShelves([]);
+    } finally {
+      setLoadingShelves(false);
+    }
+  };
+
+  // Funciones para manejar edición de estanterías
+  const handleEditShelf = (shelf: Bookshelf) => {
+    setShelfToEdit(shelf);
+    setShowEditShelfModal(true);
+  };
+
+  const handleShelfUpdated = () => {
+    loadUserShelves();
+    setShowEditShelfModal(false);
+    setShelfToEdit(null);
+  };
+
+  // Funciones para manejar visualización de estanterías
+  const handleViewShelf = (shelf: Bookshelf) => {
+    setShelfToView({ id: shelf.id, name: shelf.name });
+    setShowViewShelfModal(true);
+  };
+
+  const handleCloseViewShelf = () => {
+    setShowViewShelfModal(false);
+    setShelfToView(null);
+  };
+
+  // Funciones para manejar eliminación de estanterías
+  const handleDeleteShelf = (shelf: Bookshelf) => {
+    setShelfToDelete(shelf);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteShelf = async () => {
+    if (!shelfToDelete) return;
+
+    try {
+      setDeletingShelf(true);
+      
+      await deleteBookshelf(shelfToDelete.id);
+      
+      // Recargar estanterías después de eliminar
+      await loadUserShelves();
+      
+      showNotification(`Estantería "${shelfToDelete.name}" eliminada exitosamente`, 'success');
+      
+    } catch (error) {
+      if (error instanceof Error) {
+        showNotification(`Error: ${error.message}`, 'error');
+      } else {
+        showNotification('Error desconocido al eliminar estantería', 'error');
+      }
+    } finally {
+      setDeletingShelf(false);
+      setShowDeleteConfirm(false);
+      setShelfToDelete(null);
+    }
+  };
+
+  const cancelDeleteShelf = () => {
+    setShowDeleteConfirm(false);
+    setShelfToDelete(null);
+  };
+
   // Cargar datos del perfil del usuario y favoritos
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -259,7 +372,7 @@ export default function Perfil() {
             apellido: profileData.lastName || ""
           });
           
-          // Cargar favoritos automáticamente
+          // Cargar favoritos y estanterías automáticamente
           try {
             setLoadingFavorites(true);
             const favorites = await getFavoriteBooks();
@@ -271,6 +384,9 @@ export default function Perfil() {
           } finally {
             setLoadingFavorites(false);
           }
+          
+          // Cargar estanterías del usuario
+          loadUserShelves();
           
         } else {
           setError(response.message || "Error al cargar el perfil del usuario");
@@ -342,16 +458,7 @@ export default function Perfil() {
             <p className="perfil-subtitle">Miembro de Soli Librería</p>
             {/* Mostrar badge de administrador si aplica */}
             {isCurrentUserAdmin() && (
-              <div style={{ 
-                marginTop: '0.5rem',
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #3498db, #2980b9)',
-                color: 'white',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                display: 'inline-block'
-              }}>
+              <div className="admin-badge">
                 🛠️ ADMINISTRADOR
               </div>
             )}
@@ -363,56 +470,25 @@ export default function Perfil() {
           
           {/* Panel de administración - Solo para administradores */}
           {isCurrentUserAdmin() && (
-            <div className="perfil-card" style={{ 
-              background: 'linear-gradient(135deg, #3498db, #2980b9)',
-              color: 'white',
-              marginBottom: '2rem'
-            }}>
-              <div className="perfil-card-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                <h2 style={{ color: 'white', margin: 0 }}>🛠️ Panel de Administración</h2>
-                <Link 
-                  to="/admin"
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    textDecoration: 'none',
-                    borderRadius: '4px',
-                    fontSize: '0.9rem',
-                    transition: 'background-color 0.2s ease',
-                    border: '1px solid rgba(255,255,255,0.3)'
-                  }}
-                >
+            <div className="perfil-card admin-panel-card">
+              <div className="perfil-card-header admin-panel-header">
+                <h2>🛠️ Panel de Administración</h2>
+                <Link to="/admin" className="admin-panel-link">
                   Ir al Dashboard
                 </Link>
               </div>
-              <div style={{ padding: '1rem 0' }}>
-                <p style={{ margin: '0 0 1rem 0', opacity: 0.9 }}>
+              <div className="admin-panel-content">
+                <p className="admin-panel-description">
                   Accede al panel de administración para gestionar usuarios, libros, géneros y configuraciones del sistema.
                 </p>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', 
-                    backgroundColor: 'rgba(255,255,255,0.2)', 
-                    borderRadius: '12px', 
-                    fontSize: '0.8rem' 
-                  }}>
+                <div className="admin-panel-features">
+                  <span className="admin-panel-feature-tag">
                     👥 Gestión de usuarios
                   </span>
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', 
-                    backgroundColor: 'rgba(255,255,255,0.2)', 
-                    borderRadius: '12px', 
-                    fontSize: '0.8rem' 
-                  }}>
+                  <span className="admin-panel-feature-tag">
                     📚 Catálogo de libros
                   </span>
-                  <span style={{ 
-                    padding: '0.25rem 0.5rem', 
-                    backgroundColor: 'rgba(255,255,255,0.2)', 
-                    borderRadius: '12px', 
-                    fontSize: '0.8rem' 
-                  }}>
+                  <span className="admin-panel-feature-tag">
                     📊 Reportes y estadísticas
                   </span>
                 </div>
@@ -629,7 +705,7 @@ export default function Perfil() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveFromFavorites(book.id, book.titulo);
+                              handleRemoveFromFavorites(book.id, book.title || book.titulo || 'Libro');
                             }}
                             disabled={removingFavoriteId === book.id}
                             className="favorite-book-remove-button"
@@ -658,6 +734,113 @@ export default function Perfil() {
               </Link>
             </div>
           </div>
+          
+          {/* ===== SECCIÓN DE ESTANTERÍAS ===== */}
+          <div className="perfil-section-card">
+            <div className="perfil-section-header">
+              <h3>📚 Mis Estanterías</h3>
+              <button 
+                className="btn-create-shelf"
+                onClick={() => setShowCreateShelfModal(true)}
+                title="Crear nueva estantería"
+              >
+                ➕ Crear Estantería
+              </button>
+            </div>
+            
+            <div className="perfil-section-content">
+              {loadingShelves ? (
+                <div className="perfil-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando estanterías...</p>
+                </div>
+              ) : userShelves.length > 0 ? (
+                <div className="shelves-container">
+                  {userShelves.map((shelf) => (
+                    <div key={shelf.id} className="shelf-card">
+                      <div className="shelf-header">
+                        <h4 className="shelf-name">{shelf.name}</h4>
+                        <div className="shelf-stats">
+                          <span className="shelf-book-count">
+                            📖 {shelf.bookCount || 0} libro{(shelf.bookCount || 0) !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {shelf.description && (
+                        <p className="shelf-description">{shelf.description}</p>
+                      )}
+                      
+                      <div className="shelf-footer">
+                        <span className="shelf-date">
+                          Creada el {new Date(shelf.createdAt).toLocaleDateString('es-ES')}
+                        </span>
+                        <div className="shelf-actions">
+                          <button 
+                            className="shelf-btn-view" 
+                            title="Ver estantería"
+                            onClick={() => handleViewShelf(shelf)}
+                          >
+                            👁️ Ver
+                          </button>
+                          <button 
+                            className="shelf-btn-edit" 
+                            title="Editar estantería"
+                            onClick={() => handleEditShelf(shelf)}
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button 
+                            className="shelf-btn-delete" 
+                            title="Eliminar estantería"
+                            onClick={() => handleDeleteShelf(shelf)}
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Preview de los primeros libros */}
+                      {shelf.books && shelf.books.length > 0 && (
+                        <div className="shelf-books-preview">
+                          <div className="shelf-books-grid">
+                            {shelf.books.slice(0, 3).map((book) => (
+                              <div key={book.id} className="shelf-book-mini">
+                                <img 
+                                  src={book.coverUrl || '/placeholder-book.png'} 
+                                  alt={book.title}
+                                  className="shelf-book-cover"
+                                />
+                              </div>
+                            ))}
+                            {shelf.books.length > 3 && (
+                              <div className="shelf-book-more">
+                                +{shelf.books.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="perfil-no-shelves">
+                  <div className="perfil-no-shelves-icon">📚</div>
+                  <h3>No tienes estanterías aún</h3>
+                  <p className="perfil-no-shelves-subtitle">
+                    Crea tu primera estantería para organizar tus libros por temas, géneros o cualquier criterio que prefieras
+                  </p>
+                  <button 
+                    className="btn-create-first-shelf"
+                    onClick={() => setShowCreateShelfModal(true)}
+                  >
+                    📚 Crear mi primera estantería
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
         </div>
 
@@ -677,6 +860,60 @@ export default function Perfil() {
           isVisible={showToast}
           onClose={() => setShowToast(false)} 
         />
+      )}
+
+      {/* Modal para crear nueva estantería */}
+      <CreateShelfModal
+        isOpen={showCreateShelfModal}
+        onClose={() => setShowCreateShelfModal(false)}
+        onShelfCreated={handleShelfCreated}
+      />
+
+      {/* Modal para editar estantería */}
+      <EditShelfModal
+        isOpen={showEditShelfModal}
+        shelf={shelfToEdit}
+        onClose={() => {
+          setShowEditShelfModal(false);
+          setShelfToEdit(null);
+        }}
+        onShelfUpdated={handleShelfUpdated}
+      />
+
+      {/* Modal para ver estantería */}
+      <ViewShelfModal
+        isOpen={showViewShelfModal}
+        shelfId={shelfToView?.id || null}
+        shelfName={shelfToView?.name}
+        onClose={handleCloseViewShelf}
+      />
+
+      {/* Modal de confirmación de eliminación */}
+      {showDeleteConfirm && shelfToDelete && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-modal">
+            <h3>🗑️ Confirmar eliminación</h3>
+            <p>¿Estás seguro de que quieres eliminar la estantería <strong>"{shelfToDelete.name}"</strong>?</p>
+            <p className="delete-warning">Esta acción no se puede deshacer y se eliminarán todos los libros de la estantería.</p>
+            
+            <div className="delete-confirm-actions">
+              <button 
+                className="btn-cancel-delete"
+                onClick={cancelDeleteShelf}
+                disabled={deletingShelf}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-confirm-delete"
+                onClick={confirmDeleteShelf}
+                disabled={deletingShelf}
+              >
+                {deletingShelf ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

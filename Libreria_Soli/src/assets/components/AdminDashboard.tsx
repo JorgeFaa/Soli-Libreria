@@ -9,33 +9,22 @@ import { decodeJWT } from '../../utils/jwtUtils';
 // Importar sistema de Toast
 import Toast from "./Toast";
 
-interface DashboardStats {
-  totalUsers: number;
-  totalBooks: number;
-  totalGenres: number;
-  activeReaders: number;
-}
-
-interface ActivityItem {
-  id: string;
-  icon: string;
-  text: string;
-  time: string;
-}
+// Importar gestores específicos
+import TextTypesManager from "./TextTypesManager";
+import GenresManager from "./GenresManager";
+import EditorialsManager from "./EditorialsManager";
+import CountriesManager from "./CountriesManager";
+import BooksManager from "./BooksManager";
+import AuthorsManager from "./AuthorsManager";
+import UsersManager from "./UsersManager";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   
   // Estados para manejo del dashboard
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentView, setCurrentView] = useState<string>('dashboard'); // 'dashboard', 'text-types', 'genres', 'editorials', 'countries', 'books', 'authors', 'users'
   const [userInfo, setUserInfo] = useState({ name: "", roles: [] as string[] });
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    totalBooks: 0,
-    totalGenres: 0,
-    activeReaders: 0
-  });
-  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   
   // Estados para Toast
   const [toastMessage, setToastMessage] = useState<string>("");
@@ -83,42 +72,6 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
-      
-      // Datos simulados para el prototipo
-      // En producción, estos vendrían de endpoints reales
-      setStats({
-        totalUsers: 245,
-        totalBooks: 1892,
-        totalGenres: 9,
-        activeReaders: 78
-      });
-
-      setRecentActivity([
-        {
-          id: '1',
-          icon: '👤',
-          text: 'Nuevo usuario registrado: juan.perez@email.com',
-          time: 'Hace 5 minutos'
-        },
-        {
-          id: '2',
-          icon: '📚',
-          text: 'Libro "Cien años de soledad" añadido al catálogo',
-          time: 'Hace 20 minutos'
-        },
-        {
-          id: '3',
-          icon: '⭐',
-          text: 'María González agregó 3 libros a favoritos',
-          time: 'Hace 1 hora'
-        },
-        {
-          id: '4',
-          icon: '🏷️',
-          text: 'Nuevo género "Ciencia Ficción" creado',
-          time: 'Hace 2 horas'
-        }
-      ]);
 
     } catch (error) {
       console.error('Error cargando datos del dashboard:', error);
@@ -170,86 +123,161 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Estadísticas del sistema */}
-        <div className="admin-stats-grid">
-          <div className="admin-stat-card">
-            <h3>👥 Total de Usuarios</h3>
-            <div className="admin-stat-value">{stats.totalUsers}</div>
-            <p className="admin-stat-description">Usuarios registrados en el sistema</p>
-          </div>
-          
-          <div className="admin-stat-card">
-            <h3>📚 Total de Libros</h3>
-            <div className="admin-stat-value">{stats.totalBooks}</div>
-            <p className="admin-stat-description">Libros en el catálogo</p>
-          </div>
-          
-          <div className="admin-stat-card">
-            <h3>🏷️ Géneros Literarios</h3>
-            <div className="admin-stat-value">{stats.totalGenres}</div>
-            <p className="admin-stat-description">Categorías disponibles</p>
-          </div>
-          
-          <div className="admin-stat-card">
-            <h3>📖 Lectores Activos</h3>
-            <div className="admin-stat-value">{stats.activeReaders}</div>
-            <p className="admin-stat-description">Usuarios activos este mes</p>
-          </div>
+        {/* Navegación entre vistas */}
+        <div className="admin-nav-tabs">
+          <button
+            onClick={() => setCurrentView('dashboard')}
+            className={`admin-nav-tab ${currentView === 'dashboard' ? 'active' : ''}`}
+          >
+            📊 Dashboard Principal
+          </button>
+          <button
+            onClick={() => setCurrentView('text-types')}
+            className={`admin-nav-tab ${currentView === 'text-types' ? 'active' : ''}`}
+          >
+            🏷️ Tipos de Texto
+          </button>
+          <button
+            onClick={() => setCurrentView('genres')}
+            className={`admin-nav-tab ${currentView === 'genres' ? 'active' : ''}`}
+          >
+            📚 Géneros
+          </button>
+          <button
+            onClick={() => setCurrentView('editorials')}
+            className={`admin-nav-tab ${currentView === 'editorials' ? 'active' : ''}`}
+          >
+            🏢 Editoriales
+          </button>
+          <button
+            onClick={() => setCurrentView('countries')}
+            className={`admin-nav-tab ${currentView === 'countries' ? 'active' : ''}`}
+          >
+            🌍 Países
+          </button>
+          <button
+            onClick={() => setCurrentView('books')}
+            className={`admin-nav-tab ${currentView === 'books' ? 'active' : ''}`}
+          >
+            📚 Libros
+          </button>
+          <button
+            onClick={() => setCurrentView('authors')}
+            className={`admin-nav-tab ${currentView === 'authors' ? 'active' : ''}`}
+          >
+            👤 Autores
+          </button>
+          <button
+            onClick={() => setCurrentView('users')}
+            className={`admin-nav-tab ${currentView === 'users' ? 'active' : ''}`}
+          >
+            👥 Usuarios
+          </button>
         </div>
 
-        {/* Panel de acciones rápidas */}
-        <div className="admin-actions-panel">
-          <h2 className="admin-actions-title">Acciones Rápidas</h2>
-          <div className="admin-actions-grid">
-            
-            <Link to="/admin/users" className="admin-action-btn">
-              <span className="admin-action-icon">👥</span>
-              <span className="admin-action-text">Gestionar Usuarios</span>
-            </Link>
-            
-            <Link to="/admin/books" className="admin-action-btn">
-              <span className="admin-action-icon">📚</span>
-              <span className="admin-action-text">Gestionar Libros</span>
-            </Link>
-            
-            <Link to="/admin/genres" className="admin-action-btn">
-              <span className="admin-action-icon">🏷️</span>
-              <span className="admin-action-text">Gestionar Géneros</span>
-            </Link>
-            
-            <Link to="/admin/reports" className="admin-action-btn">
-              <span className="admin-action-icon">📊</span>
-              <span className="admin-action-text">Ver Reportes</span>
-            </Link>
-            
-            <Link to="/admin/settings" className="admin-action-btn">
-              <span className="admin-action-icon">⚙️</span>
-              <span className="admin-action-text">Configuración</span>
-            </Link>
-            
-            <Link to="/admin/backup" className="admin-action-btn">
-              <span className="admin-action-icon">💾</span>
-              <span className="admin-action-text">Respaldos</span>
-            </Link>
-            
-          </div>
-        </div>
-
-        {/* Actividad reciente */}
-        <div className="admin-activity-panel">
-          <h2 className="admin-activity-title">Actividad Reciente</h2>
-          <div className="admin-activity-list">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="admin-activity-item">
-                <span className="admin-activity-icon">{activity.icon}</span>
-                <div className="admin-activity-content">
-                  <p className="admin-activity-text">{activity.text}</p>
-                  <p className="admin-activity-time">{activity.time}</p>
-                </div>
+        {/* Contenido según vista seleccionada */}
+        {currentView === 'dashboard' && (
+          <>
+            {/* Panel de acciones rápidas */}
+            <div className="admin-actions-panel">
+              <h2 className="admin-actions-title">Acciones Rápidas</h2>
+              <div className="admin-actions-grid">
+                
+                <button 
+                  onClick={() => setCurrentView('text-types')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">🏷️</span>
+                  <span className="admin-action-text">Tipos de Texto</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('genres')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">📚</span>
+                  <span className="admin-action-text">Gestionar Géneros</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('editorials')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">🏢</span>
+                  <span className="admin-action-text">Gestionar Editoriales</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('countries')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">🌍</span>
+                  <span className="admin-action-text">Gestionar Países</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('books')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">📚</span>
+                  <span className="admin-action-text">Gestionar Libros</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('authors')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">👤</span>
+                  <span className="admin-action-text">Gestionar Autores</span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentView('users')}
+                  className="admin-action-btn"
+                >
+                  <span className="admin-action-icon">👥</span>
+                  <span className="admin-action-text">Gestionar Usuarios</span>
+                </button>
+                
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
+
+        {/* Vista de gestión de tipos de texto */}
+        {currentView === 'text-types' && (
+          <TextTypesManager />
+        )}
+
+        {/* Vista de gestión de géneros */}
+        {currentView === 'genres' && (
+          <GenresManager />
+        )}
+
+        {/* Vista de gestión de editoriales */}
+        {currentView === 'editorials' && (
+          <EditorialsManager />
+        )}
+
+        {/* Vista de gestión de países */}
+        {currentView === 'countries' && (
+          <CountriesManager />
+        )}
+
+        {/* Vista de gestión de libros */}
+        {currentView === 'books' && (
+          <BooksManager />
+        )}
+
+        {/* Vista de gestión de autores */}
+        {currentView === 'authors' && (
+          <AuthorsManager />
+        )}
+
+        {/* Vista de gestión de usuarios */}
+        {currentView === 'users' && (
+          <UsersManager />
+        )}
 
         {/* Navegación */}
         <div className="admin-navigation">

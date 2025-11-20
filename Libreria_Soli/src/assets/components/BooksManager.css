@@ -1,0 +1,522 @@
+/* BooksManager.css - Estilos para gestión de libros */
+
+/* Contenedor principal */
+.books-manager {
+  padding: 2rem;
+}
+
+/* Header */
+.books-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.books-header h2 {
+  margin: 0;
+}
+
+.btn-new-book {
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.btn-new-book:hover {
+  background-color: #218838;
+}
+
+.btn-new-book.cancel {
+  background-color: #6c757d;
+}
+
+.btn-new-book.cancel:hover {
+  background-color: #5a6268;
+}
+
+/* Formulario de creación */
+.book-create-form {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.book-create-form h3 {
+  margin: 0 0 1rem 0;
+}
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field input:disabled,
+.form-field select:disabled,
+.form-field textarea:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 0.5rem 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
+}
+
+.btn-cancel:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-submit {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-submit:hover {
+  background-color: #0056b3;
+}
+
+.btn-submit:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Tabla de libros */
+.books-table {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.books-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #666;
+}
+
+.books-empty p:first-child {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Header de tabla */
+.books-table-header {
+  display: grid;
+  grid-template-columns: 60px 2fr 1fr 1fr 1fr 1fr 150px;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.books-table-header-actions {
+  text-align: center;
+}
+
+/* Fila de datos */
+.books-table-row {
+  display: grid;
+  grid-template-columns: 60px 2fr 1fr 1fr 1fr 1fr 150px;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  align-items: center;
+}
+
+.books-cell-id {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.books-cell-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.books-cell-description {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.3;
+}
+
+.books-cell-type {
+  font-size: 0.9rem;
+}
+
+.books-cell-count {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.books-cell-count-detail {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.books-cell-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.books-cell-empty {
+  font-style: italic;
+}
+
+/* Acciones de tabla */
+.books-table-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-book-action {
+  padding: 0.25rem 0.5rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-book-action:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-book-edit {
+  background-color: #ffc107;
+}
+
+.btn-book-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-book-delete {
+  background-color: #dc3545;
+}
+
+.btn-book-delete:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+/* Modal de edición */
+.book-edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.book-edit-modal {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.book-edit-modal h3 {
+  margin-bottom: 1.5rem;
+}
+
+.book-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.book-edit-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.book-edit-field input,
+.book-edit-field select,
+.book-edit-field textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.book-edit-field textarea {
+  resize: vertical;
+}
+
+.book-edit-field select[multiple] {
+  min-height: 100px;
+}
+
+.book-edit-field.authors-field select[multiple] {
+  min-height: 120px;
+}
+
+.book-edit-field small {
+  color: #666;
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.book-edit-urls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.book-edit-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.btn-modal-cancel {
+  padding: 0.75rem 1.5rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-modal-cancel:hover {
+  background-color: #5a6268;
+}
+
+.btn-modal-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-modal-save {
+  padding: 0.75rem 1.5rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-modal-save:hover {
+  background-color: #218838;
+}
+
+.btn-modal-save:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Estados de carga y error */
+.books-loading {
+  padding: 2rem;
+  text-align: center;
+}
+
+.books-loading .loading-spinner {
+  margin: 0 auto 1rem;
+}
+
+.books-error {
+  padding: 2rem;
+  text-align: center;
+}
+
+.books-error-content {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.books-error-content h3 {
+  margin-bottom: 0.5rem;
+}
+
+.btn-retry {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-retry:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .form-grid-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .books-table-header,
+  .books-table-row {
+    grid-template-columns: 60px 2fr 1fr 1fr 120px;
+  }
+
+  /* Ocultar columnas menos importantes */
+  .books-table-header > div:nth-child(4),
+  .books-table-row > div:nth-child(4),
+  .books-table-header > div:nth-child(5),
+  .books-table-row > div:nth-child(5) {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .books-manager {
+    padding: 1rem;
+  }
+
+  .books-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .btn-new-book {
+    width: 100%;
+  }
+
+  .form-grid-2col,
+  .form-grid-3col {
+    grid-template-columns: 1fr;
+  }
+
+  .book-edit-urls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .books-table-header {
+    display: none;
+  }
+
+  .books-table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .books-cell-id::before {
+    content: "ID: ";
+    font-weight: 600;
+    color: #666;
+  }
+
+  .books-table-actions {
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+  }
+
+  .book-edit-modal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .book-edit-actions {
+    flex-direction: column;
+  }
+
+  .btn-modal-cancel,
+  .btn-modal-save {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+  }
+
+  .books-table-actions {
+    flex-wrap: wrap;
+  }
+
+  .btn-book-action {
+    flex: 1 1 auto;
+  }
+}

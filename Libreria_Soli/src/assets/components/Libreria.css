@@ -42,6 +42,52 @@
   margin-right: auto;
 }
 
+/* Aviso de compatibilidad de navegadores */
+.browser-compatibility-notice {
+  background: linear-gradient(135deg, rgba(255, 210, 76, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%);
+  border: 1px solid rgba(255, 210, 76, 0.3);
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin: 0 auto 2rem auto;
+  max-width: 700px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: rgba(46, 46, 46, 0.9);
+  line-height: 1.5;
+}
+
+.browser-compatibility-notice .notice-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.browser-compatibility-notice .browser-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.browser-compatibility-notice .browser-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .browser-compatibility-notice {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .browser-compatibility-notice .browser-icons {
+    margin-left: 0;
+  }
+}
+
 /* Estadísticas */
 .libreria-stats {
   display: grid;
@@ -458,4 +504,139 @@
 .no-books-container p {
   font-size: 1.2rem;
   margin: 0;
+}
+
+/* ===== NUEVA GRILLA DE LIBROS ===== */
+
+.seccion-biblioteca {
+  margin-bottom: 4rem;
+}
+
+.libros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  padding: 2rem 0;
+  max-width: 900px;
+  margin: 0 auto;
+  justify-items: center;
+}
+
+/* ===== INDICADOR DE PROGRESO EN CARDS ===== */
+
+.libro-progress-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(46, 46, 46, 0.9);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== PAGINACIÓN ===== */
+
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding: 2rem 0;
+}
+
+.paginacion-btn {
+  background: linear-gradient(135deg, var(--naranja-atardecer), var(--amarillo-solar));
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.paginacion-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+}
+
+.paginacion-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.paginacion-numeros {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginacion-numero {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--naranja-atardecer);
+  background: white;
+  color: var(--naranja-atardecer);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.paginacion-numero:hover {
+  background: var(--naranja-atardecer);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.paginacion-numero.activa {
+  background: var(--naranja-atardecer);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+}
+
+/* ===== RESPONSIVE PARA GRILLA ===== */
+
+@media (max-width: 768px) {
+  .libros-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+    max-width: 800px;
+  }
+
+  .paginacion {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .paginacion-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.8rem;
+  }
+
+  .paginacion-numero {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .libros-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem;
+    padding: 1rem 0.5rem;
+    max-width: 600px;
+  }
 }

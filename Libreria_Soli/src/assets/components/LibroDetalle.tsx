@@ -12,6 +12,12 @@ import Toast from "./Toast";
 // Importar el visor de PDF
 import PDFViewer from "./PDFViewer";
 
+// Importar el modal de reseñas
+import ReviewsModal from "./ReviewsModal";
+
+// Importar el modal de estanterías
+import AddToShelfModal from "./AddToShelfModal";
+
 
 export default function LibroDetalle() {
     const { id } = useParams<{ id: string }>();
@@ -29,6 +35,12 @@ export default function LibroDetalle() {
     
     // Estado para el visor de PDF
     const [showPDFViewer, setShowPDFViewer] = useState<boolean>(false);
+    
+    // Estado para el modal de reseñas
+    const [showReviewsModal, setShowReviewsModal] = useState<boolean>(false);
+    
+    // Estado para el modal de estanterías
+    const [showAddToShelfModal, setShowAddToShelfModal] = useState<boolean>(false);
     
     // Estado para manejar favoritos
     const [isAddingToFavorites, setIsAddingToFavorites] = useState<boolean>(false);
@@ -50,6 +62,11 @@ export default function LibroDetalle() {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
+    };
+    
+    // Función para manejar el éxito al agregar a estantería
+    const handleBookAddedToShelf = (shelfName: string) => {
+        showNotification(`Libro agregado exitosamente a "${shelfName}"`, "success");
     };
     
     // Función para verificar si el libro está en favoritos
@@ -327,8 +344,12 @@ export default function LibroDetalle() {
                         </div>
 
                         <div className="libro-sinopsis">
-                            <h3>Sinopsis</h3>
-                            <p>{libro.sinopsis}</p>
+                            {libro.sinopsis && (
+                                <>
+                                    <h3>Sinopsis</h3>
+                                    <p>{libro.sinopsis}</p>
+                                </>
+                            )}
                         </div>
 
                         <div className="libro-detalles">
@@ -336,15 +357,20 @@ export default function LibroDetalle() {
                             <div className="detalles-grid">
                                 <div className="detalle-item">
                                     <strong>ISBN:</strong>
+                                {libro.isbn && (
                                     <span>{libro.isbn}</span>
+                                )}
+                                {!libro.isbn && (
+                                    <span>No disponible</span>
+                                )}
                                 </div>
                                 <div className="detalle-item">
                                     <strong>Editorial:</strong>
-                                    <span>{libro.editorial}</span>
+                                    <span>{libro.editorials?.[0]?.companyName || 'Editorial desconocida'}</span>
                                 </div>
                                 <div className="detalle-item">
                                     <strong>Páginas:</strong>
-                                    <span>{libro.paginas}</span>
+                                    <span>{libro.paginas || 'No especificado'}</span>
                                 </div>
                                 <div className="detalle-item">
                                     <strong>Año de publicación:</strong>
@@ -357,11 +383,10 @@ export default function LibroDetalle() {
                             <button 
                                 className="boton-leer"
                                 onClick={() => {
-                                    if (libro.textUrl) {
+                                    if (libro.pdfUrl) {
                                         setShowPDFViewer(true);
-                                        showNotification("¡Abriendo visor de PDF!", "success");
                                     } else {
-                                        showNotification("El archivo del libro no está disponible", "warning");
+                                        showNotification("El archivo PDF del libro no está disponible", "warning");
                                     }
                                 }}
                             >
@@ -393,16 +418,47 @@ export default function LibroDetalle() {
                             <button className="boton-compartir">
                                 📤 Compartir
                             </button>
+                            <button 
+                                className="boton-shelf"
+                                onClick={() => setShowAddToShelfModal(true)}
+                                title="Agregar a estantería"
+                            >
+                                📚 Agregar a estantería
+                            </button>
+                            <button 
+                                className="boton-reviews"
+                                onClick={() => setShowReviewsModal(true)}
+                            >
+                                📝 Ver reseñas
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
             
+            {/* Modal de reseñas */}
+            <ReviewsModal
+                bookId={libro.id}
+                bookTitle={libro.titulo || libro.title || 'Libro sin título'}
+                isOpen={showReviewsModal}
+                onClose={() => setShowReviewsModal(false)}
+            />
+            
+            {/* Modal para agregar a estantería */}
+            <AddToShelfModal
+                isOpen={showAddToShelfModal}
+                bookId={libro.id}
+                bookTitle={libro.titulo || libro.title || 'Libro sin título'}
+                onClose={() => setShowAddToShelfModal(false)}
+                onBookAdded={handleBookAddedToShelf}
+            />
+            
             {/* Visor de PDF */}
-            {libro?.textUrl && (
+            {libro?.pdfUrl && (
                 <PDFViewer
-                    pdfUrl={libro.textUrl}
-                    bookTitle={libro.titulo}
+                    pdfUrl={libro.pdfUrl}
+                    bookTitle={libro.titulo || libro.title || 'Libro sin título'}
+                    bookId={libro.id}
                     isOpen={showPDFViewer}
                     onClose={() => setShowPDFViewer(false)}
                 />

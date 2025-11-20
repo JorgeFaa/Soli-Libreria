@@ -287,6 +287,30 @@
   transform: translateY(-2px);
 }
 
+.boton-shelf {
+  background: white;
+  color: var(--amarillo-solar);
+  border: 2px solid var(--amarillo-solar);
+}
+
+.boton-shelf:hover {
+  background: var(--amarillo-solar);
+  color: var(--gris-carbon);
+  transform: translateY(-2px);
+}
+
+.boton-reviews {
+  background: white;
+  color: var(--rojo-terracota);
+  border: 2px solid var(--rojo-terracota);
+}
+
+.boton-reviews:hover {
+  background: var(--rojo-terracota);
+  color: white;
+  transform: translateY(-2px);
+}
+
 /* Página de error */
 .libro-no-encontrado {
   text-align: center;
