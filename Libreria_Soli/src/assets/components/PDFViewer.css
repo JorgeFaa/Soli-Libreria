@@ -36,7 +36,7 @@
   overflow: hidden;
 }
 
-/* Header del visor - Más compacto para pantalla completa */
+/* Header del visor simplificado - Guardado automático */
 .pdf-viewer-header {
   background: linear-gradient(135deg, var(--amarillo-solar) 0%, var(--naranja-atardecer) 100%);
   padding: 0.75rem 1.5rem;
@@ -48,18 +48,62 @@
 }
 
 .pdf-viewer-title h3 {
-  margin: 0;
+  margin: 0 0 0.25rem 0;
   color: var(--gris-carbon);
   font-size: 1.1rem;
   font-weight: 600;
 }
 
-.pdf-viewer-controls {
-  display: flex;
-  gap: 0.5rem;
+.pdf-progress-info {
+  font-size: 0.8rem;
+  color: var(--gris-carbon);
+  margin: 0.2rem 0 0 0;
+  font-style: italic;
 }
 
-.pdf-button-external,
+.pdf-progress-info strong {
+  color: var(--gris-carbon);
+  font-weight: 700;
+}
+
+.file-type-info {
+  font-size: 0.75rem;
+  color: rgba(46, 46, 46, 0.7);
+  margin: 0.2rem 0 0 0;
+  font-weight: 600;
+  background: rgba(46, 46, 46, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.pdf-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.goto-saved-page-btn {
+  background: linear-gradient(135deg, var(--gris-carbon), #555);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.goto-saved-page-btn:hover {
+  background: linear-gradient(135deg, #555, var(--gris-carbon));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 46, 46, 0.3);
+}
+
 .pdf-button-close {
   padding: 0.5rem 1rem;
   border: none;
@@ -68,20 +112,26 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
+  background: var(--rojo-terracota);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.pdf-button-external {
-  background: white;
-  color: var(--naranja-atardecer);
-  border: 2px solid white;
-}
-
-.pdf-button-external:hover {
-  background: rgba(255, 255, 255, 0.9);
+.pdf-button-close:hover {
+  background: #c23d25;
   transform: translateY(-1px);
 }
 
 .pdf-button-close {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
   background: var(--rojo-terracota);
   color: white;
 }
@@ -106,6 +156,62 @@
   height: 100%;
   border: none;
   background: white;
+}
+
+/* ===== VISOR EPUB ===== */
+
+/* Contenedor del visor EPUB */
+.epub-viewer {
+  width: 100%;
+  height: 100%;
+  background: white;
+  overflow: hidden;
+}
+
+/* Controles de navegación EPUB */
+.epub-controls {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.epub-nav-btn {
+  background: linear-gradient(135deg, var(--amarillo-solar), var(--naranja-atardecer));
+  color: var(--gris-carbon);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.epub-nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 140, 66, 0.4);
+}
+
+.epub-nav-btn:active {
+  transform: translateY(0);
+}
+
+.epub-nav-btn.prev {
+  background: linear-gradient(135deg, var(--gris-carbon), #555);
+  color: white;
+}
+
+.epub-nav-btn.next {
+  background: linear-gradient(135deg, var(--amarillo-solar), var(--naranja-atardecer));
+  color: var(--gris-carbon);
 }
 
 /* Loading State */
@@ -170,6 +276,15 @@
   max-width: 400px;
 }
 
+.pdf-error-suggestion {
+  background: rgba(255, 212, 76, 0.1);
+  border-left: 4px solid var(--amarillo-solar);
+  padding: 1rem;
+  border-radius: 6px;
+  margin: 1.5rem 0 !important;
+  line-height: 1.5;
+}
+
 .pdf-error-actions {
   display: flex;
   gap: 1rem;
@@ -216,12 +331,41 @@
   flex-shrink: 0;
 }
 
+.pdf-instructions-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
 .pdf-instructions {
   margin: 0;
   font-size: 0.8rem;
   color: rgba(46, 46, 46, 0.6);
-  text-align: center;
   line-height: 1.3;
+  flex: 1;
+}
+
+.hide-instructions-btn {
+  background: rgba(46, 46, 46, 0.1);
+  color: rgba(46, 46, 46, 0.6);
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hide-instructions-btn:hover {
+  background: var(--rojo-terracota);
+  color: white;
+  transform: scale(1.1);
 }
 
 /* Responsive Design */
@@ -238,8 +382,9 @@
   .pdf-viewer-header {
     padding: 0.75rem 1rem;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     text-align: center;
+    align-items: center;
   }
   
   .pdf-viewer-title h3 {
@@ -247,9 +392,21 @@
     margin-bottom: 0.5rem;
   }
   
-  .pdf-viewer-controls {
+  .pdf-header-actions {
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .goto-saved-page-btn,
+  .pdf-button-close {
+    min-width: 120px;
+  }
+  
+  .pdf-header-controls {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
   
   .pdf-error-actions {
@@ -266,6 +423,165 @@
   .pdf-instructions {
     font-size: 0.8rem;
   }
+  
+  .pdf-instructions-content {
+    gap: 0.5rem;
+  }
+  
+  .hide-instructions-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  
+  .progress-save-btn,
+  .progress-goto-btn {
+    width: auto;
+    min-width: 120px;
+  }
+}
+
+/* ===== GUARDADO AUTOMÁTICO DE PROGRESO ===== */
+
+/* Modal para entrada manual de página */
+.page-input-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.page-input-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.page-input-content h4 {
+  margin: 0 0 1rem 0;
+  color: var(--gris-carbon);
+  font-size: 1.3rem;
+}
+
+.page-input-content p {
+  margin: 0 0 0.75rem 0;
+  color: rgba(46, 46, 46, 0.8);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.progress-hint {
+  background: rgba(255, 212, 76, 0.2);
+  border-left: 4px solid var(--amarillo-solar);
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin: 1rem 0 !important;
+  color: var(--gris-carbon) !important;
+  font-size: 0.9rem !important;
+}
+
+.page-input-group {
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.page-input-group label {
+  font-weight: 600;
+  color: var(--gris-carbon);
+  font-size: 1rem;
+}
+
+.manual-page-input {
+  width: 100px;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--naranja-atardecer);
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--gris-carbon);
+  font-weight: 600;
+}
+
+.manual-page-input:focus {
+  outline: none;
+  border-color: var(--amarillo-solar);
+  box-shadow: 0 0 8px rgba(255, 140, 66, 0.3);
+}
+
+.manual-page-input.error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
+}
+
+.page-error {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+}
+
+.page-input-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.confirm-page-btn {
+  background: linear-gradient(135deg, var(--naranja-atardecer), var(--amarillo-solar));
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-page-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(255, 140, 66, 0.4);
+}
+
+.cancel-page-btn {
+  background: #f0f0f0;
+  color: var(--gris-carbon);
+  border: 1px solid #ddd;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-page-btn:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+
+
+.pdf-progress-info {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.2rem 0 0 0;
+  font-style: italic;
 }
 
 @media (max-width: 480px) {
@@ -277,9 +593,131 @@
     font-size: 0.9rem;
   }
   
-  .pdf-button-external,
   .pdf-button-close {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
   }
+}
+
+/* Botón de diagnóstico */
+.diagnosis-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+.diagnosis-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.diagnosis-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Botón copiar URL */
+.pdf-button-copy {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0.25rem;
+}
+
+.pdf-button-copy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+/* Botón descargar PDF */
+.pdf-button-download {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0.25rem;
+}
+
+.pdf-button-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+}
+
+/* Botón URLs alternativas */
+.pdf-button-alternative {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0.25rem;
+}
+
+.pdf-button-alternative:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+/* Botón prueba directa */
+.test-direct-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+.test-direct-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Explicación del problema CORS */
+.pdf-cors-explanation {
+  background: #f8f9fa;
+  border-left: 4px solid #667eea;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.pdf-cors-explanation h5 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 14px;
+}
+
+.pdf-cors-explanation p {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6c757d;
 }

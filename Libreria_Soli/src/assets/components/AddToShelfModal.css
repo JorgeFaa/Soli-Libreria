@@ -1,0 +1,436 @@
+/* AddToShelfModal.css - Estilos para el modal de agregar libros a estanterías */
+
+/* Variables de colores de Soli */
+:root {
+  --amarillo-solar: #FFD24C;
+  --naranja-atardecer: #FF8C42;
+  --rojo-terracota: #D94F30;
+  --arena-suave: #F8F4E3;
+  --arena-calida: #E8DCC6;
+  --gris-carbon: #2E2E2E;
+  --verde-sabio: #27AE60;
+}
+
+/* ===== OVERLAY Y MODAL BASE ===== */
+
+.add-to-shelf-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.add-to-shelf-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.2s ease-out;
+  overflow: hidden;
+}
+
+/* ===== HEADER DEL MODAL ===== */
+
+.add-to-shelf-header {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid var(--arena-calida);
+  background: linear-gradient(135deg, var(--amarillo-solar) 0%, var(--naranja-atardecer) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-to-shelf-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gris-carbon);
+}
+
+.add-to-shelf-close {
+  background: rgba(46, 46, 46, 0.1);
+  border: 1px solid rgba(46, 46, 46, 0.2);
+  color: var(--gris-carbon);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.add-to-shelf-close:hover {
+  background: rgba(46, 46, 46, 0.2);
+  border-color: var(--gris-carbon);
+}
+
+/* ===== INFORMACIÓN DEL LIBRO ===== */
+
+.book-info-section {
+  padding: 16px 24px;
+  background: var(--arena-suave);
+  border-bottom: 1px solid var(--arena-calida);
+}
+
+.book-title-info {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--gris-carbon);
+}
+
+.book-title-info strong {
+  font-weight: 600;
+  color: var(--rojo-terracota);
+}
+
+/* ===== CONTENIDO DEL MODAL ===== */
+
+.add-to-shelf-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.add-to-shelf-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--gris-carbon);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--arena-calida);
+  border-top: 3px solid var(--naranja-atardecer);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.add-to-shelf-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--rojo-terracota);
+}
+
+.add-to-shelf-error p {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.retry-btn {
+  background-color: var(--naranja-atardecer);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.retry-btn:hover:not(:disabled) {
+  background-color: var(--rojo-terracota);
+}
+
+.retry-btn.secondary {
+  background-color: var(--arena-calida);
+  color: var(--gris-carbon);
+  border: 1px solid var(--arena-calida);
+}
+
+.retry-btn.secondary:hover:not(:disabled) {
+  background-color: #ddd0b1;
+  border-color: #ddd0b1;
+}
+
+.retry-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== ESTADO SIN ESTANTERÍAS ===== */
+
+.no-shelves {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gris-carbon);
+}
+
+.no-shelves-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+  color: var(--naranja-atardecer);
+}
+
+.no-shelves h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: var(--gris-carbon);
+}
+
+.no-shelves p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--gris-carbon);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* ===== LISTA DE ESTANTERÍAS ===== */
+
+.shelves-list h4 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gris-carbon);
+}
+
+.shelves-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.shelf-option {
+  border: 2px solid var(--arena-calida);
+  border-radius: 8px;
+  padding: 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shelf-option:hover {
+  border-color: var(--naranja-atardecer);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
+}
+
+.shelf-option.selected {
+  border-color: var(--naranja-atardecer);
+  background: linear-gradient(135deg, var(--arena-suave) 0%, rgba(255, 140, 66, 0.05) 100%);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+}
+
+.shelf-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.shelf-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shelf-radio input[type="radio"] {
+  accent-color: var(--naranja-atardecer);
+  width: 16px;
+  height: 16px;
+}
+
+.shelf-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gris-carbon);
+  cursor: pointer;
+}
+
+.shelf-count {
+  font-size: 0.85rem;
+  color: var(--rojo-terracota);
+  font-weight: 500;
+  background: var(--arena-suave);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.shelf-description {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: var(--gris-carbon);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.shelf-date {
+  margin: 8px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--gris-carbon);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* ===== FOOTER DEL MODAL ===== */
+
+.add-to-shelf-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--arena-calida);
+  background-color: var(--arena-suave);
+}
+
+.shelf-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-add-book {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.btn-cancel {
+  background-color: var(--arena-calida);
+  color: var(--gris-carbon);
+  border: 1px solid var(--arena-calida);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: #ddd0b1;
+  border-color: #ddd0b1;
+}
+
+.btn-add-book {
+  background-color: var(--naranja-atardecer);
+  color: white;
+}
+
+.btn-add-book:hover:not(:disabled) {
+  background-color: var(--rojo-terracota);
+  transform: translateY(-1px);
+}
+
+.btn-cancel:disabled,
+.btn-add-book:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== ANIMACIONES ===== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 640px) {
+  .add-to-shelf-overlay {
+    padding: 10px;
+  }
+
+  .add-to-shelf-modal {
+    max-height: 90vh;
+    border-radius: 10px;
+  }
+
+  .add-to-shelf-header {
+    padding: 16px 20px 12px 20px;
+  }
+
+  .add-to-shelf-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .add-to-shelf-content {
+    padding: 20px;
+  }
+
+  .shelf-option {
+    padding: 12px;
+  }
+
+  .shelf-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-add-book {
+    width: 100%;
+  }
+
+  .error-actions {
+    flex-direction: column;
+  }
+
+  .retry-btn {
+    width: 100%;
+  }
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+
+.shelves-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shelves-options::-webkit-scrollbar-track {
+  background: var(--arena-suave);
+  border-radius: 3px;
+}
+
+.shelves-options::-webkit-scrollbar-thumb {
+  background: var(--arena-calida);
+  border-radius: 3px;
+}
+
+.shelves-options::-webkit-scrollbar-thumb:hover {
+  background: #d4c7a6;
+}
