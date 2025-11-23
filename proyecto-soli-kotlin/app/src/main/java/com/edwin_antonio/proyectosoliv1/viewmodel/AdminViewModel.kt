@@ -70,6 +70,12 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
         }
     }
 
+    fun updateTextType(id: Int, type: String) {
+        viewModelScope.launch {
+            adminRepository.updateTextType(id, type).onSuccess { loadTextTypes() }.onFailure { e -> _uiState.update { it.copy(errorMessage = e.message) } }
+        }
+    }
+
     fun deleteTextType(id: Int) {
         viewModelScope.launch {
             adminRepository.deleteTextType(id).onSuccess { loadTextTypes() }.onFailure { e -> _uiState.update { it.copy(errorMessage = e.message) } }
