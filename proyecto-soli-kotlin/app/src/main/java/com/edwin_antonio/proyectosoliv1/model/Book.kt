@@ -1,5 +1,8 @@
 package com.edwin_antonio.proyectosoliv1.model
 
+interface Nameable {
+    val name: String
+}
 
 data class Book(
     val id: Int,
@@ -17,19 +20,22 @@ data class Book(
 
 data class Author(
     val id: Int,
-    val name: String,
+    override val name: String,
     val middleName: String?,
     val lastName: String,
     val countryName: String,
     val books: List<SimpleBook>? = null
-)
+): Nameable
 
 data class Editorial(
     val id: Int,
     val companyName: String,
     val countryId: Int,
     val countryName: String
-)
+): Nameable {
+    override val name: String
+        get() = companyName
+}
 
 // Modelo para la lista de libros simplificada que viene en la respuesta de un género
 data class SimpleBook(
@@ -39,14 +45,17 @@ data class SimpleBook(
 
 data class Genre(
     val id: Int,
-    val name: String,
+    override val name: String,
     val books: List<SimpleBook>? = null // La API devuelve una lista de libros
-)
+): Nameable
 
 data class TextType(
     val id: Int,
     val type: String
-)
+): Nameable {
+    override val name: String
+        get() = type
+}
 
 data class TextTypeRequest(
     val type: String
