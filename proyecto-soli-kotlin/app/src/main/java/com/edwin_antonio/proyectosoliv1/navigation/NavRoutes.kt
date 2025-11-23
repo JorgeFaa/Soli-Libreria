@@ -22,7 +22,16 @@ sealed class Screen(val route: String) {
     object AuthorManagement : Screen("author_management")
     object EditorialManagement : Screen("editorial_management")
     object UserManagement : Screen("user_management")
-    object BookManagement : Screen("book_management")
+    object BookList : Screen("book_list")
+    object BookManagement : Screen("book_management?bookId={bookId}") {
+        fun createRoute(bookId: Int? = null): String {
+            return if (bookId != null) {
+                "book_management?bookId=$bookId"
+            } else {
+                "book_management"
+            }
+        }
+    }
     object Details : Screen("details/{bookId}") {
         fun createRoute(bookId: String) = "details/$bookId"
     }
