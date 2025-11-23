@@ -4,12 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.edwin_antonio.proyectosoliv1.ui.theme.*
@@ -23,7 +22,7 @@ fun AdminScreen(
     onNavigateToAuthors: () -> Unit,
     onNavigateToEditorials: () -> Unit,
     onNavigateToUsers: () -> Unit,
-    onNavigateToBooks: () -> Unit,
+    onNavigateToBookList: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     Scaffold(
@@ -32,7 +31,7 @@ fun AdminScreen(
                 title = { Text("Panel de Administrador", color = CoffeeDark) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = CoffeeDark)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = CoffeeDark)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -55,7 +54,7 @@ fun AdminScreen(
             item { ManagementButton(label = "Gestionar Autores", onClick = onNavigateToAuthors) }
             item { ManagementButton(label = "Gestionar Editoriales", onClick = onNavigateToEditorials) }
             item { ManagementButton(label = "Gestionar Usuarios", onClick = onNavigateToUsers) }
-            item { ManagementButton(label = "Gestionar Libros", onClick = onNavigateToBooks) }
+            item { ManagementButton(label = "Gestionar Libros", onClick = onNavigateToBookList) }
         }
     }
 }
@@ -71,7 +70,7 @@ private fun ManagementButton(label: String, onClick: () -> Unit) {
     ) {
         Text(label, color = CoffeeDark, modifier = Modifier.padding(8.dp))
         Spacer(modifier = Modifier.weight(1f))
-        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = OrangeSunset)
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = OrangeSunset)
     }
     Spacer(modifier = Modifier.height(12.dp))
 }
