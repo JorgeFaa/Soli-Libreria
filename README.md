@@ -78,3 +78,80 @@ Estos endpoints requieren que el usuario tenga el rol `ADMIN`. Algunos endpoints
     *   `GET /admin/users`: Listar todos los usuarios de la base de datos.
     *   `GET /admin/users/{id}`: Obtener un usuario por su ID de la base de datos.
     *   `DELETE /admin/users/{id}`: Eliminar un usuario (tanto de la base de datos como de Cognito).
+
+# 📱 Aplicación Android
+
+La aplicación móvil de SoliBooks está desarrollada de forma nativa con:
+
+- Kotlin 100%
+- Jetpack Compose para toda la UI
+- Arquitectura basada en principios modernos de Android
+
+La app funciona como cliente de la API SoliBooks y permite una experiencia fluida para usuarios y administradores.
+
+---
+
+# 🧩 Arquitectura de la App
+
+- **Lenguaje:** Kotlin  
+- **UI:** Jetpack Compose  
+- **Arquitectura:** MVVM  
+- **Gestión de Estado:** StateFlow y Flow  
+- **Asincronía:** Coroutines  
+- **Inyección de dependencias:** Hilt  
+- **Consumo de API:** Retrofit + Moshi/Gson  
+- **Persistencia local:** Room  
+- **Navegación:** Navigation Compose  
+
+---
+
+# 🚀 Funcionalidades Implementadas
+
+## 🔐 Autenticación
+- Registro  
+- Login  
+- Confirmación de correo  
+- Recuperación de contraseña  
+
+Mapeadas a los endpoints `/auth`.
+
+---
+
+## 🛠️ Panel Administrador
+
+Incluye funciones completas de CRUD sobre libros:
+
+- Listar  
+- Crear  
+- Editar  
+- Eliminar  
+
+La pantalla principal **BookListScreen.kt** utiliza:
+- `LazyColumn`
+- `FloatingActionButton`
+- Iconos para editar/eliminar
+- Integración con `AdminViewModel`  
+- Comunicación con `/admin/books`
+
+---
+
+## 🔍 Exploración de Libros
+- Búsquedas    
+- Detalles del libro    
+
+---
+
+## 👤 Gestión de Perfil
+- Ver y actualizar información personal  
+- Favoritos sincronizados   
+
+---
+
+# 💡 Tecnologías Utilizadas
+
+### Mobile
+- Kotlin
+- Jetpack Compose
+- Retrofit
+- Coroutines
+- Navigation Compose
