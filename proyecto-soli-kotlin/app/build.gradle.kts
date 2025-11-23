@@ -12,8 +12,8 @@ android {
         applicationId = "com.edwin_antonio.proyectosoliv1"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "5.0"
+        versionCode = 7
+        versionName = "7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
