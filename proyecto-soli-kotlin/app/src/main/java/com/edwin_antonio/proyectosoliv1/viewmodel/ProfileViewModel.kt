@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 import com.edwin_antonio.proyectosoliv1.model.Book
+import com.edwin_antonio.proyectosoliv1.model.Genre
 import com.edwin_antonio.proyectosoliv1.model.User
 import com.edwin_antonio.proyectosoliv1.network.ApiService
 import com.edwin_antonio.proyectosoliv1.network.RetrofitClient
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
@@ -20,12 +20,23 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
     private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
     val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks
 
+    private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+
+    val preferredGenreNames: StateFlow<String> =
+        _user.combine(_genres) { user, genres ->
+            user?.prefferredGenreIds?.mapNotNull { id ->
+                genres.find { it.id == id }?.name
+            }?.joinToString(", ") ?: ""
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+
     /**
      * Obtiene el perfil del usuario actual y sus libros favoritos.
      */
     fun fetchUserProfile() {
         viewModelScope.launch {
             try {
+                fetchGenres()
                 val response = apiService.getCurrentUserProfile()
                 if (response.isSuccessful) {
                     val user = response.body()
@@ -47,6 +58,19 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
         }
     }
 
+    private fun fetchGenres() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getAllGenres()
+                if (response.isSuccessful) {
+                    _genres.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     /**
      * Carga los detalles de los libros favoritos usando el endpoint bulk.
      */
@@ -57,6 +81,20 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
                 val response = apiService.getBooksByIds(idsString)
                 if (response.isSuccessful) {
                     _favoriteBooks.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun removeFavoriteBook(bookId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.removeFavorite(bookId)
+                if (response.isSuccessful) {
+                    // Update UI
+                    _favoriteBooks.value = _favoriteBooks.value.filter { it.id != bookId }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

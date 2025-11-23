@@ -175,4 +175,10 @@ interface ApiService {
     // Agregar un libro a favoritos
     @POST("api/v3/users/me/favorites/{bookId}")
     suspend fun addFavorite(@Path("bookId") bookId: Int): Response<Unit>
+
+    @DELETE("api/v3/users/me/favorites/{bookId}")
+    suspend fun removeFavorite(@Path("bookId") bookId: Int): Response<Unit>
     }
+
+
+

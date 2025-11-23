@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -270,7 +272,9 @@ fun HomeScreen(
 @Composable
 fun BookSectionComponent(
     section: BookSection,
-    onBookClick: (String) -> Unit
+    onBookClick: (String) -> Unit,
+    showDeleteButton: Boolean = false,
+    onDeleteBook: (String) -> Unit = {}
 ) {
     if (section.books.isNotEmpty()) {
         Column(modifier = Modifier.padding(vertical = 12.dp)) {
@@ -293,7 +297,9 @@ fun BookSectionComponent(
                 items(section.books) { book ->
                     BookCard(
                         book = book,
-                        onClick = { onBookClick(book.id.toString()) }
+                        onClick = { onBookClick(book.id.toString()) },
+                        showDeleteButton = showDeleteButton,
+                        onDelete = { onDeleteBook(book.id.toString()) }
                     )
                 }
             }
@@ -305,7 +311,9 @@ fun BookSectionComponent(
 @Composable
 fun BookCard(
     book: Book,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    showDeleteButton: Boolean = false,
+    onDelete: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -326,79 +334,99 @@ fun BookCard(
             pressedElevation = 10.dp
         )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Sección superior: Portada del libro
-            if (!book.coverUrl.isNullOrEmpty()) {
-                AsyncImage(
-                    model = book.coverUrl,
-                    contentDescription = "Portada de ${book.title}",
-                    modifier = Modifier
-                        .size(width = 110.dp, height = 165.dp) // Tamaño fijo
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            color = Color.LightGray.copy(alpha = 0.3f)
-                        ),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                // Placeholder cuando no hay URL
-                Box(
-                    modifier = Modifier
-                        .size(width = 110.dp, height = 165.dp) // Tamaño fijo
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.LightGray.copy(alpha = 0.3f),
-                                    Color.Gray.copy(alpha = 0.1f)
+        Box(modifier = Modifier.fillMaxSize()) { 
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Sección superior: Portada del libro
+                if (!book.coverUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = book.coverUrl,
+                        contentDescription = "Portada de ${book.title}",
+                        modifier = Modifier
+                            .size(width = 110.dp, height = 165.dp) // Tamaño fijo
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                color = Color.LightGray.copy(alpha = 0.3f)
+                            ),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Placeholder when no URL
+                    Box(
+                        modifier = Modifier
+                            .size(width = 110.dp, height = 165.dp) // Tamaño fijo
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.LightGray.copy(alpha = 0.3f),
+                                        Color.Gray.copy(alpha = 0.1f)
+                                    )
                                 )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "📖",
-                            fontSize = 36.sp,
-                            color = CoffeeDark.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = "Sin portada",
-                            fontSize = 9.sp,
-                            color = CoffeeDark.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Light
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "📖",
+                                fontSize = 36.sp,
+                                color = CoffeeDark.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = "Sin portada",
+                                fontSize = 9.sp,
+                                color = CoffeeDark.copy(alpha = 0.5f),
+                                fontWeight = FontWeight.Light
+                            )
+                        }
                     }
+                }
+
+                // Sección inferior: Información del libro (altura flexible)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f), // Ocupa el espacio restante
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Título del libro con mejor estilo
+                    Text(
+                        text = book.title,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CoffeeDark,
+                        maxLines = 2,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
 
-            // Sección inferior: Información del libro (altura flexible)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f), // Ocupa el espacio restante
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Título del libro con mejor estilo
-                Text(
-                    text = book.title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = CoffeeDark,
-                    maxLines = 2,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    lineHeight = 16.sp,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if (showDeleteButton) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), shape = CircleShape)
+                        .size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Eliminar de Favoritos",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }

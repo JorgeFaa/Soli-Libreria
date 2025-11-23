@@ -6,7 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +31,7 @@ fun ProfileScreen(
 ) {
     val user by profileViewModel.user.collectAsState()
     val favoriteBooks by profileViewModel.favoriteBooks.collectAsState()
+    val preferredGenreNames by profileViewModel.preferredGenreNames.collectAsState()
 
     LaunchedEffect(Unit) {
         profileViewModel.fetchUserProfile()
@@ -59,7 +60,7 @@ fun ProfileScreen(
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
                         tint = CoffeeDark
                     )
@@ -109,13 +110,17 @@ fun ProfileScreen(
                         )
 
                         // Info Section
-                        ProfileInfoSection("Géneros Preferidos", it.prefferredGenreIds.joinToString(", "))
-                        Divider(modifier = Modifier.padding(vertical = 16.dp))
+                        ProfileInfoSection("Géneros Preferidos:", preferredGenreNames)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                         
                         if (favoriteBooks.isNotEmpty()) {
                             BookSectionComponent(
                                 section = BookSection("Libros Favoritos", favoriteBooks),
-                                onBookClick = onBookClick
+                                onBookClick = onBookClick,
+                                showDeleteButton = true,
+                                onDeleteBook = { bookId ->
+                                    profileViewModel.removeFavoriteBook(bookId.toInt())
+                                }
                             )
                         }
                     }
