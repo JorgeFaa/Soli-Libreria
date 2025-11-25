@@ -7,6 +7,7 @@ import com.edwin_antonio.proyectosoliv1.network.ApiService
 import com.edwin_antonio.proyectosoliv1.network.RetrofitClient
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
+import retrofit2.HttpException
 import java.util.Base64
 
 class AuthRepository(
@@ -74,7 +75,7 @@ class AuthRepository(
                     tokenManager.saveUserInfo(
                         userId = email, 
                         email = email,
-                        name = null, 
+                        name = null,
                         role = userRole
                     )
 
@@ -123,11 +124,14 @@ class AuthRepository(
             if (response.isSuccessful) {
                 val user = response.body()!!
 
+                // Usar role del response si existe, sino fallback al token guardado o "READER"
+                val roleToSave = user.roleName ?: tokenManager.getUserRole() ?: "READER"
+
                 tokenManager.saveUserInfo(
                     user.id.toString(),
+                    tokenManager.getUserEmail() ?: "",
                     "${user.firstName} ${user.lastName}",
-                    user.firstName,
-                    user.roleName
+                    roleToSave
                 )
 
                 Result.success(user)
@@ -198,11 +202,7 @@ class AuthRepository(
                 val needsSetup = user.firstName.isBlank() || user.lastName.isBlank()
                 Result.success(needsSetup)
             } else {
-                if (response.code() == 401) {
-                    Result.failure(Exception("Session expired"))
-                } else {
-                    Result.failure(Exception("Error checking profile: ${response.code()}"))
-                }
+                Result.failure(HttpException(response))
             }
         } catch (e: Exception) {
             Result.failure(e)
