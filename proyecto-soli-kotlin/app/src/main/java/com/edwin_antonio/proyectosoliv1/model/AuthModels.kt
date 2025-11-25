@@ -25,12 +25,12 @@ data class AuthTokens(
 )
 
 data class User(
-    val id: Int,
-    val firstName: String,
-    val lastName: String,
-    val prefferredGenreIds: List<Int>,
-    val favoriteBooks: List<Int>,
-    val roleName: String
+    val id: Int = 0,
+    val firstName: String = "",
+    val lastName: String = "",
+    val prefferredGenreIds: List<Int> = emptyList(),
+    val favoriteBooks: List<Int> = emptyList(),
+    val roleName: String? = null // ahora opcional, puede venir ausente en la respuesta
 )
 
 data class UserCreatedResponse(

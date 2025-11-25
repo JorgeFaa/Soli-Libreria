@@ -38,16 +38,18 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
             val genresResult = adminRepository.getAllGenres()
             val authorsResult = adminRepository.getAllAuthors()
             val editorialsResult = adminRepository.getAllEditorials()
-            val booksResult = adminRepository.getAllBooks() // Assuming you add this to the repo
+            val booksResult = adminRepository.getAllBooks() // Puede retornar List<Book> o un objeto paginado
 
             _uiState.update { state ->
+                val booksFromResult = booksResult.getOrNull()
+                val booksList = extractBooks(booksFromResult).ifEmpty { state.books }
                 state.copy(
                     isLoading = false,
                     textTypes = textTypesResult.getOrNull() ?: state.textTypes,
                     genres = genresResult.getOrNull() ?: state.genres,
                     authors = authorsResult.getOrNull() ?: state.authors,
                     editorials = editorialsResult.getOrNull() ?: state.editorials,
-                    books = booksResult.getOrNull()?.content ?: state.books,
+                    books = booksList,
                     errorMessage = textTypesResult.exceptionOrNull()?.message
                 )
             }
@@ -215,7 +217,8 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             adminRepository.getAllBooks().onSuccess { data ->
-                _uiState.update { it.copy(isLoading = false, books = data.content) }
+                val booksList = extractBooks(data)
+                _uiState.update { it.copy(isLoading = false, books = booksList) }
             }.onFailure { e -> _uiState.update { it.copy(isLoading = false, errorMessage = e.message) } }
         }
     }
@@ -250,5 +253,29 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
+    }
+
+    // Helper: intenta extraer List<Book> de distintos formatos de respuesta
+    private fun extractBooks(data: Any?): List<Book> {
+        if (data == null) return emptyList()
+        if (data is List<*>) return data.filterIsInstance<Book>()
+        try {
+            val clazz = data.javaClass
+            // intentar getContent()
+            try {
+                val m = clazz.getMethod("getContent")
+                val content = m.invoke(data)
+                if (content is List<*>) return content.filterIsInstance<Book>()
+            } catch (_: NoSuchMethodException) { /* ignorar */ }
+
+            // intentar getBooks()
+            try {
+                val m2 = clazz.getMethod("getBooks")
+                val books = m2.invoke(data)
+                if (books is List<*>) return books.filterIsInstance<Book>()
+            } catch (_: NoSuchMethodException) { /* ignorar */ }
+
+        } catch (_: Exception) { /* ignorar y devolver vacío */ }
+        return emptyList()
     }
 }

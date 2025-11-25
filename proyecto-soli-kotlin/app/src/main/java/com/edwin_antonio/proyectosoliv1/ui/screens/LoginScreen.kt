@@ -45,11 +45,14 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     
-    // 🏁 Navegación cuando login es exitoso - siempre ir a profile setup
     LaunchedEffect(uiState.loginSuccess) {
         if (uiState.loginSuccess) {
+            if (uiState.needsProfileSetup) {
+                onGoToProfileSetup()
+            } else {
+                onLoginSuccess()
+            }
             authViewModel.clearLoginSuccess()
-            onGoToProfileSetup()
         }
     }
     

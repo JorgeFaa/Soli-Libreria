@@ -73,8 +73,9 @@ fun AppNavHost() {
             EmailVerificationScreen(
                 username = username,
                 onVerificationSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                    // Ahora al verificar se regresa al Login, no a Home
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.EmailVerification.route) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() }
@@ -167,7 +168,8 @@ fun AppNavHost() {
             arguments = listOf(navArgument("bookId") { nullable = true; type = NavType.StringType })
         ) {
             val bookId = it.arguments?.getString("bookId")?.toIntOrNull()
-            val book = adminViewModel.uiState.value.books.find { book -> book.id == bookId }
+            val adminUiState by adminViewModel.uiState.collectAsState()
+            val book = adminUiState.books.find { book -> book.id == bookId }
             BookManagementScreen(
                 viewModel = adminViewModel,
                 book = book,

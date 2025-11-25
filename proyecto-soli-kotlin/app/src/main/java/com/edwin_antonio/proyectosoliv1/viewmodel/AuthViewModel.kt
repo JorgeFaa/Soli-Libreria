@@ -6,6 +6,7 @@ import com.edwin_antonio.proyectosoliv1.model.User
 import com.edwin_antonio.proyectosoliv1.repository.AuthRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -20,10 +21,10 @@ data class AuthUiState(
 class AuthViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
-    
+
     // Observar el estado de login desde el repository
     init {
         viewModelScope.launch {
@@ -35,7 +36,7 @@ class AuthViewModel(
             }
         }
     }
-    
+
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _uiState.value = _uiState.value.copy(
@@ -43,28 +44,42 @@ class AuthViewModel(
             )
             return
         }
-        
+
         if (!isValidEmail(email)) {
             _uiState.value = _uiState.value.copy(
                 errorMessage = "Por favor ingresa un email válido"
             )
             return
         }
-        
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 errorMessage = null
             )
-            
+
             authRepository.login(email.trim(), password)
-                .onSuccess { token ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        loginSuccess = true,
-                        user = authRepository.getLocalUserInfo(),
-                        errorMessage = null
-                    )
+                .onSuccess {
+                    authRepository.needsProfileSetup()
+                        .onSuccess { needsSetup ->
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                loginSuccess = true,
+                                user = authRepository.getLocalUserInfo(),
+                                needsProfileSetup = needsSetup,
+                                errorMessage = null
+                            )
+                        }
+                        .onFailure { profileException ->
+                            val needsSetup = profileException is HttpException && profileException.code() == 404
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                loginSuccess = true,
+                                user = authRepository.getLocalUserInfo(),
+                                needsProfileSetup = needsSetup,
+                                errorMessage = if (needsSetup) null else "Error checking profile: ${profileException.message}"
+                            )
+                        }
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
@@ -75,11 +90,11 @@ class AuthViewModel(
                 }
         }
     }
-    
+
     fun logout() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            
+
             authRepository.logout()
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(
@@ -100,7 +115,7 @@ class AuthViewModel(
                 }
         }
     }
-    
+
     fun refreshUserData() {
         viewModelScope.launch {
             authRepository.getCurrentUser()
@@ -114,35 +129,35 @@ class AuthViewModel(
                 }
         }
     }
-    
+
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
-    
+
     fun clearLoginSuccess() {
-        _uiState.value = _uiState.value.copy(loginSuccess = false)
+        _uiState.value = _uiState.value.copy(loginSuccess = false, needsProfileSetup = false)
     }
-    
+
     fun isUserLoggedIn(): Boolean {
         return authRepository.isUserLoggedIn()
     }
-    
+
     fun hasReaderAccess(): Boolean {
         return authRepository.hasReaderAccess()
     }
-    
+
     fun hasEditorAccess(): Boolean {
         return authRepository.hasEditorAccess()
     }
-    
+
     fun hasAdminAccess(): Boolean {
         return authRepository.hasAdminAccess()
     }
-    
+
     fun checkProfileSetup() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCheckingProfile = true)
-            
+
             authRepository.needsProfileSetup()
                 .onSuccess { needsSetup ->
                     _uiState.value = _uiState.value.copy(
@@ -160,11 +175,11 @@ class AuthViewModel(
                 }
         }
     }
-    
+
     fun clearProfileSetupFlag() {
         _uiState.value = _uiState.value.copy(needsProfileSetup = false)
     }
-    
+
     private fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
