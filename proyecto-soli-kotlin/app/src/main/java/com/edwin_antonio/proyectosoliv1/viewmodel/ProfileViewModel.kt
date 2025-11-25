@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
 import com.edwin_antonio.proyectosoliv1.model.Book
 import com.edwin_antonio.proyectosoliv1.model.Genre
+import com.edwin_antonio.proyectosoliv1.model.Review
 import com.edwin_antonio.proyectosoliv1.model.User
 import com.edwin_antonio.proyectosoliv1.network.ApiService
 import com.edwin_antonio.proyectosoliv1.network.RetrofitClient
@@ -21,6 +22,8 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
     val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks
 
     private val _genres = MutableStateFlow<List<Genre>>(emptyList())
+    private val _userReviews = MutableStateFlow<List<Pair<Review, Book?>>>(emptyList())
+    val userReviews: StateFlow<List<Pair<Review, Book?>>> = _userReviews
 
     val preferredGenreNames: StateFlow<String> =
         _user.combine(_genres) { user, genres ->
@@ -88,6 +91,28 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
         }
     }
 
+    /**
+     * Obtiene las reseñas del usuario actual y los libros asociados.
+     */
+    fun fetchUserReviews() {
+        viewModelScope.launch {
+            try {
+                val userId = _user.value?.id ?: return@launch
+                val response = apiService.getReviewsByUser(userId)
+                if (response.isSuccessful) {
+                    val reviews = response.body()?.content ?: emptyList()
+                    val bookIds = reviews.map { it.bookId }.distinct()
+                    val booksResponse = apiService.getBooksByIds(bookIds.joinToString(","))
+                    val books = if (booksResponse.isSuccessful) booksResponse.body() ?: emptyList() else emptyList()
+                    val bookMap = books.associateBy { it.id }
+                    _userReviews.value = reviews.map { it to bookMap[it.bookId] }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun removeFavoriteBook(bookId: Int) {
         viewModelScope.launch {
             try {
@@ -95,6 +120,33 @@ class ProfileViewModel(private val apiService: ApiService) : ViewModel() {
                 if (response.isSuccessful) {
                     // Update UI
                     _favoriteBooks.value = _favoriteBooks.value.filter { it.id != bookId }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteReview(reviewId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.deleteReview(reviewId)
+                if (response.isSuccessful) {
+                    fetchUserReviews()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateReview(reviewId: Int, rating: Int, comment: String) {
+        viewModelScope.launch {
+            try {
+                val request = com.edwin_antonio.proyectosoliv1.model.ReviewRequest(rating, comment)
+                val response = apiService.updateReview(reviewId, request)
+                if (response.isSuccessful) {
+                    fetchUserReviews()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

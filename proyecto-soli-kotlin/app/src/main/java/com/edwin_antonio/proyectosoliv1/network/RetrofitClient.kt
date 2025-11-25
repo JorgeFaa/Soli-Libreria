@@ -2,6 +2,7 @@ package com.edwin_antonio.proyectosoliv1.network
 
 import com.edwin_antonio.proyectosoliv1.auth.AuthInterceptor
 import com.edwin_antonio.proyectosoliv1.auth.TokenManager
+import okhttp3.Interceptor // { changed code }
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -22,9 +23,28 @@ object RetrofitClient {
         
         val authInterceptor = AuthInterceptor(tokenManager, BASE_URL)
         
+        // Interceptor responsable de añadir Authorization: Bearer <token>
+        val headerInterceptor = Interceptor { chain ->
+            val original = chain.request()
+            // no sobrescribir si ya existe Authorization
+            if (original.header("Authorization") != null) {
+                return@Interceptor chain.proceed(original)
+            }
+            // intentar accessToken primero, si no existe usar idToken como fallback
+            val token = tokenManager.getAccessToken() ?: tokenManager.getIdToken()
+            val request = if (!token.isNullOrBlank()) {
+                val headerValue = if (token.startsWith("Bearer ", ignoreCase = true)) token else "Bearer $token"
+                original.newBuilder().header("Authorization", headerValue).build()
+            } else {
+                original
+            }
+            chain.proceed(request)
+        } // { changed code }
+
         val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(authInterceptor)
+            .addInterceptor(headerInterceptor)      // añade header si hay token (o idToken)
+            .addInterceptor(authInterceptor)        // interceptor para refresh / manejo auth
+            .addInterceptor(loggingInterceptor)     // logging al final para mostrar headers finales
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

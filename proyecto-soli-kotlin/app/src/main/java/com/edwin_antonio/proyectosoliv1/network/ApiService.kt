@@ -58,6 +58,34 @@ interface ApiService {
     @GET("api/v3/users/me")
     suspend fun getCurrentUserProfile(): Response<User>
     
+    // ==== ⭐ BOOK REVIEW ENDPOINTS ====
+
+    @POST("api/v3/books/{bookId}/reviews")
+    suspend fun addReview(
+        @Path("bookId") bookId: Int,
+        @Body review: ReviewRequest
+    ): Response<Review>
+
+    @GET("api/v3/books/{bookId}/reviews")
+    suspend fun getReviews(
+        @Path("bookId") bookId: Int,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): Response<ReviewResponse>
+
+    @PUT("api/v3/reviews/{reviewId}")
+    suspend fun updateReview(
+        @Path("reviewId") reviewId: Int,
+        @Body review: ReviewRequest
+    ): Response<Review>
+
+    @DELETE("api/v3/reviews/{reviewId}")
+    suspend fun deleteReview(@Path("reviewId") reviewId: Int): Response<Unit>
+
+    // ==== RESEÑAS DE USUARIO ====
+    @GET("api/v3/users/{userId}/reviews")
+    suspend fun getReviewsByUser(@Path("userId") userId: Int): Response<ReviewResponse>
+
     // ==== 📝 ADMIN TEXT TYPE ENDPOINTS ====
 
     @POST("api/v3/admin/text-types")
@@ -179,6 +207,3 @@ interface ApiService {
     @DELETE("api/v3/users/me/favorites/{bookId}")
     suspend fun removeFavorite(@Path("bookId") bookId: Int): Response<Unit>
     }
-
-
-

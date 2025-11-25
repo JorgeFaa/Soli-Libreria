@@ -81,7 +81,8 @@ fun HomeScreen(
                             colors = listOf(YellowSolar, OrangeSunset) // FFD24C -> FF8C42
                         )
                     )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(top = 20.dp)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
