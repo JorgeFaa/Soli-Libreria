@@ -185,13 +185,14 @@ class UserProfileSetupViewModel(private val tokenManager: TokenManager) : ViewMo
                 if (response.isSuccessful) {
                     val updatedUser = response.body()
                     
-                    // Update local user info
+                    // Update local user info: usar role del response si existe, sino fallback al tokenManager o "READER"
                     updatedUser?.let { user ->
+                        val roleToSave = user.roleName ?: tokenManager.getUserRole() ?: "READER"
                         tokenManager.saveUserInfo(
                             userId = user.id.toString(),
                             email = tokenManager.getUserEmail() ?: "",
                             name = "${user.firstName} ${user.lastName}",
-                            role = user.roleName
+                            role = roleToSave
                         )
                     }
                     

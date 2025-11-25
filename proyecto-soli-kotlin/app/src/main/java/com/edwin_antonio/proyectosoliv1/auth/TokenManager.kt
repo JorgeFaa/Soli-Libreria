@@ -55,13 +55,13 @@ class TokenManager(private val context: Context) {
     }
     
     fun saveUserInfo(userId: String, email: String, name: String?, role: String) {
+        _userRole.value = role
         encryptedSharedPrefs.edit()
             .putString(USER_ID_KEY, userId)
             .putString(USER_EMAIL_KEY, email)
             .putString(USER_NAME_KEY, name)
             .putString(USER_ROLE_KEY, role)
             .apply()
-        _userRole.value = role
     }
     
     fun getAccessToken(): String? {
