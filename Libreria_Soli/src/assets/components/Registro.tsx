@@ -41,6 +41,23 @@ export default function Registro({}: RegistroProps) {
     setShowToast(true);
   };
 
+  // Función para validar fortaleza de contraseña
+  const validatePassword = (password: string) => {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    return requirements;
+  };
+
+  // Validar contraseña actual
+  const passwordValidation = validatePassword(formData.password);
+  const isPasswordValid = Object.values(passwordValidation).every(req => req);
+
   // Auto-ocultar error después de 5 segundos
   useEffect(() => {
     if (error) {
@@ -77,7 +94,7 @@ export default function Registro({}: RegistroProps) {
 
     // Validaciones básicas
     if (!formData.email || !formData.password || !formData.confirmPassword) {
-      setError("Por favor, completa todos los campos");
+      showNotification("Por favor, completa todos los campos", "warning");
       setIsLoading(false);
       return;
     }
@@ -85,21 +102,21 @@ export default function Registro({}: RegistroProps) {
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Por favor, ingresa un email válido");
+      showNotification("Por favor, ingresa un email válido", "warning");
       setIsLoading(false);
       return;
     }
 
-    // Validar longitud de contraseña
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+    // Validar fortaleza de contraseña
+    if (!isPasswordValid) {
+      showNotification("La contraseña no cumple con todos los requisitos de seguridad", "warning");
       setIsLoading(false);
       return;
     }
 
     // Validar que las contraseñas coincidan
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      showNotification("Las contraseñas no coinciden", "warning");
       setIsLoading(false);
       return;
     }
@@ -209,12 +226,40 @@ export default function Registro({}: RegistroProps) {
                   id="password"
                   name="password"
                   className="registro-input"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   value={formData.password}
                   onChange={handleInputChange}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
+                
+                {/* Indicadores de fortaleza */}
+                {formData.password && (
+                  <div className="password-strength">
+                    <div className="password-requirements">
+                      <div className={`password-requirement ${passwordValidation.length ? 'met' : 'not-met'}`}>
+                        <span>{passwordValidation.length ? '✓' : '✗'}</span>
+                        <span>Al menos 8 caracteres</span>
+                      </div>
+                      <div className={`password-requirement ${passwordValidation.uppercase ? 'met' : 'not-met'}`}>
+                        <span>{passwordValidation.uppercase ? '✓' : '✗'}</span>
+                        <span>Una mayúscula</span>
+                      </div>
+                      <div className={`password-requirement ${passwordValidation.lowercase ? 'met' : 'not-met'}`}>
+                        <span>{passwordValidation.lowercase ? '✓' : '✗'}</span>
+                        <span>Una minúscula</span>
+                      </div>
+                      <div className={`password-requirement ${passwordValidation.number ? 'met' : 'not-met'}`}>
+                        <span>{passwordValidation.number ? '✓' : '✗'}</span>
+                        <span>Un número</span>
+                      </div>
+                      <div className={`password-requirement ${passwordValidation.special ? 'met' : 'not-met'}`}>
+                        <span>{passwordValidation.special ? '✓' : '✗'}</span>
+                        <span>Un carácter especial</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Confirmar contraseña */}

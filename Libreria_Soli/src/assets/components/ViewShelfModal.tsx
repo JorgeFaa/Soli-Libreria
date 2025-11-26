@@ -285,14 +285,6 @@ export const ViewShelfModal: React.FC<ViewShelfModalProps> = ({
             <button className="btn-secondary" onClick={onClose}>
               Cerrar
             </button>
-            {shelf && (
-              <button className="btn-primary" onClick={() => {
-                console.log('🔗 Compartir estantería:', shelf.id);
-                // TODO: Implementar compartir estantería
-              }}>
-                Compartir
-              </button>
-            )}
           </div>
         </div>
       </div>

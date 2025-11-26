@@ -1264,7 +1264,34 @@ export const createBook = async (bookData: CreateBookRequest): Promise<Book> => 
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+      console.log('❌ [AdminService] Error crudo del servidor:', errorText);
+      
+      // Intentar parsear el error como JSON
+      let errorMessage = `Error del servidor: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error) {
+          const serverError = errorData.error.toLowerCase();
+          
+          // Detectar tipos comunes de error
+          if (serverError.includes('duplicate') || serverError.includes('duplicado')) {
+            errorMessage = 'Ya existe un libro con ese título o información similar';
+          } else if (serverError.includes('invalid') || serverError.includes('inválido')) {
+            errorMessage = 'Los datos proporcionados no son válidos. Verifica todos los campos';
+          } else if (serverError.includes('required') || serverError.includes('requerido') || serverError.includes('obligatorio')) {
+            errorMessage = 'Faltan campos obligatorios. Completa todos los campos requeridos';
+          } else if (response.status === 500 && serverError.includes('interno')) {
+            errorMessage = 'Error en el servidor al crear el libro. Verifica que todos los datos sean correctos e intenta nuevamente';
+          } else {
+            errorMessage = errorData.error;
+          }
+        }
+      } catch (parseError) {
+        // Si no es JSON, usar el texto tal cual
+        errorMessage = errorText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const newBook = await response.json();

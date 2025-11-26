@@ -415,9 +415,6 @@ export default function LibroDetalle() {
                                     🔄 Actualizar
                                 </button>
                             )}
-                            <button className="boton-compartir">
-                                📤 Compartir
-                            </button>
                             <button 
                                 className="boton-shelf"
                                 onClick={() => setShowAddToShelfModal(true)}
