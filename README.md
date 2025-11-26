@@ -155,3 +155,156 @@ La pantalla principal **BookListScreen.kt** utiliza:
 - Retrofit
 - Coroutines
 - Navigation Compose
+
+---
+
+# Aplicación Web 🖥️
+
+La aplicación web de SoliBooks está desarrollada con tecnologías modernas de frontend:
+
+* React con TypeScript
+* Vite como bundler y servidor de desarrollo
+* Arquitectura basada en componentes modulares y reutilizables
+
+La app funciona como cliente de la API SoliBooks y permite una experiencia fluida y responsiva para usuarios y administradores en cualquier dispositivo.
+
+## 🧩 Arquitectura de la App
+
+* **Lenguaje:** TypeScript
+* **Framework:** React 18
+* **Build Tool:** Vite
+* **Estilos:** CSS Modules
+* **Routing:** React Router DOM
+* **Consumo de API:** Fetch API nativo
+* **Visor de PDFs:** React-PDF (PDF.js)
+* **Gestión de Estado:** React Hooks (useState, useEffect, useContext)
+* **Despliegue:** Netlify con proxy para CORS
+
+## 🚀 Funcionalidades Implementadas
+
+### 🔐 Autenticación
+
+* Registro de usuarios
+* Login con validación
+* Confirmación de correo electrónico
+* Recuperación de contraseña
+* Sistema de tokens JWT
+* Mapeadas a los endpoints `/auth`.
+
+### 🛠️ Panel Administrador
+
+Incluye funciones completas de CRUD sobre:
+
+#### 📚 Libros
+* Listar con búsqueda y filtros
+* Crear con selección múltiple de autores, editoriales y géneros
+* Editar información
+* Eliminar
+
+#### ✍️ Autores
+* Gestión completa de autores
+* CRUD con información de país
+
+#### 🏢 Editoriales
+* Gestión de casas editoriales
+* Información de ubicación
+
+#### 🎭 Géneros Literarios
+* Categorización de libros
+* CRUD de géneros
+
+#### 📖 Tipos de Texto
+* Clasificación por formato (Épica, Novela, Cuento, etc.)
+
+La interfaz administrativa utiliza:
+* Modales para formularios
+* Tablas responsivas
+* Confirmaciones de eliminación
+* Notificaciones toast
+* Integración con servicios dedicados (adminService.ts)
+* Comunicación con `/admin/*` endpoints
+
+### 🔍 Exploración de Libros
+
+* Búsqueda por título, autor o género
+* Filtros por tipo de texto y editorial
+* Vista de detalles completos
+* Visualización de portadas
+* Links a formatos PDF y EPUB
+
+### 📚 Visor de PDFs Integrado
+
+* Renderizado nativo con React-PDF
+* Navegación página por página
+* Controles de navegación intuitivos
+* Detección automática de página actual
+* Guardado automático de progreso de lectura
+* Compatibilidad con todos los navegadores (Chrome, Firefox, Safari, Brave, Edge)
+* Experiencia consistente en desktop y móvil
+* Scroll vertical para mejor legibilidad
+
+### 📖 Sistema de Estanterías
+
+* **Crear estanterías personalizadas** con nombre y descripción
+* **Agregar libros** a múltiples estanterías
+* **Visualización organizada** de colecciones
+* **Gestión completa:** editar, eliminar y compartir estanterías
+* **Vista de estantería individual** con todos sus libros
+* Sincronización en tiempo real con el backend
+* Comunicación con endpoints `/bookshelves`.
+
+### 📊 Progreso de Lectura
+
+* **Registro automático** de la página actual al leer
+* **Guardado manual** con indicador de página pre-rellenado
+* **Visualización de progreso** por libro en las tarjetas
+* **Historial de lectura** sincronizado
+* **Continuar desde donde lo dejaste** con detección automática
+* Porcentaje de avance calculado dinámicamente
+* Integrado con endpoints `/reading-progress`.
+
+### 👤 Gestión de Perfil
+
+* Ver y actualizar información personal
+* Avatar con iniciales del usuario
+* Indicador de rol (Administrador/Usuario)
+* Gestión de favoritos
+* Acceso rápido al panel de administración (para admins)
+
+## 💡 Tecnologías Utilizadas
+
+### Frontend
+* **React 18** - Biblioteca de UI
+* **TypeScript** - Tipado estático
+* **Vite** - Build tool ultra-rápido
+* **React Router DOM** - Enrutamiento
+* **React-PDF** - Visualización de PDFs
+* **PDF.js** - Motor de renderizado PDF
+
+### Deployment
+* **Netlify** - Hosting y CDN
+* **Netlify Redirects** - Proxy para manejo de CORS
+
+### APIs & Servicios
+* **SoliBooks API** - Backend REST
+* **Google Cloud Storage** - Almacenamiento de PDFs y portadas
+
+## 🎨 Características de UI/UX
+
+* **Diseño responsivo** para móviles, tablets y desktop
+* **Tema personalizado** con paleta de colores cálidos
+* **Navegación intuitiva** con header sticky
+* **Modales y overlays** para acciones importantes
+* **Sistema de notificaciones toast** para feedback al usuario
+* **Animaciones suaves** con transiciones CSS
+* **Accesibilidad** con etiquetas ARIA y navegación por teclado
+* **Carga optimizada** con lazy loading de componentes
+
+## 🔒 Seguridad
+
+* Autenticación basada en **JWT tokens**
+* Refresh tokens automáticos (configurable)
+* Validación de formularios en cliente y servidor
+* Protección de rutas administrativas
+* Sanitización de datos de usuario
+* Manejo seguro de credenciales
