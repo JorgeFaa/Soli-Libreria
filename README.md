@@ -160,13 +160,13 @@ La pantalla principal **BookListScreen.kt** utiliza:
 
 # Aplicación Web 🖥️
 
-La aplicación web de SoliBooks está desarrollada con tecnologías modernas de frontend:
+La aplicación web de Soli-Libreria está desarrollada con tecnologías modernas de frontend:
 
 * React con TypeScript
 * Vite como bundler y servidor de desarrollo
 * Arquitectura basada en componentes modulares y reutilizables
 
-La app funciona como cliente de la API SoliBooks y permite una experiencia fluida y responsiva para usuarios y administradores en cualquier dispositivo.
+La app funciona como cliente de la API Soli-Libreria y permite una experiencia fluida y responsiva para usuarios y administradores en cualquier dispositivo.
 
 ## 🧩 Arquitectura de la App
 
@@ -286,7 +286,7 @@ La interfaz administrativa utiliza:
 * **Netlify Redirects** - Proxy para manejo de CORS
 
 ### APIs & Servicios
-* **SoliBooks API** - Backend REST
+* **Soli-Libreria API** - Backend REST
 * **Google Cloud Storage** - Almacenamiento de PDFs y portadas
 
 ## 🎨 Características de UI/UX
