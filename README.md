@@ -308,3 +308,30 @@ La interfaz administrativa utiliza:
 * Protección de rutas administrativas
 * Sanitización de datos de usuario
 * Manejo seguro de credenciales
+
+##🗄️ Estructura de la Base de Datos
+
+* Motor relacional PostgreSQL, gestionado a través de Google Cloud SQL (PostgreSQL)
+* Modelo completamente normalizado, con relaciones claras y sin redundancia
+* Tablas de catálogo para países, géneros, tipos de lectura y otras clasificaciones
+* Tablas núcleo para Users, Books, Stores, Inventory y Favorites
+* Relaciones por llaves foráneas para mantener integridad referencial
+* Índices optimizados para búsquedas por título, autor y ubicación
+* Esquema preparado para integrarse con la API REST y la API SOAP
+* Escalabilidad sólida gracias al enfoque relacional y a Cloud SQL
+
+##☁️ Almacenamiento y Arquitectura
+
+* Archivos y recursos de libros almacenados en Google Cloud Storage (bucket dedicado)
+* Base de datos alojada en Google Cloud SQL – PostgreSQL
+* Conexión segura a través de service accounts y certificados administrados
+* Integración directa con los servicios del ecosistema SoliBooks (Node.js, Python, .NET)
+
+##🔐 Integridad y Seguridad de Datos
+
+* Integridad referencial estricta mediante llaves foráneas
+* Normalización completa para evitar inconsistencias
+* Variables de entorno para manejo seguro de credenciales y URIs
+* Validación y sanitización de datos en la capa de servicios antes de llegar al DB
+* Roles y permisos configurables para limitar acceso según entorno
+* Respaldos y snapshots automáticos proporcionados por Cloud SQL
