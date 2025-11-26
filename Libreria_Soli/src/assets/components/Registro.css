@@ -153,6 +153,33 @@ body:has(.registro-section) {
   cursor: not-allowed;           /* Cursor de no permitido */
 }
 
+/* Indicadores de fortaleza de contraseña */
+.password-strength {
+  margin-top: 0.5rem;
+}
+
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: rgba(46, 46, 46, 0.6);
+}
+
+.password-requirement {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-requirement.met {
+  color: #059669;
+}
+
+.password-requirement.not-met {
+  color: #DC2626;
+}
+
 /* Mensaje de error flotante */
 .registro-error {
   position: fixed;               /* Posición fija para flotar */

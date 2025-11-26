@@ -5,7 +5,6 @@ import Hero from './assets/components/Hero'
 import Catalogo from './assets/components/Catalogo'
 import Nosotros from './assets/components/Nosotros'
 import AppPromo from './assets/components/AppPromo'
-import Contacto from './assets/components/Contacto'
 import Libreria from './assets/components/Libreria'
 import LibroDetalle from './assets/components/LibroDetalle'
 import Login from './assets/components/Login'
@@ -34,7 +33,6 @@ function HomePage() {
       <Catalogo />
       <Nosotros />
       <AppPromo />
-      <Contacto />
     </>
   );
 }
@@ -177,7 +175,6 @@ function App() {
           {/* Rutas individuales para cada sección */}
           <Route path="/libreria" element={<Libreria />} />
           <Route path="/nosotros" element={<Nosotros />} />
-          <Route path="/contacto" element={<Contacto />} />
           {/* Ruta para detalles de libro */}
           <Route path="/libro/:id" element={<LibroDetalle />} />
           {/* Rutas de autenticación */}

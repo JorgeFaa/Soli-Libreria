@@ -141,6 +141,21 @@ export default function BooksManager() {
       return;
     }
 
+    if (newBookForm.authorIds.length === 0) {
+      showNotification('Debe seleccionar al menos un autor', 'warning');
+      return;
+    }
+
+    if (newBookForm.editorialIds.length === 0) {
+      showNotification('Debe seleccionar al menos una editorial', 'warning');
+      return;
+    }
+
+    if (newBookForm.genreIds.length === 0) {
+      showNotification('Debe seleccionar al menos un género', 'warning');
+      return;
+    }
+
     try {
       setLoadingOperation('create');
       
@@ -336,6 +351,80 @@ export default function BooksManager() {
                 rows={3}
                 disabled={loadingOperation === 'create'}
               />
+            </div>
+
+            <div className="form-grid-3col">
+              <div className="form-field">
+                <label>
+                  Autores *
+                </label>
+                <select
+                  multiple
+                  value={newBookForm.authorIds.map(String)}
+                  onChange={(e) => {
+                    const selectedIds = Array.from(e.target.selectedOptions).map(opt => parseInt(opt.value));
+                    setNewBookForm(prev => ({ ...prev, authorIds: selectedIds }));
+                  }}
+                  disabled={loadingOperation === 'create'}
+                  size={4}
+                  required
+                >
+                  {authors.map(author => (
+                    <option key={author.id} value={author.id}>
+                      {author.name} {author.middleName} {author.lastName}
+                    </option>
+                  ))}
+                </select>
+                <small>Mantén Ctrl/Cmd para seleccionar múltiples</small>
+              </div>
+
+              <div className="form-field">
+                <label>
+                  Editoriales *
+                </label>
+                <select
+                  multiple
+                  value={newBookForm.editorialIds.map(String)}
+                  onChange={(e) => {
+                    const selectedIds = Array.from(e.target.selectedOptions).map(opt => parseInt(opt.value));
+                    setNewBookForm(prev => ({ ...prev, editorialIds: selectedIds }));
+                  }}
+                  disabled={loadingOperation === 'create'}
+                  size={4}
+                  required
+                >
+                  {editorials.map(editorial => (
+                    <option key={editorial.id} value={editorial.id}>
+                      {editorial.companyName}
+                    </option>
+                  ))}
+                </select>
+                <small>Mantén Ctrl/Cmd para seleccionar múltiples</small>
+              </div>
+
+              <div className="form-field">
+                <label>
+                  Géneros *
+                </label>
+                <select
+                  multiple
+                  value={newBookForm.genreIds.map(String)}
+                  onChange={(e) => {
+                    const selectedIds = Array.from(e.target.selectedOptions).map(opt => parseInt(opt.value));
+                    setNewBookForm(prev => ({ ...prev, genreIds: selectedIds }));
+                  }}
+                  disabled={loadingOperation === 'create'}
+                  size={4}
+                  required
+                >
+                  {genres.map(genre => (
+                    <option key={genre.id} value={genre.id}>
+                      {genre.name}
+                    </option>
+                  ))}
+                </select>
+                <small>Mantén Ctrl/Cmd para seleccionar múltiples</small>
+              </div>
             </div>
 
             <div className="form-grid-3col">
