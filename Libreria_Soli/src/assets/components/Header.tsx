@@ -30,7 +30,7 @@ const LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
   { href: "/libreria", label: "Catálogo" },
   { href: "/nosotros", label: "Nosotros" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/#app-promo", label: "App" }
 ];
 
 // Componente funcional Header con TypeScript
@@ -52,6 +52,21 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
   const handleHomeNavigation = () => {
     navigate('/');
     window.scrollTo(0, 0);
+  };
+
+  // Función para navegar a una sección específica
+  const handleSectionNavigation = (href: string) => {
+    if (href.includes('#')) {
+      const [path, hash] = href.split('#');
+      navigate(path || '/');
+      // Esperar a que la navegación termine antes de hacer scroll
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
   };
 
   // Función para cerrar el menú con animación
@@ -91,6 +106,14 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
               <button
                 key={l.href}
                 onClick={handleHomeNavigation}
+                className="header-nav-link"
+              >
+                {l.label}
+              </button>
+            ) : l.href.includes('#') ? (
+              <button
+                key={l.href}
+                onClick={() => handleSectionNavigation(l.href)}
                 className="header-nav-link"
               >
                 {l.label}
@@ -158,6 +181,17 @@ export default function Header({ isUserLoggedIn, onLogout }: HeaderProps) {
                       key={l.href}
                       onClick={() => {
                         handleHomeNavigation();
+                        handleCloseMenu();
+                      }}
+                      className="user-side-menu-item"
+                    >
+                      {l.label}
+                    </button>
+                  ) : l.href.includes('#') ? ( // Enlaces con hash (navegación a secciones)
+                    <button
+                      key={l.href}
+                      onClick={() => {
+                        handleSectionNavigation(l.href);
                         handleCloseMenu();
                       }}
                       className="user-side-menu-item"

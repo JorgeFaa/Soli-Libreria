@@ -8,12 +8,12 @@ export default function AppPromo() {
   // Función para manejar el clic en el botón de descarga
   const handleDownloadClick = () => {
     // Aquí irá el enlace real a Google Play Store
-    const googlePlayUrl = "https://play.google.com/store/apps/details?id=com.edwin_antonio.proyectosoli&hl=en-US&ah=Jl3XaSEDA73nEHIcef80bCfhxtI";
+    const googlePlayUrl = "https://play.google.com/apps/testing/com.edwin_antonio.proyectosoliv1";
     window.open(googlePlayUrl, "_blank");
   };
 
   return (
-    <section className="app-promo-section">
+    <section id="app-promo" className="app-promo-section">
       <div className="app-promo-container">
         
         {/* Contenido principal */}

@@ -120,7 +120,7 @@ export default function Libreria() {
     return (
         <section className="libreria-section">
             <div className="libreria-container">
-                <h1 className="libreria-title">Librería Soli</h1>
+                <h1 className="libreria-title">Soli-Librería</h1>
                 <p className="libreria-description">
                     Descubre tu próxima gran lectura entre nuestra cuidada selección literaria
                 </p>

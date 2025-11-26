@@ -5,11 +5,6 @@ import "./Catalogo.css";
 // Importación de iconos SVG
 import ArchiveIcon from "../icons/archive.svg";
 
-/*
-  Componente Catálogo - Sección de muestra de libros
-  
-  Por ahora es un placeholder
-*/
 export default function Catalogo() {
 
   return (
